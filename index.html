@@ -3,147 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Censo Electoral - Validación Estricta</title>
+    <title>Censo Electoral - Sistema Completo</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root { --primary: #1a73e8; --success: #28a745; --error: #dc3545; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 550px; text-align: center; }
+        
+        .section-title { background: #f8f9fa; padding: 10px; border-radius: 8px; margin: 20px 0 15px 0; font-size: 16px; font-weight: bold; color: #444; border-left: 4px solid var(--primary); text-align: left; }
+        
         .input-group { text-align: left; margin-bottom: 12px; }
-        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; color: white; }
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #555; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; color: white; transition: 0.3s; }
+        .btn-save { background: var(--success); font-size: 16px; }
         .btn-excel { background: var(--primary); }
+        
         #logErrores { background: #fff5f5; color: #c0392b; border: 1px solid #f5c6cb; padding: 10px; border-radius: 8px; margin-top: 15px; font-size: 12px; text-align: left; display: none; max-height: 200px; overflow-y: auto; }
         #seccionFormulario { display: none; }
         .progreso { margin-top: 10px; font-size: 14px; color: var(--primary); font-weight: bold; }
+        hr { border: 0; border-top: 1px solid #eee; margin: 25px 0; }
     </style>
 </head>
 <body>
 
 <div id="seccionLogin" class="card">
-    <h2>🔑 Acceso</h2>
-    <input type="password" id="passLogin" placeholder="Tu Cédula">
+    <h2>🔑 Acceso al Sistema</h2>
+    <input type="password" id="passLogin" placeholder="Ingresa tu Cédula">
     <button style="background: var(--primary);" onclick="login()">ENTRAR</button>
 </div>
 
 <div id="seccionFormulario" class="card">
-    <div id="txtBienvenida" style="font-weight: bold; margin-bottom: 15px;"></div>
+    <div id="txtBienvenida" style="font-weight: bold; color: var(--primary); margin-bottom: 10px;"></div>
     
-    <h3>Carga Masiva (Excel)</h3>
-    <button style="background:#6c757d; font-size:12px;" onclick="descargarPlantilla()">⬇️ Descargar Plantilla</button>
-    <input type="file" id="inputExcel" accept=".xlsx, .xls, .csv" style="margin-top:20px;">
-    <button class="btn-excel" onclick="cargarExcel()">🚀 INICIAR CARGA SEGURA</button>
-    
-    <div id="progresoCarga" class="progreso"></div>
-    <div id="logErrores"></div>
-
-    <hr style="margin:30px 0; border:0; border-top:1px solid #eee;">
-    <button onclick="location.reload()" style="background:none; color:gray; text-decoration:underline;">Cerrar Sesión</button>
-</div>
-
-<script>
-    const URL_SUPA = 'https://pmwlkdariynhaqbqursp.supabase.co';
-    const KEY_SUPA = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
-    const _supabase = supabase.createClient(URL_SUPA, KEY_SUPA);
-    let usuarioActivo = null;
-
-    async function login() {
-        const pass = document.getElementById('passLogin').value;
-        const { data } = await _supabase.from('VOTANTES').select('*').eq('cedula', pass).single();
-        if (data) {
-            usuarioActivo = data;
-            document.getElementById('txtBienvenida').innerText = "👤 LÍDER: " + data["Nombres y apellidos"];
-            document.getElementById('seccionLogin').style.display = 'none';
-            document.getElementById('seccionFormulario').style.display = 'block';
-        } else { alert("Cédula no registrada."); }
-    }
-
-    function descargarPlantilla() {
-        const h = [["cedula", "nombre_completo", "direccion", "telefono", "puesto", "observaciones"]];
-        const ws = XLSX.utils.aoa_to_sheet(h);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Censo");
-        XLSX.writeFile(wb, "Plantilla_Censo.xlsx");
-    }
-
-    async function cargarExcel() {
-        const file = document.getElementById('inputExcel').files[0];
-        if(!file) return alert("Selecciona un archivo");
-
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-            
-            const logBox = document.getElementById('logErrores');
-            const prog = document.getElementById('progresoCarga');
-            logBox.style.display = 'none';
-            logBox.innerHTML = "<b>⚠️ Registros omitidos:</b><br>";
-
-            Swal.fire({title: 'Validando Duplicados...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-
-            let subidos = 0;
-            let omitidos = 0;
-            const cedulasProcesadasEnExcel = new Set();
-
-            for (let i = 0; i < registros.length; i++) {
-                const r = registros[i];
-                const ced = String(r.cedula).trim();
-
-                // 1. Validar que no esté vacío
-                if(!ced || !r.nombre_completo) {
-                    omitidos++;
-                    continue;
-                }
-
-                // 2. Validar que no esté repetido dentro del mismo Excel
-                if(cedulasProcesadasEnExcel.has(ced)) {
-                    logBox.style.display = 'block';
-                    logBox.innerHTML += `• Fila ${i+2}: Cédula ${ced} repetida en el Excel.<br>`;
-                    omitidos++;
-                    continue;
-                }
-                cedulasProcesadasEnExcel.add(ced);
-
-                // 3. Validar contra la Base de Datos de Supabase
-                const { data: existente } = await _supabase
-                    .from('VOTANTES')
-                    .select('cedula')
-                    .eq('cedula', ced)
-                    .maybeSingle();
-
-                if (existente) {
-                    logBox.style.display = 'block';
-                    logBox.innerHTML += `• Fila ${i+2}: Cédula ${ced} ya existe en el sistema.<br>`;
-                    omitidos++;
-                } else {
-                    // 4. Insertar si pasa todas las pruebas
-                    const { error } = await _supabase.from('VOTANTES').insert([{
-                        cedula: ced,
-                        "Nombres y apellidos": r.nombre_completo,
-                        direccion: r.direccion,
-                        telefono: String(r.telefono),
-                        puesto: r.puesto,
-                        observaciones: r.observaciones || "",
-                        lider: usuarioActivo["Nombres y apellidos"]
-                    }]);
-
-                    if(!error) subidos++;
-                    else omitidos++;
-                }
-                
-                prog.innerText = `Progreso: ${i + 1} de ${registros.length}`;
-            }
-
-            Swal.close();
-            Swal.fire('Carga Finalizada', `Éxito: ${subidos} | Omitidos: ${omitidos}`, 'success');
-        };
-        reader.readAsArrayBuffer(file);
-    }
-</script>
-</body>
-</html>
+    <div class="section-title">📝 Registro Individual</div>
+    <div class="input-group">
+        <label>Cédula *</label>
+        <input type="text" id="vCedula" placeholder="Ej: 12345678" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+    </div>
+    <div class="input-group">
+        <label>Nombre Completo *</label>
+        <input type="text" id="vNombre" placeholder="Nombres y Apellidos">
+    </div>
+    <div class="input-group">
+        <label>Dirección *</label>
+        <input type="text" id="vDireccion" placeholder="Calle, Carrera, Barrio">
+    </div>
+    <div class="input-group">
+        <label>Teléfono *</label>
+        <input type="text" id
