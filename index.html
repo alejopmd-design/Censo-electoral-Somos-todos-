@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root { --primary: #1a73e8; --success: #28a745; }
+        :root { --primary: #1a73e8; --success: #28a745; --grey: #6c757d; }
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
         .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
         .input-group { text-align: left; margin-bottom: 12px; }
@@ -17,9 +17,11 @@
         button { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; color: white; transition: 0.3s; }
         .btn-save { background: var(--success); }
         .btn-excel { background: var(--primary); }
+        .btn-template { background: var(--grey); font-size: 13px; margin-bottom: 15px; }
         #logErrores { background: #fff5f5; color: #c0392b; border: 1px solid #f5c6cb; padding: 10px; border-radius: 8px; margin-top: 15px; font-size: 12px; text-align: left; display: none; max-height: 200px; overflow-y: auto; }
         #seccionFormulario { display: none; }
         .progreso { margin-top: 10px; font-size: 14px; color: var(--primary); font-weight: bold; }
+        hr { margin: 25px 0; border: 0; border-top: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -42,16 +44,19 @@
     <div class="input-group"><label>Observaciones</label><textarea id="vObs"></textarea></div>
     <button class="btn-save" onclick="procesarRegistro()">GUARDAR INDIVIDUAL</button>
 
-    <hr style="margin: 25px 0; border: 0; border-top: 1px solid #eee;">
+    <hr>
 
     <h3>Carga Masiva (Excel)</h3>
-    <p style="font-size: 12px; color: #666;">Soporta hasta 5,000 registros por archivo</p>
+    <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Usa la plantilla oficial para evitar errores</p>
+    
+    <button class="btn-template" onclick="descargarPlantilla()">⬇️ Descargar Plantilla Excel</button>
+    
     <input type="file" id="inputExcel" accept=".xlsx, .xls, .csv">
     <button class="btn-excel" onclick="cargarExcel()">🚀 INICIAR CARGA MASIVA</button>
     <div id="progresoCarga" class="progreso"></div>
 
     <div id="logErrores"></div>
-    <button onclick="location.reload()" style="background:none; color:gray; text-decoration:underline;">Cerrar Sesión</button>
+    <button onclick="location.reload()" style="background:none; color:gray; text-decoration:underline; font-size: 12px; margin-top: 20px;">Cerrar Sesión</button>
 </div>
 
 <script>
@@ -91,6 +96,15 @@
         else { Swal.fire('Éxito', 'Guardado', 'success'); limpiar(); }
     }
 
+    // --- FUNCIÓN DE DESCARGA DE PLANTILLA ---
+    function descargarPlantilla() {
+        const headers = [["cedula", "nombre_completo", "direccion", "telefono", "puesto", "observaciones"]];
+        const ws = XLSX.utils.aoa_to_sheet(headers);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Censo");
+        XLSX.writeFile(wb, "Plantilla_Carga_Masiva.xlsx");
+    }
+
     async function cargarExcel() {
         const file = document.getElementById('inputExcel').files[0];
         if(!file) return alert("Selecciona un archivo");
@@ -108,8 +122,7 @@
 
             Swal.fire({title: 'Preparando motor de carga...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
 
-            // Agrupamos de 100 en 100 para máxima velocidad
-            const tamanoLote = 100;
+            const tamanoLote = 50; // Bajamos a 50 para mayor estabilidad en archivos muy grandes
             let subidos = 0;
             let fallidos = 0;
 
@@ -124,13 +137,12 @@
                     lider: usuarioActivo["Nombres y apellidos"]
                 }));
 
-                // Enviamos el bloque completo a Supabase
                 const { error } = await _supabase.from('VOTANTES').insert(lote);
 
                 if (error) {
                     fallidos += lote.length;
                     logBox.style.display = 'block';
-                    logBox.innerHTML += `• Error en bloque ${i/tamanoLote + 1}: Posibles duplicados.<br>`;
+                    logBox.innerHTML += `• Bloque ${Math.floor(i/tamanoLote) + 1}: Error (posibles duplicados o datos vacíos).<br>`;
                 } else {
                     subidos += lote.length;
                 }
