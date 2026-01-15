@@ -16,7 +16,7 @@
         .input-group { text-align: left; margin-bottom: 15px; }
         label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #444; }
         input, textarea { width: 100%; padding: 12px; border: 2px solid #edeff2; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; color: white; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; color: white; transition: 0.3s; }
         .btn-login { background: var(--primary); }
         .btn-save { background: var(--success); }
         .btn-template { background: #6c757d; font-size: 13px; }
@@ -28,12 +28,13 @@
 <body>
 
 <div id="seccionLogin" class="card">
-    <h2>🔐 Acceso al Censo</h2>
+    <h2 style="margin-bottom:10px;">🔐 Acceso al Censo</h2>
+    <p style="font-size: 14px; color: #666; margin-bottom: 20px;">Ingresa tu número de cédula para continuar.</p>
     <div class="input-group">
-        <label>Número de Cédula</label>
-        <input type="password" id="passLogin" placeholder="Ingresa tu cédula">
+        <label>Cédula del Líder</label>
+        <input type="text" id="passLogin" placeholder="Escribe tu cédula" onkeypress="if(event.key==='Enter') login()">
     </div>
-    <button class="btn-login" onclick="login()">INGRESAR</button>
+    <button class="btn-login" onclick="login()">INGRESAR AL SISTEMA</button>
 </div>
 
 <div id="seccionFormulario" class="card">
@@ -48,15 +49,14 @@
     <div class="input-group"><label>Puesto de Votación (Opcional)</label><input type="text" id="vPuesto"></div>
     <div class="input-group"><label>Observaciones (Opcional)</label><textarea id="vObs"></textarea></div>
     
-    <button class="btn-save" onclick="procesarRegistroManual()">💾 GUARDAR INDIVIDUAL</button>
+    <button class="btn-save" onclick="procesarRegistroManual()">💾 GUARDAR REGISTRO</button>
 
     <hr style="margin:30px 0; border:0; border-top:1px solid #eee;">
 
     <div class="section-title">📂 Carga Masiva (Excel)</div>
-    <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Solo Cédula, Nombre y Teléfono son requeridos en el archivo.</p>
     <button class="btn-template" onclick="descargarPlantilla()">⬇️ DESCARGAR PLANTILLA</button>
     <input type="file" id="inputExcel" accept=".xlsx, .xls, .csv" style="margin-top:20px;">
-    <button style="background: var(--primary);" onclick="cargarExcel()">🚀 SUBIR EXCEL</button>
+    <button style="background: var(--primary);" onclick="cargarExcel()">🚀 INICIAR CARGA EXCEL</button>
     
     <div id="progresoCarga" style="margin-top:15px; font-weight:bold; color:var(--primary);"></div>
     <div id="logErrores"></div>
@@ -65,24 +65,44 @@
 </div>
 
 <script>
+    // CREDENCIALES
     const URL_SUPA = 'https://pmwlkdariynhaqbqursp.supabase.co';
     const KEY_SUPA = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(URL_SUPA, KEY_SUPA);
+    
     let usuarioActivo = null;
 
+    // LOGIN MEJORADO
     async function login() {
-        const pass = document.getElementById('passLogin').value.trim();
-        if (!pass) return Swal.fire('Aviso', 'Ingresa tu cédula', 'warning');
+        const input = document.getElementById('passLogin');
+        const pass = input.value.trim();
+        
+        if (!pass) return Swal.fire('Aviso', 'Por favor ingresa tu cédula', 'warning');
 
-        const { data, error } = await _supabase.from('VOTANTES').select('*').eq('cedula', pass).maybeSingle();
+        Swal.fire({ title: 'Verificando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-        if (data) {
-            usuarioActivo = data;
-            document.getElementById('txtBienvenida').innerText = "👤 LÍDER: " + data["Nombres y apellidos"].toUpperCase();
-            document.getElementById('seccionLogin').style.display = 'none';
-            document.getElementById('seccionFormulario').style.display = 'block';
-        } else {
-            Swal.fire('Error', 'Cédula no encontrada en la base de datos.', 'error');
+        try {
+            const { data, error } = await _supabase
+                .from('VOTANTES')
+                .select('*')
+                .eq('cedula', pass)
+                .maybeSingle();
+
+            Swal.close();
+
+            if (error) throw error;
+
+            if (data) {
+                usuarioActivo = data;
+                document.getElementById('txtBienvenida').innerText = "👤 LÍDER: " + data["Nombres y apellidos"].toUpperCase();
+                document.getElementById('seccionLogin').style.display = 'none';
+                document.getElementById('seccionFormulario').style.display = 'block';
+            } else {
+                Swal.fire('Error de Acceso', 'La cédula ' + pass + ' no existe en la base de datos.', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error de Red', 'Hubo un fallo al conectar con Supabase. Intenta de nuevo.', 'error');
+            console.error(e);
         }
     }
 
@@ -97,7 +117,6 @@
             lider: usuarioActivo["Nombres y apellidos"]
         };
 
-        // Solo validamos Cédula, Nombre y Teléfono
         if(!d.cedula || !d["Nombres y apellidos"] || !d.telefono) {
             return Swal.fire('Atención', 'Cédula, Nombre y Teléfono son obligatorios', 'warning');
         }
@@ -110,3 +129,54 @@
             Swal.fire('Éxito', 'Registrado correctamente', 'success');
             document.querySelectorAll('#seccionFormulario input, textarea').forEach(i => i.value = "");
         }
+    }
+
+    function descargarPlantilla() {
+        const h = [["cedula", "nombre_completo", "direccion", "telefono", "puesto", "observaciones"]];
+        const ws = XLSX.utils.aoa_to_sheet(h);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Censo");
+        XLSX.writeFile(wb, "Plantilla_Censo.xlsx");
+    }
+
+    async function cargarExcel() {
+        const file = document.getElementById('inputExcel').files[0];
+        if(!file) return alert("Selecciona un archivo");
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            
+            Swal.fire({title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+
+            let subidos = 0;
+            for (let i = 0; i < registros.length; i++) {
+                const r = registros[i];
+                const ced = String(r.cedula || "").trim();
+                if(!ced || !r.nombre_completo || !r.telefono) continue;
+
+                const { data: ex } = await _supabase.from('VOTANTES').select('cedula').eq('cedula', ced).maybeSingle();
+                if(!ex) {
+                    await _supabase.from('VOTANTES').insert([{
+                        cedula: ced,
+                        "Nombres y apellidos": r.nombre_completo,
+                        direccion: r.direccion || "No aplica",
+                        telefono: String(r.telefono),
+                        puesto: r.puesto || "No aplica",
+                        observaciones: r.observaciones || "",
+                        lider: usuarioActivo["Nombres y apellidos"]
+                    }]);
+                    subidos++;
+                }
+                document.getElementById('progresoCarga').innerText = `Procesados: ${i+1} de ${registros.length}`;
+            }
+            Swal.close();
+            Swal.fire('Terminado', `Se subieron ${subidos} registros nuevos.`, 'success');
+        };
+        reader.readAsArrayBuffer(file);
+    }
+</script>
+</body>
+</html>
