@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte Avanzado - Censo Electoral</title>
+    <title>Reporte de Votos Directos</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
         :root { --primary: #1a73e8; --bg: #f0f2f5; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
@@ -21,21 +22,21 @@
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th { position: sticky; top: 0; background: #f8f9fa; padding: 12px; text-align: left; }
         td { padding: 12px; border-bottom: 1px solid #eee; }
-        .selector-lider { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; border: 2px solid var(--primary); font-weight: bold; font-size: 16px; cursor: pointer; }
+        .selector-lider { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; border: 2px solid var(--primary); font-weight: bold; font-size: 16px; }
     </style>
 </head>
 <body>
 
 <div id="areaPrivada" class="container">
-    <h2 style="text-align: center; color: #1a202c;">📊 Panel de Votos Directos</h2>
+    <h2 style="text-align: center; color: #1a202c;">📊 Gestión de Votos Directos</h2>
     
-    <div style="margin-bottom: 10px; font-weight: bold; color: #555;">Filtrar por Líder Específico:</div>
-    <select id="selectLider" class="selector-lider" onchange="filtrarVotosDirectos()">
+    <div style="margin-bottom: 10px; font-weight: bold; color: #555;">Filtrar por Líder:</div>
+    <select id="selectLider" class="selector-lider" onchange="filtrarAhora()">
         <option value="TODOS">Ver Toda la Red (Votos Directos)</option>
     </select>
 
     <div class="stat-card">
-        <h3>Total Votos Directos Seleccionados</h3>
+        <h3>Total Votos Directos</h3>
         <p id="totalVotos">0</p>
     </div>
 
@@ -45,7 +46,7 @@
     </div>
 
     <div class="table-section">
-        <h4>📋 Listado de Personas</h4>
+        <h4>📋 Listado de Referidos</h4>
         <div class="scroll-table">
             <table>
                 <thead><tr><th>Cédula</th><th>Votante</th><th>Líder</th><th>Puesto</th></tr></thead>
@@ -60,104 +61,92 @@
     const KEY_SUPA = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(URL_SUPA, KEY_SUPA);
     
-    let baseDeDatos = []; // Datos limpios (sin cabeza de red ni auto-registros)
-    let chartB, chartT;
+    let datosLimpios = [];
+    let bChart, tChart;
 
-    async function login() {
-        const { value: pass } = await Swal.fire({
+    // Función inicial para pedir la clave
+    async function auth() {
+        const { value: p } = await Swal.fire({
             title: 'Acceso Seguro',
             input: 'password',
-            inputPlaceholder: 'Clave Maestra',
-            allowOutsideClick: false,
-            confirmButtonText: 'Entrar'
+            inputPlaceholder: 'Clave ADMIN2026',
+            allowOutsideClick: false
         });
 
-        if (pass === 'ADMIN2026') {
+        if (p === 'ADMIN2026') {
             document.getElementById('areaPrivada').style.display = 'block';
-            cargarDatosOriginales();
+            await obtenerData();
         } else {
             Swal.fire('Error', 'Clave incorrecta', 'error').then(() => location.reload());
         }
     }
 
-    async function cargarDatosOriginales() {
-        const { data } = await _supabase.from('VOTANTES').select('*');
-        
-        // FILTRO DE ORIGEN: Limpiamos los datos antes de hacer nada
-        baseDeDatos = data.filter(v => {
+    async function obtenerData() {
+        const { data, error } = await _supabase.from('VOTANTES').select('*');
+        if (error) return Swal.fire('Error', 'No se pudo conectar con la base de datos', 'error');
+
+        // FILTRO: Solo votos directos (Quitamos "quien lo ingreso" y auto-registros)
+        datosLimpios = data.filter(v => {
             const l = (v.lider || "").toLowerCase().trim();
             const n = (v["Nombres y apellidos"] || "").toLowerCase().trim();
-            
-            // Excluir "quien lo ingreso" y auto-registros de Rosse Mary
-            const esCabezaRed = l.includes("quien lo ingreso");
+            const esSistema = l.includes("quien lo ingreso");
             const esAutoRosse = l.includes("rosse mary") && n.includes("rosse mary");
-            
-            return !esCabezaRed && !esAutoRosse;
+            return !esSistema && !esAutoRosse;
         });
 
-        poblarSelectorLideres();
-        filtrarVotosDirectos(); // Carga inicial con "TODOS"
-    }
-
-    function poblarSelectorLideres() {
+        // Llenar el selector
         const select = document.getElementById('selectLider');
-        // Obtener nombres únicos de líderes de la base de datos limpia
-        const lideresUnicos = [...new Set(baseDeDatos.map(v => v.lider))].sort();
+        const listaLideres = [...new Set(datosLimpios.map(v => v.lider))].sort();
+        listaLideres.forEach(nom => {
+            const el = document.createElement('option');
+            el.value = nom;
+            el.innerText = nom;
+            select.appendChild(el);
+        });
+
+        filtrarAhora();
+    }
+
+    function filtrarAhora() {
+        const f = document.getElementById('selectLider').value;
+        const res = f === "TODOS" ? datosLimpios : datosLimpios.filter(v => v.lider === f);
         
-        lideresUnicos.forEach(nombre => {
-            const opt = document.createElement('option');
-            opt.value = nombre;
-            opt.innerText = nombre;
-            select.appendChild(opt);
-        });
-    }
-
-    function filtrarVotosDirectos() {
-        const filtro = document.getElementById('selectLider').value;
-        const filtrados = filtro === "TODOS" 
-            ? baseDeDatos 
-            : baseDeDatos.filter(v => v.lider === filtro);
-
-        document.getElementById('totalVotos').innerText = filtrados.length;
-        dibujarGraficos(filtrados);
-        llenarTabla(filtrados);
-    }
-
-    function dibujarGraficos(data) {
-        const lideres = {};
-        const puestos = {};
-
-        data.forEach(v => {
-            lideres[v.lider] = (lideres[v.lider] || 0) + 1;
+        document.getElementById('totalVotos').innerText = res.length;
+        
+        // Graficar
+        const lMap = {};
+        const pMap = {};
+        res.forEach(v => {
+            lMap[v.lider] = (lMap[v.lider] || 0) + 1;
             const p = v.puesto || "Sin asignar";
-            puestos[p] = (puestos[p] || 0) + 1;
+            pMap[p] = (pMap[p] || 0) + 1;
         });
 
-        if(chartB) chartB.destroy();
-        chartB = new Chart(document.getElementById('chartBarras'), {
+        if(bChart) bChart.destroy();
+        bChart = new Chart(document.getElementById('chartBarras'), {
             type: 'bar',
-            data: {
-                labels: Object.keys(lideres),
-                datasets: [{ label: 'Votos', data: Object.values(lideres), backgroundColor: '#1a73e8' }]
-            },
-            options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
-        });
-
-        if(chartT) chartT.destroy();
-        chartT = new Chart(document.getElementById('chartTorta'), {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(puestos),
-                datasets: [{ data: Object.values(puestos), backgroundColor: ['#4285f4', '#34a853', '#fbbc05', '#ea4335'] }]
-            },
+            data: { labels: Object.keys(lMap), datasets: [{ label: 'Votos', data: Object.values(lMap), backgroundColor: '#1a73e8' }] },
             options: { maintainAspectRatio: false }
         });
-    }
 
-    function llenarTabla(data) {
-        document.getElementById('cuerpoTabla').innerHTML = data.map(v => `
+        if(tChart) tChart.destroy();
+        tChart = new Chart(document.getElementById('chartTorta'), {
+            type: 'doughnut',
+            data: { labels: Object.keys(pMap), datasets: [{ data: Object.values(pMap), backgroundColor: ['#4285f4', '#34a853', '#fbbc05', '#ea4335'] }] },
+            options: { maintainAspectRatio: false }
+        });
+
+        // Tabla
+        document.getElementById('cuerpoTabla').innerHTML = res.map(v => `
             <tr>
                 <td>${v.cedula}</td>
                 <td>${v["Nombres y apellidos"]}</td>
                 <td><b>${v.lider}</b></td>
-                <td>${v.puesto
+                <td>${v.puesto}</td>
+            </tr>`).join('');
+    }
+
+    auth();
+</script>
+</body>
+</html>
