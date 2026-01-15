@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte Votos Directos</title>
+    <title>Reporte Avanzado - Censo Electoral</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -21,15 +21,21 @@
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th { position: sticky; top: 0; background: #f8f9fa; padding: 12px; text-align: left; }
         td { padding: 12px; border-bottom: 1px solid #eee; }
+        .selector-lider { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; border: 2px solid var(--primary); font-weight: bold; font-size: 16px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="areaPrivada" class="container">
-    <h2 style="text-align: center; color: #1a202c;">📊 Panel de Control Directo</h2>
+    <h2 style="text-align: center; color: #1a202c;">📊 Panel de Votos Directos</h2>
     
+    <div style="margin-bottom: 10px; font-weight: bold; color: #555;">Filtrar por Líder Específico:</div>
+    <select id="selectLider" class="selector-lider" onchange="filtrarVotosDirectos()">
+        <option value="TODOS">Ver Toda la Red (Votos Directos)</option>
+    </select>
+
     <div class="stat-card">
-        <h3>Votos Directos Captados</h3>
+        <h3>Total Votos Directos Seleccionados</h3>
         <p id="totalVotos">0</p>
     </div>
 
@@ -39,7 +45,7 @@
     </div>
 
     <div class="table-section">
-        <h4>📋 Listado Detallado</h4>
+        <h4>📋 Listado de Personas</h4>
         <div class="scroll-table">
             <table>
                 <thead><tr><th>Cédula</th><th>Votante</th><th>Líder</th><th>Puesto</th></tr></thead>
@@ -53,38 +59,64 @@
     const URL_SUPA = 'https://pmwlkdariynhaqbqursp.supabase.co';
     const KEY_SUPA = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(URL_SUPA, KEY_SUPA);
+    
+    let baseDeDatos = []; // Datos limpios (sin cabeza de red ni auto-registros)
     let chartB, chartT;
 
     async function login() {
         const { value: pass } = await Swal.fire({
             title: 'Acceso Seguro',
             input: 'password',
-            inputPlaceholder: 'Ingresa la Clave Maestra',
+            inputPlaceholder: 'Clave Maestra',
             allowOutsideClick: false,
             confirmButtonText: 'Entrar'
         });
 
         if (pass === 'ADMIN2026') {
             document.getElementById('areaPrivada').style.display = 'block';
-            iniciarReporte();
+            cargarDatosOriginales();
         } else {
             Swal.fire('Error', 'Clave incorrecta', 'error').then(() => location.reload());
         }
     }
 
-    async function iniciarReporte() {
+    async function cargarDatosOriginales() {
         const { data } = await _supabase.from('VOTANTES').select('*');
         
-        // FILTRO RADICAL: Quita cualquier cosa que diga "quien lo ingreso" o auto-registros de Rosse Mary
-        const filtrados = data.filter(v => {
-            const l = (v.lider || "").toLowerCase();
-            const n = (v["Nombres y apellidos"] || "").toLowerCase();
+        // FILTRO DE ORIGEN: Limpiamos los datos antes de hacer nada
+        baseDeDatos = data.filter(v => {
+            const l = (v.lider || "").toLowerCase().trim();
+            const n = (v["Nombres y apellidos"] || "").toLowerCase().trim();
             
-            const esSistema = l.includes("quien lo ingreso");
+            // Excluir "quien lo ingreso" y auto-registros de Rosse Mary
+            const esCabezaRed = l.includes("quien lo ingreso");
             const esAutoRosse = l.includes("rosse mary") && n.includes("rosse mary");
             
-            return !esSistema && !esAutoRosse;
+            return !esCabezaRed && !esAutoRosse;
         });
+
+        poblarSelectorLideres();
+        filtrarVotosDirectos(); // Carga inicial con "TODOS"
+    }
+
+    function poblarSelectorLideres() {
+        const select = document.getElementById('selectLider');
+        // Obtener nombres únicos de líderes de la base de datos limpia
+        const lideresUnicos = [...new Set(baseDeDatos.map(v => v.lider))].sort();
+        
+        lideresUnicos.forEach(nombre => {
+            const opt = document.createElement('option');
+            opt.value = nombre;
+            opt.innerText = nombre;
+            select.appendChild(opt);
+        });
+    }
+
+    function filtrarVotosDirectos() {
+        const filtro = document.getElementById('selectLider').value;
+        const filtrados = filtro === "TODOS" 
+            ? baseDeDatos 
+            : baseDeDatos.filter(v => v.lider === filtro);
 
         document.getElementById('totalVotos').innerText = filtrados.length;
         dibujarGraficos(filtrados);
@@ -108,7 +140,7 @@
                 labels: Object.keys(lideres),
                 datasets: [{ label: 'Votos', data: Object.values(lideres), backgroundColor: '#1a73e8' }]
             },
-            options: { maintainAspectRatio: false }
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
         });
 
         if(chartT) chartT.destroy();
@@ -128,12 +160,4 @@
                 <td>${v.cedula}</td>
                 <td>${v["Nombres y apellidos"]}</td>
                 <td><b>${v.lider}</b></td>
-                <td>${v.puesto}</td>
-            </tr>
-        `).join('');
-    }
-
-    login();
-</script>
-</body>
-</html>
+                <td>${v.puesto
