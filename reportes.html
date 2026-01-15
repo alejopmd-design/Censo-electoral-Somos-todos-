@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análisis de Red - Rosse Mary</title>
+    <title>Reporte Seguro - Censo Electoral</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         :root { --primary: #1a73e8; --bg: #f0f2f5; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .container { max-width: 1100px; margin: auto; }
+        .container { max-width: 1100px; margin: auto; display: none; } /* Oculto hasta que se valide */
         .stat-card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; margin-bottom: 20px; }
         .stat-card p { margin: 5px 0 0; font-size: 28px; font-weight: bold; color: var(--primary); }
         .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
@@ -21,16 +22,21 @@
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
         th { position: sticky; top: 0; background: #f8f9fa; padding: 10px; text-align: left; }
         td { padding: 10px; border-bottom: 1px solid #eee; }
+        .selector-lider { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; border: 2px solid var(--primary); font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>📊 Gestión de Red Directa</h2>
-    <p style="color: #666; font-size: 14px;">Excluyendo auto-registros de la Líder Principal (Rosse Mary).</p>
+<div id="areaReportes" class="container">
+    <h2>📊 Gestión de Red Directa (Acceso Protegido)</h2>
+    
+    <label style="font-size: 12px; font-weight: bold;">FILTRAR POR LÍDER ESPECÍFICO:</label>
+    <select id="selectLider" class="selector-lider" onchange="filtrarVotosDirectos()">
+        <option value="TODOS">Ver Toda la Red (Sin 'quien lo ingreso')</option>
+    </select>
 
     <div class="stat-card">
-        <h3>Votos Directos (Equipo)</h3>
+        <h3>Votos Directos Captados</h3>
         <p id="totalVotos">0</p>
     </div>
 
@@ -46,14 +52,14 @@
     </div>
 
     <div class="table-section">
-        <h4>📋 Listado General de Referidos</h4>
+        <h4>📋 Listado de Referidos Directos</h4>
         <div class="scroll-table">
             <table>
                 <thead>
                     <tr>
                         <th>Cédula</th>
                         <th>Votante</th>
-                        <th>Líder</th>
+                        <th>Líder Responsable</th>
                         <th>Puesto</th>
                     </tr>
                 </thead>
@@ -68,52 +74,87 @@
     const KEY_SUPA = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(URL_SUPA, KEY_SUPA);
 
+    let baseDeDatos = [];
     let chartB, chartT;
+
+    // --- FUNCIÓN DE SEGURIDAD ---
+    async function validarAcceso() {
+        const { value: password } = await Swal.fire({
+            title: 'Acceso Restringido',
+            input: 'password',
+            inputLabel: 'Ingresa la clave maestra para ver reportes',
+            inputPlaceholder: 'Clave de administrador',
+            allowOutsideClick: false,
+            confirmButtonText: 'Entrar'
+        });
+
+        if (password === 'ADMIN2026') { // <--- AQUÍ PUEDES CAMBIAR TU CLAVE
+            document.getElementById('areaReportes').style.display = 'block';
+            cargarReporte();
+        } else {
+            Swal.fire('Incorrecto', 'No tienes permiso para ver esta página', 'error').then(() => {
+                location.href = 'index.html'; // Lo devuelve al registro
+            });
+        }
+    }
 
     async function cargarReporte() {
         const { data } = await _supabase.from('VOTANTES').select('*');
         
-        // REGLA DE FILTRADO: 
-        // 1. Quita "quien lo ingreso"
-        // 2. Quita el registro donde Rosse Mary es la votante (auto-registro) de las gráficas
-        const dataParaGraficas = data.filter(v => {
+        // FILTRO: Quitamos "quien lo ingreso" y el registro donde Rosse Mary se auto-refiere
+        baseDeDatos = data.filter(v => {
             const nombreVotante = v["Nombres y apellidos"].toLowerCase();
             const nombreLider = v.lider.toLowerCase();
-            
             const esSistema = nombreLider === "quien lo ingreso";
-            const esAutoRegistroRosse = nombreVotante.includes("rosse mary") && nombreLider.includes("rosse mary");
-            
-            return !esSistema && !esAutoRegistroRosse;
+            const esAutoRosse = nombreVotante.includes("rosse mary") && nombreLider.includes("rosse mary");
+            return !esSistema && !esAutoRosse;
         });
-
-        actualizarPanel(dataParaGraficas, data);
+        
+        poblarSelector();
+        filtrarVotosDirectos();
     }
 
-    function actualizarPanel(filtrados, totalRaw) {
+    function poblarSelector() {
+        const select = document.getElementById('selectLider');
+        const lideresUnicos = [...new Set(baseDeDatos.map(v => v.lider))];
+        lideresUnicos.forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l;
+            opt.innerText = l;
+            select.appendChild(opt);
+        });
+    }
+
+    function filtrarVotosDirectos() {
+        const filtro = document.getElementById('selectLider').value;
+        const filtrados = filtro === "TODOS" 
+            ? baseDeDatos 
+            : baseDeDatos.filter(v => v.lider === filtro);
+
         document.getElementById('totalVotos').innerText = filtrados.length;
-        
-        // Agrupar para gráficas
+        actualizarGraficos(filtrados);
+        actualizarTabla(filtrados);
+    }
+
+    function actualizarGraficos(data) {
         const lideresMap = {};
         const puestosMap = {};
-
-        filtrados.forEach(v => {
+        data.forEach(v => {
             lideresMap[v.lider] = (lideresMap[v.lider] || 0) + 1;
             const p = v.puesto || "Sin Puesto";
             puestosMap[p] = (puestosMap[p] || 0) + 1;
         });
 
-        // Gráfico Barras (Productividad Líderes)
         if(chartB) chartB.destroy();
         chartB = new Chart(document.getElementById('chartBarras'), {
             type: 'bar',
             data: {
                 labels: Object.keys(lideresMap),
-                datasets: [{ label: 'Votos Directos', data: Object.values(lideresMap), backgroundColor: '#1a73e8' }]
+                datasets: [{ label: 'Votos', data: Object.values(lideresMap), backgroundColor: '#1a73e8' }]
             },
-            options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            options: { maintainAspectRatio: false }
         });
 
-        // Gráfico Torta
         if(chartT) chartT.destroy();
         chartT = new Chart(document.getElementById('chartTorta'), {
             type: 'doughnut',
@@ -123,12 +164,11 @@
             },
             options: { maintainAspectRatio: false }
         });
+    }
 
-        // Tabla (aquí sí mostramos todo menos el sistema para auditoría)
+    function actualizarTabla(data) {
         const tbody = document.getElementById('cuerpoTabla');
-        tbody.innerHTML = totalRaw
-            .filter(v => v.lider.toLowerCase() !== "quien lo ingreso")
-            .map(v => `
+        tbody.innerHTML = data.map(v => `
             <tr>
                 <td>${v.cedula}</td>
                 <td>${v["Nombres y apellidos"]}</td>
@@ -138,7 +178,8 @@
         `).join('');
     }
 
-    cargarReporte();
+    // Iniciar validación al cargar
+    validarAcceso();
 </script>
 </body>
 </html>
