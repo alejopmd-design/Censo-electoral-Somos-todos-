@@ -3,85 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Red - Censo Electoral</title>
+    <title>Análisis de Datos - Censo Electoral</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <style>
-        :root { --primary: #1a73e8; --secondary: #5f6368; --directo: #28a745; --indirecto: #fd7e14; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f9; margin: 0; padding: 20px; }
+        :root { --primary: #1a73e8; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: auto; }
         
-        /* Tarjetas de Resumen */
-        .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px; }
-        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; border-top: 5px solid var(--primary); }
-        .stat-card.direct { border-top-color: var(--directo); }
-        .stat-card.indirect { border-top-color: var(--indirecto); }
-        .stat-card h3 { margin: 0; font-size: 14px; color: var(--secondary); text-transform: uppercase; }
-        .stat-card p { margin: 10px 0 0; font-size: 32px; font-weight: bold; color: #333; }
+        .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; }
+        .stat-card h3 { margin: 0; color: #666; font-size: 14px; text-transform: uppercase; }
+        .stat-card p { margin: 10px 0 0; font-size: 32px; font-weight: bold; color: var(--primary); }
 
-        .main-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .controls { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; flex: 1; min-width: 200px; }
-        
-        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; }
-        .btn-excel { background: var(--directo); }
-        .btn-refresh { background: var(--secondary); }
+        .charts-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 25px; }
+        .chart-box { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); min-height: 350px; }
+        .chart-box h4 { margin-top: 0; color: #333; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 10px; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 12px; color: #666; border-bottom: 2px solid #eee; }
-        td { padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .table-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; padding: 12px; background: #f8f9fa; color: #555; font-size: 13px; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
         
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
-        .badge-direct { background: #e6f4ea; color: var(--directo); }
-        .badge-indirect { background: #fff4e5; color: var(--indirecto); }
+        .btn-excel { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; float: right; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1 style="color: #333;">📉 Análisis de Red Electoral</h1>
-    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+        <h1>📊 Análisis en Tiempo Real</h1>
+        <button class="btn-excel" onclick="exportarExcel()">📥 Descargar Todo (Excel)</button>
+    </div>
+
     <div class="grid-stats">
-        <div class="stat-card">
-            <h3>Población Total</h3>
-            <p id="txtTotal">0</p>
+        <div class="stat-card"><h3>Total Censo</h3><p id="totalV">0</p></div>
+        <div class="stat-card"><h3>Líderes Activos</h3><p id="totalL">0</p></div>
+        <div class="stat-card"><h3>Meta 5,000</h3><p id="porcentaje">0%</p></div>
+    </div>
+
+    <div class="charts-container">
+        <div class="chart-box">
+            <h4>🏆 Productividad por Líder (Top 10)</h4>
+            <canvas id="chartBarras"></canvas>
         </div>
-        <div class="stat-card direct">
-            <h3>Votos Directos</h3>
-            <p id="txtDirectos">0</p>
-            <small style="color:gray">Registrados por el líder seleccionado</small>
-        </div>
-        <div class="stat-card indirect">
-            <h3>Votos Indirectos</h3>
-            <p id="txtIndirectos">0</p>
-            <small style="color:gray">Referidos de sus referidos</small>
+        <div class="chart-box">
+            <h4>📍 Distribución por Puestos</h4>
+            <canvas id="chartTorta"></canvas>
         </div>
     </div>
 
-    <div class="main-card">
-        <div class="controls">
-            <select id="selectLider" onchange="analizarRed()">
-                <option value="">🔍 Selecciona un Líder para ver su Red</option>
-            </select>
-            <button class="btn btn-refresh" onclick="cargarDatos()">🔄 Sincronizar</button>
-            <button class="btn btn-excel" onclick="exportarExcel()">📥 Bajar Reporte</button>
-        </div>
-
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Cédula</th>
-                        <th>Nombre</th>
-                        <th>Parentesco</th>
-                        <th>Líder Inmediato</th>
-                        <th>Puesto de Votación</th>
-                    </tr>
-                </thead>
-                <tbody id="cuerpoTabla">
-                    </tbody>
-            </table>
-        </div>
+    <div class="table-card">
+        <h4>📋 Últimos Registros</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Cédula</th>
+                    <th>Nombre</th>
+                    <th>Líder</th>
+                    <th>Puesto</th>
+                    <th>Teléfono</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla"></tbody>
+        </table>
     </div>
 </div>
 
@@ -90,74 +77,99 @@
     const KEY_SUPA = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(URL_SUPA, KEY_SUPA);
 
-    let baseDatos = [];
+    let chartB, chartT;
 
-    async function cargarDatos() {
+    async function inicializarReporte() {
         const { data, error } = await _supabase.from('VOTANTES').select('*');
-        if (error) return alert("Error al conectar");
-        
-        baseDatos = data;
-        llenarLideres();
-        document.getElementById('txtTotal').innerText = data.length;
-        analizarRed(); // Inicial con todos
+        if (error) return;
+
+        procesarDatos(data);
+        renderTabla(data.slice(0, 10)); // Solo los últimos 10
     }
 
-    function llenarLideres() {
-        const select = document.getElementById('selectLider');
-        const nombres = [...new Set(baseDatos.map(d => d.lider))].filter(n => n).sort();
-        select.innerHTML = '<option value="">🔍 Selecciona un Líder para ver su Red</option>';
-        nombres.forEach(n => {
-            select.innerHTML += `<option value="${n}">${n}</option>`;
+    function procesarDatos(data) {
+        // Totales
+        document.getElementById('totalV').innerText = data.length;
+        const porcentaje = (data.length / 5000 * 100).toFixed(1);
+        document.getElementById('porcentaje').innerText = porcentaje + "%";
+
+        // Agrupar por Líder
+        const lideresMap = {};
+        const puestosMap = {};
+        
+        data.forEach(v => {
+            lideresMap[v.lider] = (lideresMap[v.lider] || 0) + 1;
+            const p = v.puesto || "No definido";
+            puestosMap[p] = (puestosMap[p] || 0) + 1;
+        });
+
+        const lideresNombres = Object.keys(lideresMap);
+        document.getElementById('totalL').innerText = lideresNombres.length;
+
+        renderBarras(lideresMap);
+        renderTorta(puestosMap);
+    }
+
+    function renderBarras(mapa) {
+        const ctx = document.getElementById('chartBarras').getContext('2d');
+        const sorted = Object.entries(mapa).sort((a,b) => b[1] - a[1]).slice(0, 10);
+        
+        if(chartB) chartB.destroy();
+        chartB = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: sorted.map(x => x[0]),
+                datasets: [{
+                    label: 'Votos Captados',
+                    data: sorted.map(x => x[1]),
+                    backgroundColor: '#1a73e8'
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
         });
     }
 
-    function analizarRed() {
-        const liderPrincipal = document.getElementById('selectLider').value;
-        const cuerpo = document.getElementById('cuerpoTabla');
-        cuerpo.innerHTML = "";
+    function renderTorta(mapa) {
+        const ctx = document.getElementById('chartTorta').getContext('2d');
+        const labels = Object.keys(mapa);
+        const values = Object.values(mapa);
 
-        if (!liderPrincipal) {
-            document.getElementById('txtDirectos').innerText = "0";
-            document.getElementById('txtIndirectos').innerText = "0";
-            return;
-        }
-
-        // 1. Encontrar Directos (Los que tienen como líder al seleccionado)
-        const directos = baseDatos.filter(v => v.lider === liderPrincipal);
-        
-        // 2. Encontrar Indirectos (Los que tienen como líder a alguno de los directos)
-        const nombresDirectos = directos.map(d => d["Nombres y apellidos"]);
-        const indirectos = baseDatos.filter(v => nombresDirectos.includes(v.lider));
-
-        // Actualizar contadores
-        document.getElementById('txtDirectos').innerText = directos.length;
-        document.getElementById('txtIndirectos').innerText = indirectos.length;
-
-        // Mostrar en tabla
-        [...directos, ...indirectos].forEach(v => {
-            const esDirecto = v.lider === liderPrincipal;
-            cuerpo.innerHTML += `
-                <tr>
-                    <td>${v.cedula}</td>
-                    <td>${v["Nombres y apellidos"]}</td>
-                    <td><span class="badge ${esDirecto ? 'badge-direct' : 'badge-indirect'}">
-                        ${esDirecto ? 'DIRECTO' : 'INDIRECTO'}
-                    </span></td>
-                    <td>${v.lider}</td>
-                    <td>${v.puesto}</td>
-                </tr>
-            `;
+        if(chartT) chartT.destroy();
+        chartT = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: ['#4285f4', '#34a853', '#fbbc05', '#ea4335', '#9c27b0']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
         });
     }
 
-    function exportarExcel() {
-        const ws = XLSX.utils.json_to_sheet(baseDatos);
+    function renderTabla(data) {
+        const tbody = document.getElementById('cuerpoTabla');
+        tbody.innerHTML = data.map(v => `
+            <tr>
+                <td>${v.cedula}</td>
+                <td>${v["Nombres y apellidos"]}</td>
+                <td><b>${v.lider}</b></td>
+                <td>${v.puesto}</td>
+                <td>${v.telefono}</td>
+            </tr>
+        `).join('');
+    }
+
+    async function exportarExcel() {
+        const { data } = await _supabase.from('VOTANTES').select('*');
+        const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Censo Completo");
-        XLSX.writeFile(wb, "Reporte_Electoral_Red.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "CensoTotal");
+        XLSX.writeFile(wb, "Reporte_Electoral_Completo.xlsx");
     }
 
-    cargarDatos();
+    inicializarReporte();
 </script>
 </body>
 </html>
