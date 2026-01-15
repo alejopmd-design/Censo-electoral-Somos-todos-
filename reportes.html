@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Red - Censo Electoral</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root { --primary: #1a73e8; --secondary: #5f6368; --directo: #28a745; --indirecto: #fd7e14; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f9; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; }
+        
+        /* Tarjetas de Resumen */
+        .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; border-top: 5px solid var(--primary); }
+        .stat-card.direct { border-top-color: var(--directo); }
+        .stat-card.indirect { border-top-color: var(--indirecto); }
+        .stat-card h3 { margin: 0; font-size: 14px; color: var(--secondary); text-transform: uppercase; }
+        .stat-card p { margin: 10px 0 0; font-size: 32px; font-weight: bold; color: #333; }
+
+        .main-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .controls { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; flex: 1; min-width: 200px; }
+        
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; }
+        .btn-excel { background: var(--directo); }
+        .btn-refresh { background: var(--secondary); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 12px; color: #666; border-bottom: 2px solid #eee; }
+        td { padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; }
+        
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .badge-direct { background: #e6f4ea; color: var(--directo); }
+        .badge-indirect { background: #fff4e5; color: var(--indirecto); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 style="color: #333;">📉 Análisis de Red Electoral</h1>
+    
+    <div class="grid-stats">
+        <div class="stat-card">
+            <h3>Población Total</h3>
+            <p id="txtTotal">0</p>
+        </div>
+        <div class="stat-card direct">
+            <h3>Votos Directos</h3>
+            <p id="txtDirectos">0</p>
+            <small style="color:gray">Registrados por el líder seleccionado</small>
+        </div>
+        <div class="stat-card indirect">
+            <h3>Votos Indirectos</h3>
+            <p id="txtIndirectos">0</p>
+            <small style="color:gray">Referidos de sus referidos</small>
+        </div>
+    </div>
+
+    <div class="main-card">
+        <div class="controls">
+            <select id="selectLider" onchange="analizarRed()">
+                <option value="">🔍 Selecciona un Líder para ver su Red</option>
+            </select>
+            <button class="btn btn-refresh" onclick="cargarDatos()">🔄 Sincronizar</button>
+            <button class="btn btn-excel" onclick="exportarExcel()">📥 Bajar Reporte</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cédula</th>
+                        <th>Nombre</th>
+                        <th>Parentesco</th>
+                        <th>Líder Inmediato</th>
+                        <th>Puesto de Votación</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTabla">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const URL_SUPA = 'https://pmwlkdariynhaqbqursp.supabase.co';
+    const KEY_SUPA = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
+    const _supabase = supabase.createClient(URL_SUPA, KEY_SUPA);
+
+    let baseDatos = [];
+
+    async function cargarDatos() {
+        const { data, error } = await _supabase.from('VOTANTES').select('*');
+        if (error) return alert("Error al conectar");
+        
+        baseDatos = data;
+        llenarLideres();
+        document.getElementById('txtTotal').innerText = data.length;
+        analizarRed(); // Inicial con todos
+    }
+
+    function llenarLideres() {
+        const select = document.getElementById('selectLider');
+        const nombres = [...new Set(baseDatos.map(d => d.lider))].filter(n => n).sort();
+        select.innerHTML = '<option value="">🔍 Selecciona un Líder para ver su Red</option>';
+        nombres.forEach(n => {
+            select.innerHTML += `<option value="${n}">${n}</option>`;
+        });
+    }
+
+    function analizarRed() {
+        const liderPrincipal = document.getElementById('selectLider').value;
+        const cuerpo = document.getElementById('cuerpoTabla');
+        cuerpo.innerHTML = "";
+
+        if (!liderPrincipal) {
+            document.getElementById('txtDirectos').innerText = "0";
+            document.getElementById('txtIndirectos').innerText = "0";
+            return;
+        }
+
+        // 1. Encontrar Directos (Los que tienen como líder al seleccionado)
+        const directos = baseDatos.filter(v => v.lider === liderPrincipal);
+        
+        // 2. Encontrar Indirectos (Los que tienen como líder a alguno de los directos)
+        const nombresDirectos = directos.map(d => d["Nombres y apellidos"]);
+        const indirectos = baseDatos.filter(v => nombresDirectos.includes(v.lider));
+
+        // Actualizar contadores
+        document.getElementById('txtDirectos').innerText = directos.length;
+        document.getElementById('txtIndirectos').innerText = indirectos.length;
+
+        // Mostrar en tabla
+        [...directos, ...indirectos].forEach(v => {
+            const esDirecto = v.lider === liderPrincipal;
+            cuerpo.innerHTML += `
+                <tr>
+                    <td>${v.cedula}</td>
+                    <td>${v["Nombres y apellidos"]}</td>
+                    <td><span class="badge ${esDirecto ? 'badge-direct' : 'badge-indirect'}">
+                        ${esDirecto ? 'DIRECTO' : 'INDIRECTO'}
+                    </span></td>
+                    <td>${v.lider}</td>
+                    <td>${v.puesto}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function exportarExcel() {
+        const ws = XLSX.utils.json_to_sheet(baseDatos);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Censo Completo");
+        XLSX.writeFile(wb, "Reporte_Electoral_Red.xlsx");
+    }
+
+    cargarDatos();
+</script>
+</body>
+</html>
