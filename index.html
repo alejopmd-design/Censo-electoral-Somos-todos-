@@ -40,17 +40,20 @@
     <div class="user-info" id="txtBienvenida"></div>
     
     <div class="section-title">📝 Registro Individual</div>
-    <div class="input-group"><label>Cédula *</label><input type="text" id="vCedula"></div>
-    <div class="input-group"><label>Nombre Completo *</label><input type="text" id="vNombre"></div>
-    <div class="input-group"><label>Dirección *</label><input type="text" id="vDireccion"></div>
-    <div class="input-group"><label>Teléfono *</label><input type="text" id="vTelefono"></div>
-    <div class="input-group"><label>Puesto de Votación *</label><input type="text" id="vPuesto"></div>
-    <div class="input-group"><label>Observaciones</label><textarea id="vObs"></textarea></div>
+    <div class="input-group"><label>Cédula * (Obligatorio)</label><input type="text" id="vCedula"></div>
+    <div class="input-group"><label>Nombre Completo * (Obligatorio)</label><input type="text" id="vNombre"></div>
+    <div class="input-group"><label>Teléfono * (Obligatorio)</label><input type="text" id="vTelefono"></div>
+    
+    <div class="input-group"><label>Dirección (Opcional)</label><input type="text" id="vDireccion"></div>
+    <div class="input-group"><label>Puesto de Votación (Opcional)</label><input type="text" id="vPuesto"></div>
+    <div class="input-group"><label>Observaciones (Opcional)</label><textarea id="vObs"></textarea></div>
+    
     <button class="btn-save" onclick="procesarRegistroManual()">💾 GUARDAR INDIVIDUAL</button>
 
     <hr style="margin:30px 0; border:0; border-top:1px solid #eee;">
 
     <div class="section-title">📂 Carga Masiva (Excel)</div>
+    <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Solo Cédula, Nombre y Teléfono son requeridos en el archivo.</p>
     <button class="btn-template" onclick="descargarPlantilla()">⬇️ DESCARGAR PLANTILLA</button>
     <input type="file" id="inputExcel" accept=".xlsx, .xls, .csv" style="margin-top:20px;">
     <button style="background: var(--primary);" onclick="cargarExcel()">🚀 SUBIR EXCEL</button>
@@ -87,15 +90,16 @@
         const d = {
             cedula: document.getElementById('vCedula').value.trim(),
             "Nombres y apellidos": document.getElementById('vNombre').value.trim(),
-            direccion: document.getElementById('vDireccion').value.trim(),
+            direccion: document.getElementById('vDireccion').value.trim() || "No aplica",
             telefono: document.getElementById('vTelefono').value.trim(),
-            puesto: document.getElementById('vPuesto').value.trim(),
-            observaciones: document.getElementById('vObs').value.trim(),
+            puesto: document.getElementById('vPuesto').value.trim() || "No aplica",
+            observaciones: document.getElementById('vObs').value.trim() || "",
             lider: usuarioActivo["Nombres y apellidos"]
         };
 
-        if(!d.cedula || !d["Nombres y apellidos"] || !d.direccion || !d.telefono || !d.puesto) {
-            return Swal.fire('Atención', 'Completa los campos obligatorios', 'warning');
+        // Solo validamos Cédula, Nombre y Teléfono
+        if(!d.cedula || !d["Nombres y apellidos"] || !d.telefono) {
+            return Swal.fire('Atención', 'Cédula, Nombre y Teléfono son obligatorios', 'warning');
         }
 
         const { data: existe } = await _supabase.from('VOTANTES').select('cedula').eq('cedula', d.cedula).maybeSingle();
@@ -106,52 +110,3 @@
             Swal.fire('Éxito', 'Registrado correctamente', 'success');
             document.querySelectorAll('#seccionFormulario input, textarea').forEach(i => i.value = "");
         }
-    }
-
-    function descargarPlantilla() {
-        const h = [["cedula", "nombre_completo", "direccion", "telefono", "puesto", "observaciones"]];
-        const ws = XLSX.utils.aoa_to_sheet(h);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Censo");
-        XLSX.writeFile(wb, "Plantilla_Censo.xlsx");
-    }
-
-    async function cargarExcel() {
-        const file = document.getElementById('inputExcel').files[0];
-        if(!file) return alert("Selecciona un archivo");
-
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-            
-            Swal.fire({title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-
-            let subidos = 0;
-            for (let i = 0; i < registros.length; i++) {
-                const r = registros[i];
-                const { data: ex } = await _supabase.from('VOTANTES').select('cedula').eq('cedula', String(r.cedula)).maybeSingle();
-                
-                if(!ex) {
-                    await _supabase.from('VOTANTES').insert([{
-                        cedula: String(r.cedula),
-                        "Nombres y apellidos": r.nombre_completo,
-                        direccion: r.direccion,
-                        telefono: String(r.telefono),
-                        puesto: r.puesto,
-                        observaciones: r.observaciones || "",
-                        lider: usuarioActivo["Nombres y apellidos"]
-                    }]);
-                    subidos++;
-                }
-                document.getElementById('progresoCarga').innerText = `Procesados: ${i+1} de ${registros.length}`;
-            }
-            Swal.close();
-            Swal.fire('Terminado', `Se subieron ${subidos} registros nuevos.`, 'success');
-        };
-        reader.readAsArrayBuffer(file);
-    }
-</script>
-</body>
-</html>
