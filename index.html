@@ -3,115 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Censo Electoral Pro - Sin Duplicados</title>
+    <title>Censo Electoral - Alto Rendimiento</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
-        h2 { color: #1a73e8; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        label { display: block; margin-top: 12px; font-weight: bold; font-size: 14px; color: #555; }
-        input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        input:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 5px rgba(26,115,232,0.2); }
-        button { background-color: #28a745; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
-        button:hover { background-color: #218838; }
-        button:disabled { background-color: #ccc; }
-        .error-msg { color: #d93025; font-size: 12px; margin-top: 5px; display: none; }
+        :root { --primary: #1a73e8; --success: #28a745; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
+        .input-group { text-align: left; margin-bottom: 12px; }
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #444; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; color: white; transition: 0.3s; }
+        .btn-save { background: var(--success); }
+        .btn-excel { background: var(--primary); }
+        #logErrores { background: #fff5f5; color: #c0392b; border: 1px solid #f5c6cb; padding: 10px; border-radius: 8px; margin-top: 15px; font-size: 12px; text-align: left; display: none; max-height: 200px; overflow-y: auto; }
+        #seccionFormulario { display: none; }
+        .progreso { margin-top: 10px; font-size: 14px; color: var(--primary); font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>CENSO ELECTORAL</h2>
+<div id="seccionLogin" class="card">
+    <h2>🔑 Acceso Líder</h2>
+    <input type="password" id="passLogin" placeholder="Tu Cédula">
+    <button style="background: var(--primary);" onclick="login()">ENTRAR</button>
+</div>
+
+<div id="seccionFormulario" class="card">
+    <div id="txtBienvenida" style="font-weight: bold; margin-bottom: 15px;"></div>
     
-    <label>Líder:</label>
-    <input type="text" id="lider" placeholder="Nombre del líder" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '')">
+    <h3>Registro Individual</h3>
+    <div class="input-group"><label>Cédula *</label><input type="text" id="vCedula"></div>
+    <div class="input-group"><label>Nombre *</label><input type="text" id="vNombre"></div>
+    <div class="input-group"><label>Dirección *</label><input type="text" id="vDireccion"></div>
+    <div class="input-group"><label>Teléfono *</label><input type="text" id="vTelefono"></div>
+    <div class="input-group"><label>Puesto *</label><input type="text" id="vPuesto"></div>
+    <div class="input-group"><label>Observaciones</label><textarea id="vObs"></textarea></div>
+    <button class="btn-save" onclick="procesarRegistro()">GUARDAR INDIVIDUAL</button>
 
-    <label>Cédula:</label>
-    <input type="text" id="cedula" placeholder="Solo números" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-    <div id="cedulaError" class="error-msg">⚠️ Esta cédula ya se encuentra registrada.</div>
+    <hr style="margin: 25px 0; border: 0; border-top: 1px solid #eee;">
 
-    <label>Nombre Completo:</label>
-    <input type="text" id="nombre" placeholder="Nombres y apellidos">
+    <h3>Carga Masiva (Excel)</h3>
+    <p style="font-size: 12px; color: #666;">Soporta hasta 5,000 registros por archivo</p>
+    <input type="file" id="inputExcel" accept=".xlsx, .xls, .csv">
+    <button class="btn-excel" onclick="cargarExcel()">🚀 INICIAR CARGA MASIVA</button>
+    <div id="progresoCarga" class="progreso"></div>
 
-    <label>Dirección:</label>
-    <input type="text" id="direccion" placeholder="Dirección de residencia">
-
-    <label>Teléfono:</label>
-    <input type="text" id="telefono" placeholder="Solo números" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-
-    <label>Puesto de Votación:</label>
-    <input type="text" id="puesto" placeholder="Lugar de votación">
-
-    <label>Observaciones:</label>
-    <textarea id="observaciones" placeholder="Notas adicionales"></textarea>
-
-    <button id="btnGuardar">GUARDAR REGISTRO</button>
+    <div id="logErrores"></div>
+    <button onclick="location.reload()" style="background:none; color:gray; text-decoration:underline;">Cerrar Sesión</button>
 </div>
 
 <script>
     const URL_SUPA = 'https://pmwlkdariynhaqbqursp.supabase.co';
     const KEY_SUPA = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(URL_SUPA, KEY_SUPA);
+    let usuarioActivo = null;
 
-    document.getElementById('btnGuardar').onclick = async function() {
-        const btn = this;
-        const errorMsg = document.getElementById('cedulaError');
-        errorMsg.style.display = 'none';
-        
-        const valCedula = document.getElementById('cedula').value.trim();
+    async function login() {
+        const pass = document.getElementById('passLogin').value;
+        const { data } = await _supabase.from('VOTANTES').select('*').eq('cedula', pass).single();
+        if (data) {
+            usuarioActivo = data;
+            document.getElementById('txtBienvenida').innerText = "👤 LÍDER: " + data["Nombres y apellidos"].toUpperCase();
+            document.getElementById('seccionLogin').style.display = 'none';
+            document.getElementById('seccionFormulario').style.display = 'block';
+        } else { Swal.fire('Error', 'Cédula no registrada.', 'error'); }
+    }
+
+    async function procesarRegistro() {
         const datos = {
-            "lider": document.getElementById('lider').value.trim(),
-            "cedula": valCedula,
-            "Nombres y apellidos": document.getElementById('nombre').value.trim(),
-            "direccion": document.getElementById('direccion').value.trim(),
-            "telefono": document.getElementById('telefono').value.trim(),
-            "puesto": document.getElementById('puesto').value.trim(),
-            "observaciones": document.getElementById('observaciones').value.trim()
+            cedula: document.getElementById('vCedula').value.trim(),
+            "Nombres y apellidos": document.getElementById('vNombre').value.trim(),
+            direccion: document.getElementById('vDireccion').value.trim(),
+            telefono: document.getElementById('vTelefono').value.trim(),
+            puesto: document.getElementById('vPuesto').value.trim(),
+            observaciones: document.getElementById('vObs').value.trim(),
+            lider: usuarioActivo["Nombres y apellidos"]
         };
 
-        if(!datos.cedula || !datos["Nombres y apellidos"] || !datos.lider) {
-            alert("⚠️ Cédula, Nombre y Líder son obligatorios");
-            return;
+        if(!datos.cedula || !datos["Nombres y apellidos"] || !datos.direccion || !datos.telefono || !datos.puesto) {
+            return Swal.fire('Atención', 'Llena todos los campos obligatorios', 'warning');
         }
 
-        btn.disabled = true;
-        btn.innerText = "Verificando...";
+        const { error } = await _supabase.from('VOTANTES').insert([datos]);
+        if(error) Swal.fire('Error', 'Cédula duplicada', 'error');
+        else { Swal.fire('Éxito', 'Guardado', 'success'); limpiar(); }
+    }
 
-        try {
-            // 1. VERIFICAR SI LA CÉDULA YA EXISTE
-            const { data: existente, error: errorBusqueda } = await _supabase
-                .from('VOTANTES')
-                .select('cedula')
-                .eq('cedula', valCedula);
+    async function cargarExcel() {
+        const file = document.getElementById('inputExcel').files[0];
+        if(!file) return alert("Selecciona un archivo");
 
-            if (errorBusqueda) throw errorBusqueda;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            
+            const logBox = document.getElementById('logErrores');
+            const prog = document.getElementById('progresoCarga');
+            logBox.style.display = 'none';
+            logBox.innerHTML = "<b>Errores detectados:</b><br>";
 
-            if (existente && existente.length > 0) {
-                errorMsg.style.display = 'block';
-                alert("❌ Error: Esta cédula ya está registrada en la base de datos.");
-                btn.disabled = false;
-                btn.innerText = "GUARDAR REGISTRO";
-                return; // Detiene el proceso de guardado
+            Swal.fire({title: 'Preparando motor de carga...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+
+            // Agrupamos de 100 en 100 para máxima velocidad
+            const tamanoLote = 100;
+            let subidos = 0;
+            let fallidos = 0;
+
+            for (let i = 0; i < registros.length; i += tamanoLote) {
+                const lote = registros.slice(i, i + tamanoLote).map(r => ({
+                    cedula: String(r.cedula),
+                    "Nombres y apellidos": r.nombre_completo,
+                    direccion: r.direccion,
+                    telefono: String(r.telefono),
+                    puesto: r.puesto,
+                    observaciones: r.observaciones || "",
+                    lider: usuarioActivo["Nombres y apellidos"]
+                }));
+
+                // Enviamos el bloque completo a Supabase
+                const { error } = await _supabase.from('VOTANTES').insert(lote);
+
+                if (error) {
+                    fallidos += lote.length;
+                    logBox.style.display = 'block';
+                    logBox.innerHTML += `• Error en bloque ${i/tamanoLote + 1}: Posibles duplicados.<br>`;
+                } else {
+                    subidos += lote.length;
+                }
+                
+                prog.innerText = `Procesando: ${subidos + fallidos} de ${registros.length}`;
             }
 
-            // 2. SI NO EXISTE, PROCEDER A GUARDAR
-            btn.innerText = "Guardando...";
-            const { error: errorInsert } = await _supabase.from('VOTANTES').insert([datos]);
+            Swal.close();
+            Swal.fire('Proceso Terminado', `Éxito: ${subidos} | Fallidos: ${fallidos}`, 'info');
+        };
+        reader.readAsArrayBuffer(file);
+    }
 
-            if (errorInsert) throw errorInsert;
-
-            alert("✅ ¡Votante registrado correctamente!");
-            document.querySelectorAll('input, textarea').forEach(i => i.value = "");
-
-        } catch (err) {
-            alert("❌ Error técnico: " + err.message);
-            console.error(err);
-        } finally {
-            btn.disabled = false;
-            btn.innerText = "GUARDAR REGISTRO";
-        }
-    };
+    function limpiar() { document.querySelectorAll('#seccionFormulario input, textarea').forEach(i => i.value = ""); }
 </script>
-
 </body>
 </html>
