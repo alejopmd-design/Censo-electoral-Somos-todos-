@@ -3,178 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión Electoral - Carga Pro</title>
-    
+    <title>Gestión Electoral - Registro y Carga</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 480px; text-align: center; border-top: 5px solid #1a365d; }
-        
-        #seccionPanel { display: none; }
-        
-        h2 { color: #1a365d; margin-bottom: 15px; font-size: 22px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; box-sizing: border-box; }
-        input:required { border-left: 4px solid #e53e3e; } /* Marca visual para obligatorios */
-        
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.3s; margin-top: 10px; }
-        .btn-login { background: #1a365d; color: white; }
-        .btn-manual { background: #2f855a; color: white; }
-        .btn-masiva { background: #2c5282; color: white; }
-
-        .drop-zone { border: 2px dashed #a0aec0; padding: 25px; border-radius: 12px; cursor: pointer; margin-top: 15px; color: #4a5568; transition: 0.3s; }
-        .drop-zone:hover { border-color: #1a365d; background: #ebf4ff; }
-        
-        .divider { margin: 20px 0; border-bottom: 1px solid #e2e8f0; position: relative; }
-        .divider span { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: white; padding: 0 12px; color: #a0aec0; font-size: 11px; font-weight: bold; }
-        
-        .logout { margin-top: 15px; color: #718096; cursor: pointer; font-size: 13px; text-decoration: underline; background: none; border: none; }
-        .required-hint { font-size: 12px; color: #e53e3e; text-align: left; margin-top: -5px; margin-bottom: 5px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
+        h2 { color: #1a365d; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; color: white; }
+        .btn-green { background: #2f855a; }
+        .btn-blue { background: #1a365d; }
+        .upload-box { border: 2px dashed #cbd5e0; padding: 25px; border-radius: 15px; cursor: pointer; margin-top: 20px; color: #718096; }
+        .divider { margin: 25px 0; border-bottom: 1px solid #eee; position: relative; }
+        .divider span { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: white; padding: 0 10px; color: #999; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <div id="seccionLogin" class="card">
-        <h2>Acceso Administrativo</h2>
-        <p style="color:#718096">Ingrese su cédula para autorizar el cargue</p>
-        <input type="number" id="cedulaAuth" placeholder="Número de Cédula">
-        <button class="btn btn-login" onclick="validarIngreso()">Validar e Ingresar</button>
+<div class="card">
+    <h2>Registro de Votantes</h2>
+    
+    <div id="formManual">
+        <input type="text" id="nombre" placeholder="Nombre completo *">
+        <input type="number" id="cedula" placeholder="Cédula *">
+        <input type="text" id="telefono" placeholder="Teléfono *">
+        <input type="text" id="puesto" placeholder="Puesto de votación (Opcional)">
+        <input type="text" id="mesa" placeholder="Mesa (Opcional)">
+        <input type="text" id="observaciones" placeholder="Observaciones (Opcional)">
+        <button class="btn btn-green" onclick="guardarManual()">Guardar Registro Manual</button>
     </div>
 
-    <div id="seccionPanel" class="card">
-        <h2>Carga de Datos</h2>
-        <p style="font-size: 13px; color: #718096;">* Nombre, Cédula y Teléfono son obligatorios</p>
-        
-        <div id="formManual">
-            <input type="text" id="campo1" placeholder="Nombre completo *" required>
-            <input type="number" id="campo2" placeholder="Cédula *" required>
-            <input type="text" id="campo6" placeholder="Teléfono / Contacto *" required>
-            
-            <div class="divider"><span>DATOS OPCIONALES</span></div>
-            
-            <input type="text" id="campo3" placeholder="Puesto de Votación">
-            <input type="text" id="campo4" placeholder="Mesa">
-            <input type="text" id="campo5" placeholder="Líder Responsable">
-            
-            <button class="btn btn-manual" onclick="ejecutarCargaManual()">Guardar Registro Manual</button>
-        </div>
+    <div class="divider"><span>O CARGA MASIVA</span></div>
 
-        <div class="divider"><span>O CARGA MASIVA</span></div>
-
-        <div class="drop-zone" onclick="document.getElementById('inputExcel').click()">
-            <span id="labelArchivo">📁 Seleccionar Excel (.xlsx, .xls, .csv)</span>
-            <input type="file" id="inputExcel" hidden accept=".xlsx, .xls, .xlsm, .csv">
-        </div>
-        <button class="btn btn-masiva" onclick="ejecutarCargaMasiva()">Iniciar Carga Masiva</button>
-        
-        <button class="logout" onclick="location.reload()">Cerrar Sesión</button>
+    <div class="upload-box" onclick="document.getElementById('inputExcel').click()">
+        <span id="fileTxt">📁 Seleccionar archivo Excel (.xlsx)</span>
+        <input type="file" id="inputExcel" hidden accept=".xlsx, .xls, .csv">
     </div>
+    <button class="btn btn-blue" onclick="procesarMasivo()">Iniciar Carga Masiva</button>
+</div>
 
 <script>
-    const SUPA_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
-    const SUPA_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
-    const _supabase = supabase.createClient(SUPA_URL, SUPA_KEY);
+    const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
+    const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
+    const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    async function validarIngreso() {
-        const ced = document.getElementById('cedulaAuth').value;
-        if(!ced) return Swal.fire('Error', 'Ingrese su cédula', 'error');
-
-        const { data, error } = await _supabase.from('VOTANTES').select('*').eq('cedula', ced).single();
-
-        if (data) {
-            document.getElementById('seccionLogin').style.display = 'none';
-            document.getElementById('seccionPanel').style.display = 'block';
-        } else {
-            Swal.fire('Acceso Denegado', 'Cédula no autorizada', 'error');
-        }
-    }
-
-    // CARGA MANUAL CON VALIDACIÓN DE 3 OBLIGATORIOS
-    async function ejecutarCargaManual() {
-        const registro = {
-            "Nombres y apellidos": document.getElementById('campo1').value,
-            "cedula": document.getElementById('campo2').value,
-            "contacto": document.getElementById('campo6').value, // Obligatorio
-            "puesto": document.getElementById('campo3').value || null,
-            "mesa": document.getElementById('campo4').value || null,
-            "lider": document.getElementById('campo5').value || null
+    // Guardar Manual
+    async function guardarManual() {
+        const datos = {
+            "Nombres y apellidos": document.getElementById('nombre').value,
+            "cedula": document.getElementById('cedula').value,
+            "contacto": document.getElementById('telefono').value,
+            "puesto": document.getElementById('puesto').value || null,
+            "mesa": document.getElementById('mesa').value || null,
+            "observaciones": document.getElementById('observaciones').value || null
         };
 
-        // Verificación estricta de los 3 datos obligatorios
-        if(!registro.cedula || !registro["Nombres y apellidos"] || !registro.contacto) {
-            return Swal.fire('Faltan Datos', 'Nombre, Cédula y Teléfono son obligatorios para guardar.', 'warning');
+        if(!datos.cedula || !datos["Nombres y apellidos"] || !datos.contacto) {
+            return Swal.fire('Error', 'Cédula, Nombre y Teléfono son obligatorios.', 'warning');
         }
 
-        const { error } = await _supabase.from('VOTANTES').insert([registro]);
-        
+        const { error } = await _supabase.from('VOTANTES').insert([datos]);
         if (error) {
-            Swal.fire('Error', 'No se pudo guardar: ' + error.message, 'error');
+            const msg = error.code === '23505' ? 'Esta cédula ya existe.' : error.message;
+            Swal.fire('Error', msg, 'error');
         } else {
-            Swal.fire('Éxito', 'Registro guardado correctamente', 'success');
-            document.querySelectorAll('#formManual input').forEach(i => i.value = '');
+            Swal.fire('Éxito', 'Registrado correctamente', 'success');
+            document.querySelectorAll('input').forEach(i => i.value = '');
         }
     }
 
-    // CARGA MASIVA CON REPORTE DE ERRORES
+    // Procesar Excel
     document.getElementById('inputExcel').addEventListener('change', e => {
-        if(e.target.files[0]) document.getElementById('labelArchivo').innerText = "📄 " + e.target.files[0].name;
+        if(e.target.files[0]) document.getElementById('fileTxt').innerText = "📄 " + e.target.files[0].name;
     });
 
-    async function ejecutarCargaMasiva() {
+    async function procesarMasivo() {
         const file = document.getElementById('inputExcel').files[0];
-        if(!file) return Swal.fire('Error', 'Seleccione un archivo', 'warning');
+        if(!file) return Swal.fire('Error', 'Selecciona un archivo', 'warning');
 
         Swal.fire({ title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
         const reader = new FileReader();
         reader.onload = async (e) => {
-            try {
-                const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-                const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+            const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            
+            let ok = 0, fallos = [];
 
-                let ok = 0;
-                let fallos = [];
+            for (const r of registros) {
+                // Mapeo flexible de nombres de columnas
+                const item = {
+                    "Nombres y apellidos": r["Nombres y apellidos"] || r["nombre"] || r["Nombre"],
+                    "cedula": r["cedula"] || r["CEDULA"] || r["Cedula"],
+                    "contacto": r["contacto"] || r["telefono"] || r["TELEFONO"] || r["Telefono"],
+                    "puesto": r["puesto"] || r["Puesto"] || null,
+                    "mesa": r["mesa"] || r["Mesa"] || null,
+                    "observaciones": r["observaciones"] || r["Observaciones"] || r["lider"] || null
+                };
 
-                for (const fila of registros) {
-                    const obj = {
-                        "Nombres y apellidos": fila["Nombres y apellidos"] || fila["nombre"],
-                        "cedula": fila["cedula"] || fila["CEDULA"],
-                        "contacto": fila["contacto"] || fila["telefono"] || fila["TELEFONO"],
-                        "puesto": fila["puesto"] || null,
-                        "mesa": fila["mesa"] || null,
-                        "lider": fila["lider"] || null
-                    };
-
-                    // Validación de obligatorios en el Excel
-                    if(!obj.cedula || !obj["Nombres y apellidos"] || !obj.contacto) {
-                        fallos.push(`<li><b>Fila incompleta:</b> Falta Nombre, Cédula o Teléfono</li>`);
-                        continue;
-                    }
-
-                    const { error } = await _supabase.from('VOTANTES').insert([obj]);
-                    if (error) {
-                        let msg = error.code === '23505' ? 'Cédula Duplicada' : 'Error de formato';
-                        fallos.push(`<li><b>CC ${obj.cedula}:</b> ${msg}</li>`);
-                    } else {
-                        ok++;
-                    }
+                // Si faltan obligatorios
+                if(!item.cedula || !item["Nombres y apellidos"] || !item.contacto) {
+                    fallos.push(`<li><b>${item.cedula || 'Sin CC'}:</b> Faltan Datos Obligatorios</li>`);
+                    continue;
                 }
 
-                Swal.fire({
-                    title: fallos.length === 0 ? 'Carga Exitosa' : 'Reporte de Carga',
-                    icon: fallos.length === 0 ? 'success' : 'warning',
-                    html: `
-                        <div style="text-align: left;">
-                            <p style="color:green">✅ Exitosos: ${ok}</p>
-                            ${fallos.length > 0 ? `<p style="color:red">❌ Fallidos: ${fallos.length}</p><hr><ul style="max-height:150px; overflow-y:auto; background:#fff1f1; padding:10px; border-radius:8px; font-size:12px;">${fallos.join('')}</ul>` : ''}
-                        </div>
-                    `
-                });
-            } catch (err) {
-                Swal.fire('Error', 'No se pudo leer el archivo', 'error');
+                const { error } = await _supabase.from('VOTANTES').insert([item]);
+                
+                if (error) {
+                    // Si el error es código 23505 significa que la cédula ya existe
+                    let razon = error.code === '23505' ? 'Ya existe' : 'Error técnico';
+                    fallos.push(`<li><b>${item.cedula}:</b> ${razon}</li>`);
+                } else {
+                    ok++;
+                }
             }
+
+            Swal.fire({
+                title: 'Resultado de Carga',
+                html: `<div style="text-align:left">✅ Exitosos: ${ok}<br>❌ No aceptados: ${fallos.length}<hr><ul style="font-size:12px; max-height:150px; overflow-y:auto; background:#fff5f5; padding:10px; border-radius:8px;">${fallos.join('')}</ul></div>`,
+                icon: fallos.length > 0 ? 'warning' : 'success'
+            });
         };
         reader.readAsArrayBuffer(file);
     }
