@@ -3,192 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Inteligencia Electoral</title>
+    <title>Análisis de Red Electoral</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root { --primary: #0056b3; --accent: #28a745; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: auto; display: none; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        #app { display: none; max-width: 1200px; margin: auto; }
         
-        /* Cuadro Superior de Estadística General */
-        .general-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 5px solid var(--primary); }
+        /* Cuadro Superior General */
+        .general-stats { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 15px; 
+            margin-bottom: 30px; 
+            background: #fff; 
+            padding: 25px; 
+            border-radius: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-top: 6px solid var(--primary);
+        }
         .stat-item { text-align: center; border-right: 1px solid #eee; }
         .stat-item:last-child { border-right: none; }
-        .stat-item h3 { font-size: 12px; color: #777; margin: 0; text-transform: uppercase; }
-        .stat-item p { font-size: 28px; font-weight: bold; margin: 10px 0 0; color: #333; }
+        .stat-item h3 { font-size: 13px; color: #888; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-item p { font-size: 32px; font-weight: bold; margin: 10px 0 0; color: #2d3748; }
 
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         
-        .selector-box { margin-bottom: 20px; }
-        select { width: 100%; padding: 15px; border-radius: 8px; border: 2px solid #ddd; font-size: 16px; font-weight: bold; background: #fff; }
-
-        .table-container { background: white; padding: 20px; border-radius: 12px; overflow-x: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f8f9fa; padding: 12px; text-align: left; font-size: 13px; color: #666; }
-        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
-        .badge-directo { background: #e6fffa; color: #2c7a7b; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-        .badge-indirecto { background: #fffaf0; color: #9c4221; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+        select { width: 100%; padding: 15px; border-radius: 10px; border: 2px solid #cbd5e0; font-size: 16px; font-weight: bold; color: #2d3748; margin-bottom: 25px; cursor: pointer; }
+        
+        .table-section { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #f7fafc; padding: 15px; text-align: left; font-size: 13px; color: #4a5568; border-bottom: 2px solid #edf2f7; }
+        td { padding: 15px; border-bottom: 1px solid #edf2f7; font-size: 14px; }
+        
+        .badge { padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .directo { background: #c6f6d5; color: #22543d; }
+        .indirecto { background: #feebc8; color: #7b341e; }
     </style>
 </head>
 <body>
 
-<div id="content" class="container">
+<div id="app">
     <div class="general-stats">
         <div class="stat-item"><h3>Censo Total</h3><p id="totalCenso">0</p></div>
-        <div class="stat-item"><h3>Total Directos</h3><p id="totalD" style="color: #28a745;">0</p></div>
-        <div class="stat-item"><h3>Total Indirectos</h3><p id="totalI" style="color: #ed8936;">0</p></div>
-        <div class="stat-item"><h3>Puestos Cubiertos</h3><p id="totalP">0</p></div>
+        <div class="stat-item"><h3>Votos Directos</h3><p id="totalD" style="color: #38a169;">0</p></div>
+        <div class="stat-item"><h3>Votos Indirectos</h3><p id="totalI" style="color: #dd6b20;">0</p></div>
+        <div class="stat-item"><h3>Puestos</h3><p id="totalP">0</p></div>
     </div>
 
-    <div class="selector-box">
-        <label style="font-weight: bold; display: block; margin-bottom: 10px;">SELECCIONAR LÍDER PARA ANÁLISIS:</label>
-        <select id="liderSelect" onchange="analizarLider()"></select>
-    </div>
+    <select id="liderSelect" onchange="procesarRedLider()">
+        <option value="">Cargando líderes...</option>
+    </select>
 
-    <div class="dashboard-grid">
+    <div class="dashboard">
         <div class="card">
-            <h4 style="text-align: center; margin-top: 0;">Gestión de Votos por Líder</h4>
-            <canvas id="chartLider" height="250"></canvas>
+            <h4 style="text-align: center; margin-top: 0; color: #4a5568;">Efectividad de Gestión</h4>
+            <div style="height: 300px;"><canvas id="chartLider"></canvas></div>
         </div>
         <div class="card">
-            <h4 style="text-align: center; margin-top: 0;">Distribución de Puestos</h4>
-            <canvas id="chartPuestos" height="250"></canvas>
+            <h4 style="text-align: center; margin-top: 0; color: #4a5568;">Puestos bajo este Líder</h4>
+            <div style="height: 300px;"><canvas id="chartPuestos"></canvas></div>
         </div>
     </div>
 
-    <div class="table-container">
-        <h4 style="margin-top: 0;">Detalle de Votantes</h4>
-        <table id="votantesTable">
+    <div class="table-section">
+        <h4 style="margin: 0 0 15px 0; color: #2d3748;">📋 Integrantes de la Red Seleccionada</h4>
+        <table>
             <thead>
                 <tr>
-                    <th>Nombre</th>
+                    <th>Nombre y Apellidos</th>
                     <th>Cédula</th>
-                    <th>Tipo</th>
-                    <th>Puesto</th>
+                    <th>Relación</th>
+                    <th>Lugar de Votación</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody id="tablaCuerpo"></tbody>
         </table>
     </div>
 </div>
 
 <script>
-    const URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
-    const KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
-    const _supabase = supabase.createClient(URL, KEY);
+    const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
+    const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
+    const _supabase = supabase.createClient(SB_URL, SB_KEY);
     
-    let allVotantes = [];
-    let liderChart, puestoChart;
+    let baseDatos = [];
+    let graficoBarra, graficoDona;
 
-    async function init() {
+    // Inicio con clave segura (sin marca de agua)
+    async function iniciar() {
         const { value: pass } = await Swal.fire({
-            title: 'Acceso de Seguridad',
+            title: 'Acceso Restringido',
             input: 'password',
-            inputLabel: 'Ingrese contraseña para continuar',
-            inputPlaceholder: '', // Se quitó la marca de agua por seguridad
+            inputLabel: 'Introduzca la clave maestra',
+            inputPlaceholder: '', 
             allowOutsideClick: false,
-            confirmButtonText: 'Validar'
+            confirmButtonColor: '#0056b3'
         });
 
         if (pass === 'ADMIN2026') {
-            document.getElementById('content').style.display = 'block';
-            loadData();
+            document.getElementById('app').style.display = 'block';
+            await cargarDatos();
         } else {
-            Swal.fire('Acceso Denegado', 'Clave incorrecta', 'error').then(() => location.reload());
+            Swal.fire('Clave Incorrecta', 'No tiene permisos', 'error').then(() => location.reload());
         }
     }
 
-    async function loadData() {
-        const { data } = await _supabase.from('VOTANTES').select('*');
-        allVotantes = data;
+    async function cargarDatos() {
+        const { data, error } = await _supabase.from('VOTANTES').select('*');
+        if (error) return Swal.fire('Error', 'No se pudo leer la base de datos', 'error');
+        
+        baseDatos = data;
 
-        // Estadísticas Generales
+        // Estadísticas Generales del Cuadro Superior
         document.getElementById('totalCenso').innerText = data.length;
         
-        // El sistema identifica quiénes son líderes basados en que otros los reportan como su 'lider'
-        const lideresNombres = [...new Set(data.map(v => v.lider))].filter(l => l && l.toLowerCase() !== 'quien lo ingreso');
+        // Identificamos quiénes son líderes (alguien aparece en la columna 'lider')
+        const nombresLideres = [...new Set(data.map(v => v.lider))].filter(l => l && l.toLowerCase() !== 'quien lo ingreso');
         
-        const directos = data.filter(v => lideresNombres.includes(v["Nombres y apellidos"]));
-        const indirectos = data.length - directos.length;
+        // Un voto es directo si el votante ES uno de los líderes
+        const directos = data.filter(v => nombresLideres.includes(v["Nombres y apellidos"]));
+        const indirectosCount = data.length - directos.length;
 
         document.getElementById('totalD').innerText = directos.length;
-        document.getElementById('totalI').innerText = indirectos;
+        document.getElementById('totalI').innerText = indirectosCount;
         document.getElementById('totalP').innerText = [...new Set(data.map(v => v.puesto))].length;
 
+        // Llenar el Selector de Líderes
         const select = document.getElementById('liderSelect');
-        select.innerHTML = '<option value="">-- Seleccione un líder --</option>';
-        lideresNombres.sort().forEach(l => {
-            select.innerHTML += `<option value="${l}">${l}</option>`;
+        select.innerHTML = '<option value="">-- Seleccione un Líder para analizar su Red --</option>';
+        nombresLideres.sort().forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l;
+            opt.textContent = l;
+            select.appendChild(opt);
         });
     }
 
-    function analizarLider() {
-        const lider = document.getElementById('liderSelect').value;
-        if (!lider) return;
+    function procesarRedLider() {
+        const liderSeleccionado = document.getElementById('liderSelect').value;
+        if (!liderSeleccionado) return;
 
-        // Votos Directos: Registros donde el campo 'lider' es este líder seleccionado
-        const dVotos = allVotantes.filter(v => v.lider === lider);
+        // 1. Votos Directos: Personas que tienen a este líder asignado
+        const directos = baseDatos.filter(v => v.lider === liderSeleccionado);
         
-        // Votos Indirectos: Votos de las personas que fueron traídas por los votantes directos de este líder
-        const nombresDirectos = dVotos.map(v => v["Nombres y apellidos"]);
-        const iVotos = allVotantes.filter(v => nombresDirectos.includes(v.lider));
+        // 2. Votos Indirectos: Personas que tienen como líder a alguno de los "votos directos" de arriba
+        const nombresHijos = directos.map(v => v["Nombres y apellidos"]);
+        const indirectos = baseDatos.filter(v => nombresHijos.includes(v.lider));
 
-        actualizarGraficos(dVotos.length, iVotos.length, dVotos.concat(iVotos));
-        actualizarTabla(dVotos, iVotos);
+        actualizarGraficos(directos.length, indirectos.length, directos.concat(indirectos));
+        actualizarTabla(directos, indirectos);
     }
 
-    function actualizarGraficos(d, i, dataTotal) {
-        if(liderChart) liderChart.destroy();
-        liderChart = new Chart(document.getElementById('chartLider'), {
+    function actualizarGraficos(dCount, iCount, redTotal) {
+        // Gráfico Barras
+        if(graficoBarra) graficoBarra.destroy();
+        graficoBarra = new Chart(document.getElementById('chartLider'), {
             type: 'bar',
             data: {
                 labels: ['Directos', 'Indirectos'],
                 datasets: [{
-                    label: 'Cantidad de Votos',
-                    data: [d, i],
-                    backgroundColor: ['#28a745', '#ed8936']
+                    label: 'Registros',
+                    data: [dCount, iCount],
+                    backgroundColor: ['#38a169', '#dd6b20']
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { maintainAspectRatio: false }
         });
 
-        const puestos = {};
-        dataTotal.forEach(v => puestos[v.puesto] = (puestos[v.puesto] || 0) + 1);
-        
-        if(puestoChart) puestoChart.destroy();
-        puestoChart = new Chart(document.getElementById('chartPuestos'), {
+        // Gráfico Puestos
+        const pMap = {};
+        redTotal.forEach(v => pMap[v.puesto] = (pMap[v.puesto] || 0) + 1);
+
+        if(graficoDona) graficoDona.destroy();
+        graficoDona = new Chart(document.getElementById('chartPuestos'), {
             type: 'doughnut',
             data: {
-                labels: Object.keys(puestos),
-                datasets: [{ data: Object.values(puestos), backgroundColor: ['#4299e1', '#48bb78', '#ecc94b', '#f56565', '#9f7aea'] }]
+                labels: Object.keys(pMap),
+                datasets: [{ data: Object.values(pMap), backgroundColor: ['#4299e1', '#48bb78', '#ecc94b', '#f56565', '#9f7aea'] }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { maintainAspectRatio: false }
         });
     }
 
-    function actualizarTabla(directos, indirectos) {
-        const tbody = document.querySelector('#votantesTable tbody');
+    function actualizarTabla(dList, iList) {
+        const tbody = document.getElementById('tablaCuerpo');
         tbody.innerHTML = '';
         
-        const agregarFila = (v, tipo) => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${v["Nombres y apellidos"]}</td>
-                    <td>${v.cedula}</td>
-                    <td><span class="${tipo === 'D' ? 'badge-directo' : 'badge-indirecto'}">${tipo === 'D' ? 'DIRECTO' : 'INDIRECTO'}</span></td>
-                    <td>${v.puesto}</td>
-                </tr>
-            `;
+        const render = (lista, clase, texto) => {
+            lista.forEach(v => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${v["Nombres y apellidos"]}</td>
+                        <td>${v.cedula}</td>
+                        <td><span class="badge ${clase}">${texto}</span></td>
+                        <td>${v.puesto}</td>
+                    </tr>
+                `;
+            });
         };
 
-        directos.forEach(v => agregarFila(v, 'D'));
-        indirectos.forEach(v => agregarFila(v, 'I'));
+        render(dList, 'directo', 'DIRECTO');
+        render(iList, 'indirecto', 'INDIRECTO');
     }
 
-    init();
+    iniciar();
 </script>
 </body>
 </html>
