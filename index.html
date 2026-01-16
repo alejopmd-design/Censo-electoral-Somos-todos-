@@ -3,301 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Administrativo - Censo Electoral 2026</title>
-    
+    <title>Censo Electoral Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
+    
     <style>
-        :root { 
-            --primary: #1a365d; 
-            --accent: #2f855a; 
-            --bg: #f7fafc; 
-            --white: #ffffff;
-            --excel: #1D6F42;
-            --pdf: #E74C3C;
-        }
-
-        body { font-family: 'Inter', 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #2d3748; }
-        #app { display: none; max-width: 1200px; margin: auto; }
-        
-        /* Barra de Progreso Meta */
-        .meta-container { background: var(--white); padding: 20px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .meta-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; font-size: 1.1rem; }
-        .progress-bg { background: #edf2f7; border-radius: 20px; height: 15px; overflow: hidden; border: 1px solid #e2e8f0; }
-        .progress-fill { background: linear-gradient(90deg, #48bb78, #2f855a); width: 0%; height: 100%; transition: width 1s ease-in-out; }
-
-        /* Tarjetas de Estadísticas */
-        .general-stats { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
-            gap: 20px; 
-            margin-bottom: 25px; 
-        }
-        .stat-card { 
-            background: var(--white); 
-            padding: 20px; 
-            border-radius: 15px; 
-            text-align: center; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border-bottom: 4px solid transparent;
-        }
-        .stat-card h3 { font-size: 0.85rem; color: #718096; margin: 0; text-transform: uppercase; letter-spacing: 0.05em; }
-        .stat-card p { font-size: 2rem; font-weight: 800; margin: 10px 0 0; }
-        .card-total { border-color: var(--primary); color: var(--primary); }
-        .card-directos { border-color: #38a169; color: #38a169; }
-        .card-indirectos { border-color: #dd6b20; color: #dd6b20; }
-
-        /* Controles */
-        .controls-row { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 25px; }
-        input, select { 
-            padding: 12px 15px; 
-            border-radius: 10px; 
-            border: 2px solid #e2e8f0; 
-            font-size: 1rem; 
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        input:focus { border-color: var(--primary); }
-
-        /* Botones */
-        .actions-bar { display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 20px; }
-        .btn { 
-            padding: 10px 20px; border: none; border-radius: 8px; color: white; 
-            font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;
-        }
-        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
-        .btn-excel { background: var(--excel); }
-        .btn-pdf { background: var(--pdf); }
-
-        /* Dashboard */
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .chart-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .chart-card h4 { margin-top: 0; text-align: center; color: #4a5568; margin-bottom: 20px; }
-
-        /* Tabla */
-        .table-container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th { background: #f8fafc; padding: 15px; text-align: left; font-size: 0.85rem; color: #718096; border-bottom: 2px solid #edf2f7; }
-        td { padding: 15px; border-bottom: 1px solid #edf2f7; font-size: 0.95rem; }
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
-        .directo { background: #c6f6d5; color: #22543d; }
-        .indirecto { background: #feebc8; color: #7b341e; }
-
-        @media (max-width: 768px) {
-            .controls-row { grid-template-columns: 1fr; }
-            .dashboard-grid { grid-template-columns: 1fr; }
-        }
+        :root { --primary: #1a73e8; --success: #28a745; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 550px; text-align: center; }
+        .section-title { background: #e8f0fe; padding: 12px; border-radius: 8px; margin: 25px 0 15px 0; font-size: 16px; font-weight: bold; color: var(--primary); border-left: 5px solid var(--primary); text-align: left; }
+        .input-group { text-align: left; margin-bottom: 15px; }
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #444; }
+        input, textarea { width: 100%; padding: 12px; border: 2px solid #edeff2; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; color: white; transition: 0.3s; }
+        .btn-login { background: var(--primary); }
+        .btn-save { background: var(--success); }
+        .btn-template { background: #6c757d; font-size: 13px; }
+        #seccionFormulario, #logErrores { display: none; }
+        #logErrores { background: #fff5f5; color: #c0392b; border: 1px solid #f5c6cb; padding: 15px; border-radius: 10px; margin-top: 20px; text-align: left; max-height: 200px; overflow-y: auto; }
+        .user-info { font-size: 14px; background: #f8f9fa; padding: 10px 20px; border-radius: 50px; display: inline-block; margin-bottom: 20px; font-weight: bold; color: var(--primary); }
     </style>
 </head>
 <body>
 
-<div id="app">
-    <div class="meta-container" data-html2canvas-ignore="true">
-        <div class="meta-header">
-            <span>Objetivo Campaña 2026</span>
-            <span id="txtPorcentaje">0%</span>
-        </div>
-        <div class="progress-bg">
-            <div id="barraProgreso" class="progress-fill"></div>
-        </div>
+<div id="seccionLogin" class="card">
+    <h2 style="margin-bottom:10px;">🔐 Acceso al Censo</h2>
+    <p style="font-size: 14px; color: #666; margin-bottom: 20px;">Ingresa tu número de cédula para continuar.</p>
+    <div class="input-group">
+        <label>Cédula del Líder</label>
+        <input type="text" id="passLogin" placeholder="Escribe tu cédula" onkeypress="if(event.key==='Enter') login()">
     </div>
+    <button class="btn-login" onclick="login()">INGRESAR AL SISTEMA</button>
+</div>
 
-    <div id="area-impresion">
-        <div class="general-stats">
-            <div class="stat-card card-total"><h3>Censo Total</h3><p id="totalCenso">0</p></div>
-            <div class="stat-card card-directos"><h3>Directos</h3><p id="totalD">0</p></div>
-            <div class="stat-card card-indirectos"><h3>Indirectos</h3><p id="totalI">0</p></div>
-        </div>
+<div id="seccionFormulario" class="card">
+    <div class="user-info" id="txtBienvenida"></div>
+    
+    <div class="section-title">📝 Registro Individual</div>
+    <div class="input-group"><label>Cédula * (Obligatorio)</label><input type="text" id="vCedula"></div>
+    <div class="input-group"><label>Nombre Completo * (Obligatorio)</label><input type="text" id="vNombre"></div>
+    <div class="input-group"><label>Teléfono * (Obligatorio)</label><input type="text" id="vTelefono"></div>
+    
+    <div class="input-group"><label>Dirección (Opcional)</label><input type="text" id="vDireccion"></div>
+    <div class="input-group"><label>Puesto de Votación (Opcional)</label><input type="text" id="vPuesto"></div>
+    <div class="input-group"><label>Observaciones (Opcional)</label><textarea id="vObs"></textarea></div>
+    
+    <button class="btn-save" onclick="procesarRegistroManual()">💾 GUARDAR REGISTRO</button>
 
-        <div class="controls-row" data-html2canvas-ignore="true">
-            <input type="text" id="buscador" onkeyup="filtrarVotantes()" placeholder="🔍 Buscar por nombre o cédula...">
-            <select id="liderSelect" onchange="cambiarVista()">
-                <option value="GENERAL">-- Resumen General --</option>
-            </select>
-        </div>
+    <hr style="margin:30px 0; border:0; border-top:1px solid #eee;">
 
-        <div class="actions-bar" data-html2canvas-ignore="true">
-            <button onclick="exportarExcel()" class="btn btn-excel">📊 Descargar Excel</button>
-            <button onclick="exportarPDF()" class="btn btn-pdf">📄 Descargar PDF</button>
-        </div>
+    <div class="section-title">📂 Carga Masiva (Excel)</div>
+    <button class="btn-template" onclick="descargarPlantilla()">⬇️ DESCARGAR PLANTILLA</button>
+    <input type="file" id="inputExcel" accept=".xlsx, .xls, .csv" style="margin-top:20px;">
+    <button style="background: var(--primary);" onclick="cargarExcel()">🚀 INICIAR CARGA EXCEL</button>
+    
+    <div id="progresoCarga" style="margin-top:15px; font-weight:bold; color:var(--primary);"></div>
+    <div id="logErrores"></div>
 
-        <div class="dashboard-grid">
-            <div class="chart-card">
-                <h4 id="titBarra">Rendimiento</h4>
-                <div style="height: 300px;"><canvas id="chartBar"></canvas></div>
-            </div>
-            <div class="chart-card">
-                <h4>Puestos de Votación</h4>
-                <div style="height: 300px;"><canvas id="chartDona"></canvas></div>
-            </div>
-        </div>
-
-        <div class="table-container">
-            <h4>📋 Detalle de Registros</h4>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nombre Completo</th>
-                        <th>Cédula</th>
-                        <th>Tipo</th>
-                        <th>Puesto de Votación</th>
-                    </tr>
-                </thead>
-                <tbody id="tablaCuerpo"></tbody>
-            </table>
-        </div>
-    </div>
+    <button onclick="location.reload()" style="background:none; color:gray; text-decoration:underline; border:none; margin-top:30px;">Cerrar Sesión</button>
 </div>
 
 <script>
     // CREDENCIALES
-    const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
-    const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
-    const _supabase = supabase.createClient(SB_URL, SB_KEY);
+    const URL_SUPA = 'https://pmwlkdariynhaqbqursp.supabase.co';
+    const KEY_SUPA = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
+    const _supabase = supabase.createClient(URL_SUPA, KEY_SUPA);
     
-    let baseDatos = [];
-    let chartBar, chartDona;
+    let usuarioActivo = null;
 
-    // INICIO CON SEGURIDAD
-    async function iniciar() {
-        const { value: pass } = await Swal.fire({
-            title: 'Acceso Administrativo',
-            input: 'password',
-            inputLabel: 'Ingrese su clave',
-            confirmButtonColor: '#1a365d',
-            allowOutsideClick: false
-        });
+    // LOGIN MEJORADO
+    async function login() {
+        const input = document.getElementById('passLogin');
+        const pass = input.value.trim();
+        
+        if (!pass) return Swal.fire('Aviso', 'Por favor ingresa tu cédula', 'warning');
 
-        if (pass === 'ADMIN2026') {
-            document.getElementById('app').style.display = 'block';
-            await cargarDatos();
-        } else {
-            Swal.fire('Error', 'Clave incorrecta', 'error').then(() => location.reload());
+        Swal.fire({ title: 'Verificando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        try {
+            const { data, error } = await _supabase
+                .from('VOTANTES')
+                .select('*')
+                .eq('cedula', pass)
+                .maybeSingle();
+
+            Swal.close();
+
+            if (error) throw error;
+
+            if (data) {
+                usuarioActivo = data;
+                document.getElementById('txtBienvenida').innerText = "👤 LÍDER: " + data["Nombres y apellidos"].toUpperCase();
+                document.getElementById('seccionLogin').style.display = 'none';
+                document.getElementById('seccionFormulario').style.display = 'block';
+            } else {
+                Swal.fire('Error de Acceso', 'La cédula ' + pass + ' no existe en la base de datos.', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error de Red', 'Hubo un fallo al conectar con Supabase. Intenta de nuevo.', 'error');
+            console.error(e);
         }
     }
 
-    async function cargarDatos() {
-        const { data, error } = await _supabase.from('VOTANTES').select('*');
-        if (error) return;
-        baseDatos = data;
-
-        // Actualizar barra de progreso (Meta 5000)
-        const porc = (data.length / 5000) * 100;
-        document.getElementById('barraProgreso').style.width = Math.min(porc, 100) + '%';
-        document.getElementById('txtPorcentaje').innerText = `${porc.toFixed(1)}% (${data.length} de 5,000)`;
-
-        // Poblar Selector de Líderes
-        const lideres = [...new Set(data.map(v => v.lider))].filter(l => l && l !== 'Quien lo ingreso');
-        const select = document.getElementById('liderSelect');
-        lideres.sort().forEach(l => {
-            const opt = document.createElement('option');
-            opt.value = l;
-            opt.textContent = l;
-            select.appendChild(opt);
-        });
-
-        cambiarVista();
-    }
-
-    function cambiarVista() {
-        const modo = document.getElementById('liderSelect').value;
-        let dList, iList;
-
-        if (modo === "GENERAL") {
-            const lideresNames = [...new Set(baseDatos.map(v => v.lider))];
-            dList = baseDatos.filter(v => lideresNames.includes(v["Nombres y apellidos"]));
-            iList = baseDatos.filter(v => !lideresNames.includes(v["Nombres y apellidos"]));
-            document.getElementById('titBarra').innerText = "Productividad General";
-        } else {
-            dList = baseDatos.filter(v => v.lider === modo);
-            const hijosNames = dList.map(v => v["Nombres y apellidos"]);
-            iList = baseDatos.filter(v => hijosNames.includes(v.lider));
-            document.getElementById('titBarra').innerText = "Gestión de: " + modo;
-        }
-
-        document.getElementById('totalCenso').innerText = (modo === "GENERAL") ? baseDatos.length : (dList.length + iList.length);
-        document.getElementById('totalD').innerText = dList.length;
-        document.getElementById('totalI').innerText = iList.length;
-
-        actualizarGraficos(dList, iList);
-        actualizarTabla(dList, iList);
-    }
-
-    function actualizarGraficos(dList, iList) {
-        if(chartBar) chartBar.destroy();
-        chartBar = new Chart(document.getElementById('chartBar'), {
-            type: 'bar',
-            data: {
-                labels: ['Votos Directos', 'Votos Indirectos'],
-                datasets: [{ data: [dList.length, iList.length], backgroundColor: ['#38a169', '#dd6b20'] }]
-            },
-            options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
-        });
-
-        const puestos = {};
-        [...dList, ...iList].forEach(v => puestos[v.puesto] = (puestos[v.puesto] || 0) + 1);
-
-        if(chartDona) chartDona.destroy();
-        chartDona = new Chart(document.getElementById('chartDona'), {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(puestos),
-                datasets: [{ data: Object.values(puestos), backgroundColor: ['#4299e1', '#48bb78', '#ecc94b', '#f56565', '#9f7aea'] }]
-            },
-            options: { maintainAspectRatio: false }
-        });
-    }
-
-    function actualizarTabla(dList, iList) {
-        const tbody = document.getElementById('tablaCuerpo');
-        tbody.innerHTML = '';
-        const rows = [
-            ...dList.map(v => ({...v, t: 'DIRECTO', c: 'directo'})),
-            ...iList.map(v => ({...v, t: 'INDIRECTO', c: 'indirecto'}))
-        ];
-        rows.forEach(v => {
-            tbody.innerHTML += `<tr>
-                <td><b>${v["Nombres y apellidos"]}</b></td>
-                <td>${v.cedula}</td>
-                <td><span class="badge ${v.c}">${v.t}</span></td>
-                <td>${v.puesto}</td>
-            </tr>`;
-        });
-    }
-
-    function filtrarVotantes() {
-        const term = document.getElementById('buscador').value.toUpperCase();
-        const rows = document.getElementById('tablaCuerpo').getElementsByTagName('tr');
-        for (let row of rows) {
-            row.style.display = row.innerText.toUpperCase().includes(term) ? "" : "none";
-        }
-    }
-
-    function exportarExcel() {
-        const ws = XLSX.utils.json_to_sheet(baseDatos);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Censo_Electoral");
-        XLSX.writeFile(wb, "Base_Votantes_2026.xlsx");
-    }
-
-    function exportarPDF() {
-        const element = document.getElementById('area-impresion');
-        const opt = {
-            margin: 0.5,
-            filename: 'Reporte_Electoral.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    async function procesarRegistroManual() {
+        const d = {
+            cedula: document.getElementById('vCedula').value.trim(),
+            "Nombres y apellidos": document.getElementById('vNombre').value.trim(),
+            direccion: document.getElementById('vDireccion').value.trim() || "No aplica",
+            telefono: document.getElementById('vTelefono').value.trim(),
+            puesto: document.getElementById('vPuesto').value.trim() || "No aplica",
+            observaciones: document.getElementById('vObs').value.trim() || "",
+            lider: usuarioActivo["Nombres y apellidos"]
         };
-        html2pdf().set(opt).from(element).save();
+
+        if(!d.cedula || !d["Nombres y apellidos"] || !d.telefono) {
+            return Swal.fire('Atención', 'Cédula, Nombre y Teléfono son obligatorios', 'warning');
+        }
+
+        const { data: existe } = await _supabase.from('VOTANTES').select('cedula').eq('cedula', d.cedula).maybeSingle();
+        if (existe) return Swal.fire('Error', 'Esta cédula ya existe.', 'error');
+
+        const { error } = await _supabase.from('VOTANTES').insert([d]);
+        if(!error) {
+            Swal.fire('Éxito', 'Registrado correctamente', 'success');
+            document.querySelectorAll('#seccionFormulario input, textarea').forEach(i => i.value = "");
+        }
     }
 
-    iniciar();
+    function descargarPlantilla() {
+        const h = [["cedula", "nombre_completo", "direccion", "telefono", "puesto", "observaciones"]];
+        const ws = XLSX.utils.aoa_to_sheet(h);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Censo");
+        XLSX.writeFile(wb, "Plantilla_Censo.xlsx");
+    }
+
+    async function cargarExcel() {
+        const file = document.getElementById('inputExcel').files[0];
+        if(!file) return alert("Selecciona un archivo");
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            
+            Swal.fire({title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+
+            let subidos = 0;
+            for (let i = 0; i < registros.length; i++) {
+                const r = registros[i];
+                const ced = String(r.cedula || "").trim();
+                if(!ced || !r.nombre_completo || !r.telefono) continue;
+
+                const { data: ex } = await _supabase.from('VOTANTES').select('cedula').eq('cedula', ced).maybeSingle();
+                if(!ex) {
+                    await _supabase.from('VOTANTES').insert([{
+                        cedula: ced,
+                        "Nombres y apellidos": r.nombre_completo,
+                        direccion: r.direccion || "No aplica",
+                        telefono: String(r.telefono),
+                        puesto: r.puesto || "No aplica",
+                        observaciones: r.observaciones || "",
+                        lider: usuarioActivo["Nombres y apellidos"]
+                    }]);
+                    subidos++;
+                }
+                document.getElementById('progresoCarga').innerText = `Procesados: ${i+1} de ${registros.length}`;
+            }
+            Swal.close();
+            Swal.fire('Terminado', `Se subieron ${subidos} registros nuevos.`, 'success');
+        };
+        reader.readAsArrayBuffer(file);
+    }
 </script>
 </body>
 </html>
