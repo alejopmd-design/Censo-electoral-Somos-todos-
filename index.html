@@ -3,154 +3,301 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso Seguro - Registro Electoral</title>
+    <title>Panel Administrativo - Censo Electoral 2026</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 35px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
-        #seccionPanel { display: none; }
-        h2 { color: #1a365d; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; color: white; font-size: 16px; }
-        .btn-blue { background: #1a365d; }
-        .btn-green { background: #2f855a; }
-        .upload-box { border: 2px dashed #cbd5e0; padding: 25px; border-radius: 15px; cursor: pointer; margin-top: 20px; color: #718096; }
-        .divider { margin: 25px 0; border-bottom: 1px solid #eee; position: relative; }
-        .divider span { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: white; padding: 0 10px; color: #999; font-size: 12px; }
-        .logout { background: none; border: none; color: #999; text-decoration: underline; margin-top: 20px; cursor: pointer; }
+        :root { 
+            --primary: #1a365d; 
+            --accent: #2f855a; 
+            --bg: #f7fafc; 
+            --white: #ffffff;
+            --excel: #1D6F42;
+            --pdf: #E74C3C;
+        }
+
+        body { font-family: 'Inter', 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #2d3748; }
+        #app { display: none; max-width: 1200px; margin: auto; }
+        
+        /* Barra de Progreso Meta */
+        .meta-container { background: var(--white); padding: 20px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .meta-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; font-size: 1.1rem; }
+        .progress-bg { background: #edf2f7; border-radius: 20px; height: 15px; overflow: hidden; border: 1px solid #e2e8f0; }
+        .progress-fill { background: linear-gradient(90deg, #48bb78, #2f855a); width: 0%; height: 100%; transition: width 1s ease-in-out; }
+
+        /* Tarjetas de Estadísticas */
+        .general-stats { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+            gap: 20px; 
+            margin-bottom: 25px; 
+        }
+        .stat-card { 
+            background: var(--white); 
+            padding: 20px; 
+            border-radius: 15px; 
+            text-align: center; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-bottom: 4px solid transparent;
+        }
+        .stat-card h3 { font-size: 0.85rem; color: #718096; margin: 0; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-card p { font-size: 2rem; font-weight: 800; margin: 10px 0 0; }
+        .card-total { border-color: var(--primary); color: var(--primary); }
+        .card-directos { border-color: #38a169; color: #38a169; }
+        .card-indirectos { border-color: #dd6b20; color: #dd6b20; }
+
+        /* Controles */
+        .controls-row { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 25px; }
+        input, select { 
+            padding: 12px 15px; 
+            border-radius: 10px; 
+            border: 2px solid #e2e8f0; 
+            font-size: 1rem; 
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus { border-color: var(--primary); }
+
+        /* Botones */
+        .actions-bar { display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 20px; }
+        .btn { 
+            padding: 10px 20px; border: none; border-radius: 8px; color: white; 
+            font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .btn-excel { background: var(--excel); }
+        .btn-pdf { background: var(--pdf); }
+
+        /* Dashboard */
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .chart-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .chart-card h4 { margin-top: 0; text-align: center; color: #4a5568; margin-bottom: 20px; }
+
+        /* Tabla */
+        .table-container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: #f8fafc; padding: 15px; text-align: left; font-size: 0.85rem; color: #718096; border-bottom: 2px solid #edf2f7; }
+        td { padding: 15px; border-bottom: 1px solid #edf2f7; font-size: 0.95rem; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+        .directo { background: #c6f6d5; color: #22543d; }
+        .indirecto { background: #feebc8; color: #7b341e; }
+
+        @media (max-width: 768px) {
+            .controls-row { grid-template-columns: 1fr; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-    <div id="seccionSeguridad" class="card">
-        <h2>Validación de Acceso</h2>
-        <p>Ingrese su cédula para autorizar el ingreso</p>
-        <input type="number" id="cedulaAdmin" placeholder="Cédula de Administrador">
-        <button class="btn btn-blue" onclick="verificarAcceso()">Verificar e Ingresar</button>
+<div id="app">
+    <div class="meta-container" data-html2canvas-ignore="true">
+        <div class="meta-header">
+            <span>Objetivo Campaña 2026</span>
+            <span id="txtPorcentaje">0%</span>
+        </div>
+        <div class="progress-bg">
+            <div id="barraProgreso" class="progress-fill"></div>
+        </div>
     </div>
 
-    <div id="seccionPanel" class="card">
-        <h2>Carga de Votantes</h2>
-        <p style="font-size: 13px; color: #e53e3e;">* Nombre, Cédula y Teléfono obligatorios</p>
-        
-        <div id="formManual">
-            <input type="text" id="nombre" placeholder="Nombre completo *">
-            <input type="number" id="cedula" placeholder="Cédula *">
-            <input type="text" id="telefono" placeholder="Teléfono / Contacto *">
-            <input type="text" id="puesto" placeholder="Puesto de votación (Opcional)">
-            <input type="text" id="observaciones" placeholder="Observaciones (Opcional)">
-            <button class="btn btn-green" onclick="guardarManual()">Guardar Registro Manual</button>
+    <div id="area-impresion">
+        <div class="general-stats">
+            <div class="stat-card card-total"><h3>Censo Total</h3><p id="totalCenso">0</p></div>
+            <div class="stat-card card-directos"><h3>Directos</h3><p id="totalD">0</p></div>
+            <div class="stat-card card-indirectos"><h3>Indirectos</h3><p id="totalI">0</p></div>
         </div>
 
-        <div class="divider"><span>O CARGA MASIVA</span></div>
-
-        <div class="upload-box" onclick="document.getElementById('inputExcel').click()">
-            <span id="fileTxt">📁 Seleccionar archivo Excel</span>
-            <input type="file" id="inputExcel" hidden accept=".xlsx, .xls, .csv">
+        <div class="controls-row" data-html2canvas-ignore="true">
+            <input type="text" id="buscador" onkeyup="filtrarVotantes()" placeholder="🔍 Buscar por nombre o cédula...">
+            <select id="liderSelect" onchange="cambiarVista()">
+                <option value="GENERAL">-- Resumen General --</option>
+            </select>
         </div>
-        <button class="btn btn-blue" onclick="procesarMasivo()">Iniciar Carga Masiva</button>
-        
-        <button class="logout" onclick="location.reload()">Cerrar Sesión</button>
+
+        <div class="actions-bar" data-html2canvas-ignore="true">
+            <button onclick="exportarExcel()" class="btn btn-excel">📊 Descargar Excel</button>
+            <button onclick="exportarPDF()" class="btn btn-pdf">📄 Descargar PDF</button>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="chart-card">
+                <h4 id="titBarra">Rendimiento</h4>
+                <div style="height: 300px;"><canvas id="chartBar"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <h4>Puestos de Votación</h4>
+                <div style="height: 300px;"><canvas id="chartDona"></canvas></div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h4>📋 Detalle de Registros</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre Completo</th>
+                        <th>Cédula</th>
+                        <th>Tipo</th>
+                        <th>Puesto de Votación</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaCuerpo"></tbody>
+            </table>
+        </div>
     </div>
+</div>
 
 <script>
+    // CREDENCIALES
     const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
+    
+    let baseDatos = [];
+    let chartBar, chartDona;
 
-    // 1. VERIFICACIÓN DE SEGURIDAD
-    async function verificarAcceso() {
-        const ced = document.getElementById('cedulaAdmin').value;
-        if(!ced) return Swal.fire('Error', 'Ingrese una cédula válida', 'warning');
+    // INICIO CON SEGURIDAD
+    async function iniciar() {
+        const { value: pass } = await Swal.fire({
+            title: 'Acceso Administrativo',
+            input: 'password',
+            inputLabel: 'Ingrese su clave',
+            confirmButtonColor: '#1a365d',
+            allowOutsideClick: false
+        });
 
-        // Buscamos si la cédula existe en la base de datos para permitir el paso
-        const { data, error } = await _supabase.from('VOTANTES').select('*').eq('cedula', ced).single();
-
-        if (data) {
-            document.getElementById('seccionSeguridad').style.display = 'none';
-            document.getElementById('seccionPanel').style.display = 'block';
+        if (pass === 'ADMIN2026') {
+            document.getElementById('app').style.display = 'block';
+            await cargarDatos();
         } else {
-            Swal.fire('Acceso Denegado', 'Usted no está autorizado para cargar datos', 'error');
+            Swal.fire('Error', 'Clave incorrecta', 'error').then(() => location.reload());
         }
     }
 
-    // 2. CARGA MANUAL
-    async function guardarManual() {
-        const datos = {
-            "Nombres y apellidos": document.getElementById('nombre').value,
-            "cedula": document.getElementById('cedula').value,
-            "contacto": document.getElementById('telefono').value,
-            "puesto": document.getElementById('puesto').value || null,
-            "observaciones": document.getElementById('observaciones').value || null
-        };
+    async function cargarDatos() {
+        const { data, error } = await _supabase.from('VOTANTES').select('*');
+        if (error) return;
+        baseDatos = data;
 
-        // Validación de los 3 obligatorios (según instrucciones previas)
-        if(!datos.cedula || !datos["Nombres y apellidos"] || !datos.contacto) {
-            return Swal.fire('Atención', 'Nombre, Cédula y Teléfono son obligatorios.', 'warning');
-        }
+        // Actualizar barra de progreso (Meta 5000)
+        const porc = (data.length / 5000) * 100;
+        document.getElementById('barraProgreso').style.width = Math.min(porc, 100) + '%';
+        document.getElementById('txtPorcentaje').innerText = `${porc.toFixed(1)}% (${data.length} de 5,000)`;
 
-        const { error } = await _supabase.from('VOTANTES').insert([datos]);
-        if (error) {
-            let msg = error.code === '23505' ? 'Esta cédula ya existe.' : 'Error al guardar.';
-            Swal.fire('Error', msg, 'error');
+        // Poblar Selector de Líderes
+        const lideres = [...new Set(data.map(v => v.lider))].filter(l => l && l !== 'Quien lo ingreso');
+        const select = document.getElementById('liderSelect');
+        lideres.sort().forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l;
+            opt.textContent = l;
+            select.appendChild(opt);
+        });
+
+        cambiarVista();
+    }
+
+    function cambiarVista() {
+        const modo = document.getElementById('liderSelect').value;
+        let dList, iList;
+
+        if (modo === "GENERAL") {
+            const lideresNames = [...new Set(baseDatos.map(v => v.lider))];
+            dList = baseDatos.filter(v => lideresNames.includes(v["Nombres y apellidos"]));
+            iList = baseDatos.filter(v => !lideresNames.includes(v["Nombres y apellidos"]));
+            document.getElementById('titBarra').innerText = "Productividad General";
         } else {
-            Swal.fire('Éxito', 'Votante registrado correctamente', 'success');
-            document.querySelectorAll('#formManual input').forEach(i => i.value = '');
+            dList = baseDatos.filter(v => v.lider === modo);
+            const hijosNames = dList.map(v => v["Nombres y apellidos"]);
+            iList = baseDatos.filter(v => hijosNames.includes(v.lider));
+            document.getElementById('titBarra').innerText = "Gestión de: " + modo;
+        }
+
+        document.getElementById('totalCenso').innerText = (modo === "GENERAL") ? baseDatos.length : (dList.length + iList.length);
+        document.getElementById('totalD').innerText = dList.length;
+        document.getElementById('totalI').innerText = iList.length;
+
+        actualizarGraficos(dList, iList);
+        actualizarTabla(dList, iList);
+    }
+
+    function actualizarGraficos(dList, iList) {
+        if(chartBar) chartBar.destroy();
+        chartBar = new Chart(document.getElementById('chartBar'), {
+            type: 'bar',
+            data: {
+                labels: ['Votos Directos', 'Votos Indirectos'],
+                datasets: [{ data: [dList.length, iList.length], backgroundColor: ['#38a169', '#dd6b20'] }]
+            },
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+
+        const puestos = {};
+        [...dList, ...iList].forEach(v => puestos[v.puesto] = (puestos[v.puesto] || 0) + 1);
+
+        if(chartDona) chartDona.destroy();
+        chartDona = new Chart(document.getElementById('chartDona'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(puestos),
+                datasets: [{ data: Object.values(puestos), backgroundColor: ['#4299e1', '#48bb78', '#ecc94b', '#f56565', '#9f7aea'] }]
+            },
+            options: { maintainAspectRatio: false }
+        });
+    }
+
+    function actualizarTabla(dList, iList) {
+        const tbody = document.getElementById('tablaCuerpo');
+        tbody.innerHTML = '';
+        const rows = [
+            ...dList.map(v => ({...v, t: 'DIRECTO', c: 'directo'})),
+            ...iList.map(v => ({...v, t: 'INDIRECTO', c: 'indirecto'}))
+        ];
+        rows.forEach(v => {
+            tbody.innerHTML += `<tr>
+                <td><b>${v["Nombres y apellidos"]}</b></td>
+                <td>${v.cedula}</td>
+                <td><span class="badge ${v.c}">${v.t}</span></td>
+                <td>${v.puesto}</td>
+            </tr>`;
+        });
+    }
+
+    function filtrarVotantes() {
+        const term = document.getElementById('buscador').value.toUpperCase();
+        const rows = document.getElementById('tablaCuerpo').getElementsByTagName('tr');
+        for (let row of rows) {
+            row.style.display = row.innerText.toUpperCase().includes(term) ? "" : "none";
         }
     }
 
-    // 3. CARGA MASIVA CON DETALLE DE ERRORES
-    document.getElementById('inputExcel').addEventListener('change', e => {
-        if(e.target.files[0]) document.getElementById('fileTxt').innerText = "📄 " + e.target.files[0].name;
-    });
-
-    async function procesarMasivo() {
-        const file = document.getElementById('inputExcel').files[0];
-        if(!file) return Swal.fire('Error', 'Seleccione un archivo primero', 'warning');
-
-        Swal.fire({ title: 'Cargando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-            const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-            
-            let ok = 0, fallos = [];
-
-            for (const r of registros) {
-                const item = {
-                    "Nombres y apellidos": r["Nombres y apellidos"] || r["nombre"] || r["Nombre"],
-                    "cedula": r["cedula"] || r["CEDULA"] || r["Cedula"],
-                    "contacto": r["contacto"] || r["telefono"] || r["TELEFONO"],
-                    "puesto": r["puesto"] || r["Puesto"] || null,
-                    "observaciones": r["observaciones"] || r["Observaciones"] || r["lider"] || r["mesa"] || null
-                };
-
-                // Validar obligatorios en el Excel
-                if(!item.cedula || !item["Nombres y apellidos"] || !item.contacto) {
-                    fallos.push(`<li><b>${item.cedula || 'Fila sin ID'}:</b> Faltan Datos</li>`);
-                    continue;
-                }
-
-                const { error } = await _supabase.from('VOTANTES').insert([item]);
-                if (error) {
-                    let razon = error.code === '23505' ? 'Ya existe' : 'Error de formato';
-                    fallos.push(`<li><b>${item.cedula}:</b> ${razon}</li>`);
-                } else {
-                    ok++;
-                }
-            }
-
-            Swal.fire({
-                title: 'Reporte de Carga',
-                html: `<div style="text-align:left">✅ Exitosos: ${ok}<br>❌ No aceptados: ${fallos.length}<hr><ul style="font-size:12px; max-height:150px; overflow-y:auto; background:#fff5f5; padding:10px; border-radius:8px; list-style:none;">${fallos.join('')}</ul></div>`,
-                icon: fallos.length > 0 ? 'warning' : 'success'
-            });
-        };
-        reader.readAsArrayBuffer(file);
+    function exportarExcel() {
+        const ws = XLSX.utils.json_to_sheet(baseDatos);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Censo_Electoral");
+        XLSX.writeFile(wb, "Base_Votantes_2026.xlsx");
     }
+
+    function exportarPDF() {
+        const element = document.getElementById('area-impresion');
+        const opt = {
+            margin: 0.5,
+            filename: 'Reporte_Electoral.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
+
+    iniciar();
 </script>
 </body>
 </html>
