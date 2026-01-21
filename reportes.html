@@ -25,13 +25,11 @@
         body { font-family: 'Inter', 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #2d3748; }
         #app { display: none; max-width: 1200px; margin: auto; }
         
-        /* Barra de Progreso Meta */
         .meta-container { background: var(--white); padding: 20px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .meta-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; font-size: 1.1rem; }
         .progress-bg { background: #edf2f7; border-radius: 20px; height: 15px; overflow: hidden; border: 1px solid #e2e8f0; }
         .progress-fill { background: linear-gradient(90deg, #48bb78, #2f855a); width: 0%; height: 100%; transition: width 1s ease-in-out; }
 
-        /* Tarjetas de Estadísticas */
         .general-stats { 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
@@ -52,19 +50,12 @@
         .card-directos { border-color: #38a169; color: #38a169; }
         .card-indirectos { border-color: #dd6b20; color: #dd6b20; }
 
-        /* Controles */
         .controls-row { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 25px; }
         input, select { 
-            padding: 12px 15px; 
-            border-radius: 10px; 
-            border: 2px solid #e2e8f0; 
-            font-size: 1rem; 
-            outline: none;
-            transition: border-color 0.2s;
+            padding: 12px 15px; border-radius: 10px; border: 2px solid #e2e8f0; font-size: 1rem; outline: none; transition: border-color 0.2s;
         }
         input:focus { border-color: var(--primary); }
 
-        /* Botones */
         .actions-bar { display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 20px; }
         .btn { 
             padding: 10px 20px; border: none; border-radius: 8px; color: white; 
@@ -74,12 +65,10 @@
         .btn-excel { background: var(--excel); }
         .btn-pdf { background: var(--pdf); }
 
-        /* Dashboard */
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .chart-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .chart-card h4 { margin-top: 0; text-align: center; color: #4a5568; margin-bottom: 20px; }
 
-        /* Tabla y Cuadro Líderes */
         .table-container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; margin-bottom: 25px; }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { background: #f8fafc; padding: 15px; text-align: left; font-size: 0.85rem; color: #718096; border-bottom: 2px solid #edf2f7; }
@@ -88,7 +77,7 @@
         .directo { background: #c6f6d5; color: #22543d; }
         .indirecto { background: #feebc8; color: #7b341e; }
 
-        .lideres-card { border-left: 5px solid var(--primary); background: #ebf4ff; }
+        .lideres-card { border-top: 4px solid var(--primary); }
 
         @media (max-width: 768px) {
             .controls-row { grid-template-columns: 1fr; }
@@ -124,18 +113,18 @@
         </div>
 
         <div class="actions-bar" data-html2canvas-ignore="true">
-            <button onclick="exportarExcel()" class="btn btn-excel">📊 Descargar Excel General</button>
+            <button onclick="exportarExcel()" class="btn btn-excel">📊 Excel General</button>
             <button onclick="exportarPDF()" class="btn btn-pdf">📄 Descargar PDF</button>
         </div>
 
         <div class="table-container lideres-card">
-            <h4>⭐ Control Líderes Principales</h4>
+            <h4>⭐ Líderes Referidos por Rosse Mary y Freddy Alejandro</h4>
             <table>
                 <thead>
                     <tr>
-                        <th>Líder Cabeza</th>
-                        <th style="text-align: center;">Total Referidos</th>
-                        <th style="text-align: right;">Acción</th>
+                        <th>Líder Registrado</th>
+                        <th style="text-align: center;">Total Referidos Propios</th>
+                        <th style="text-align: right;">Base de Datos</th>
                     </tr>
                 </thead>
                 <tbody id="cuerpoLideresPrincipales">
@@ -183,7 +172,7 @@
         const { value: pass } = await Swal.fire({
             title: 'Acceso Administrativo',
             input: 'password',
-            inputLabel: 'Ingrese su clave',
+            inputLabel: 'Ingrese clave de acceso',
             confirmButtonColor: '#1a365d',
             allowOutsideClick: false
         });
@@ -218,36 +207,48 @@
         cambiarVista();
     }
 
-    // FUNCIÓN PARA EL NUEVO CUADRO DE LÍDERES ESPECÍFICOS
     function generarCuadroLideresPrincipales() {
-        const principales = ["Rosse Mary Cabal Franco", "Freddy Alejandro Guevara"];
+        const cabezas = ["Rosse Mary Cabal Franco", "Freddy Alejandro Guevara"];
         const tbody = document.getElementById('cuerpoLideresPrincipales');
         tbody.innerHTML = '';
 
-        principales.forEach(nombre => {
-            const referidos = baseDatos.filter(v => v.lider === nombre);
-            tbody.innerHTML += `
-                <tr>
-                    <td><b>${nombre}</b></td>
-                    <td style="text-align: center;"><span class="badge directo">${referidos.length}</span></td>
-                    <td style="text-align: right;">
-                        <button onclick="descargarExcelLider('${nombre}')" class="btn btn-excel" style="padding: 5px 10px; font-size: 0.8rem; display: inline-flex;">
-                           📥 Excel
-                        </button>
-                    </td>
-                </tr>
-            `;
+        // Obtenemos nombres de personas inscritas por Rosse o Freddy
+        const inscritosPorCabezas = [...new Set(baseDatos
+            .filter(v => cabezas.includes(v.lider))
+            .map(v => v["Nombres y apellidos"])
+        )].sort();
+
+        inscritosPorCabezas.forEach(nombreLider => {
+            // Contamos cuántos referidos tiene este líder específico
+            const referidos = baseDatos.filter(v => v.lider === nombreLider);
+            
+            // Solo lo mostramos en este cuadro si ya tiene gente inscrita (es líder)
+            if (referidos.length > 0) {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b>${nombreLider}</b></td>
+                        <td style="text-align: center;"><span class="badge directo">${referidos.length}</span></td>
+                        <td style="text-align: right;">
+                            <button onclick="descargarExcelLider('${nombreLider}')" class="btn btn-excel" style="padding: 5px 12px; font-size: 0.8rem; display: inline-flex; border-radius: 5px;">
+                               📥 Descargar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
         });
+
+        if (tbody.innerHTML === '') {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#999;">No hay sub-líderes con referidos registrados bajo los cabezas principales.</td></tr>';
+        }
     }
 
     function descargarExcelLider(nombreLider) {
-        const dataFiltrada = baseDatos.filter(v => v.lider === nombreLider);
-        if(dataFiltrada.length === 0) return Swal.fire('Aviso', 'Este líder no tiene registros aún', 'info');
-        
-        const ws = XLSX.utils.json_to_sheet(dataFiltrada);
+        const filtrados = baseDatos.filter(v => v.lider === nombreLider);
+        const ws = XLSX.utils.json_to_sheet(filtrados);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Referidos");
-        XLSX.writeFile(wb, `Referidos_${nombreLider.replace(/ /g, '_')}.xlsx`);
+        XLSX.writeFile(wb, `Referidos_de_${nombreLider.replace(/ /g, '_')}.xlsx`);
     }
 
     function cambiarVista() {
@@ -279,7 +280,7 @@
         chartBar = new Chart(document.getElementById('chartBar'), {
             type: 'bar',
             data: {
-                labels: ['Votos Directos', 'Votos Indirectos'],
+                labels: ['Directos', 'Indirectos'],
                 datasets: [{ data: [dList.length, iList.length], backgroundColor: ['#38a169', '#dd6b20'] }]
             },
             options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
@@ -304,10 +305,7 @@
     function actualizarTabla(dList, iList) {
         const tbody = document.getElementById('tablaCuerpo');
         tbody.innerHTML = '';
-        const rows = [
-            ...dList.map(v => ({...v, t: 'DIRECTO', c: 'directo'})),
-            ...iList.map(v => ({...v, t: 'INDIRECTO', c: 'indirecto'}))
-        ];
+        const rows = [...dList.map(v=>({...v,t:'DIRECTO',c:'directo'})), ...iList.map(v=>({...v,t:'INDIRECTO',c:'indirecto'}))];
         rows.forEach(v => {
             tbody.innerHTML += `<tr>
                 <td><b>${v["Nombres y apellidos"]}</b></td>
@@ -329,20 +327,13 @@
     function exportarExcel() {
         const ws = XLSX.utils.json_to_sheet(baseDatos);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Censo_Electoral");
-        XLSX.writeFile(wb, "Base_Votantes_2026.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "Censo");
+        XLSX.writeFile(wb, "Censo_General_2026.xlsx");
     }
 
     function exportarPDF() {
         const element = document.getElementById('area-impresion');
-        const opt = {
-            margin: 0.5,
-            filename: 'Reporte_Electoral.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
+        html2pdf().set({ margin: 0.5, filename: 'Reporte.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(element).save();
     }
 
     iniciar();
