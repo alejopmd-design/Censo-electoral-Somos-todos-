@@ -59,8 +59,7 @@
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { background: #f8fafc; padding: 15px; text-align: left; font-size: 0.85rem; color: #718096; border-bottom: 2px solid #edf2f7; }
         
-        /* Estilo para encabezados ordenables */
-        th.sortable { cursor: pointer; position: relative; transition: background 0.2s; }
+        th.sortable { cursor: pointer; transition: background 0.2s; }
         th.sortable:hover { background: #edf2f7; color: var(--primary); }
         th.sortable::after { content: ' ↕'; font-size: 10px; opacity: 0.5; }
 
@@ -68,6 +67,12 @@
         .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
         .directo { background: #c6f6d5; color: #22543d; }
         .lideres-card { border-top: 4px solid var(--primary); }
+
+        .btn-mini-excel { 
+            background: var(--excel); color: white; border: none; padding: 12px 25px; 
+            border-radius: 8px; cursor: pointer; margin-top: 15px; font-weight: bold;
+            display: inline-flex; align-items: center; gap: 10px;
+        }
 
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .chart-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
@@ -99,8 +104,8 @@
         </div>
 
         <div class="actions-bar">
-            <button onclick="exportarExcel()" class="btn btn-excel">📊 Excel General</button>
-            <button onclick="exportarPDF()" class="btn btn-pdf">📄 PDF</button>
+            <button onclick="exportarExcel()" class="btn btn-excel">📊 Excel Censo Completo</button>
+            <button onclick="exportarPDF()" class="btn btn-pdf">📄 PDF Reporte</button>
         </div>
 
         <div class="table-container lideres-card">
@@ -115,6 +120,10 @@
                 </thead>
                 <tbody id="cuerpoLideresPrincipales"></tbody>
             </table>
+            
+            <button onclick="exportarTablaLideresExcel()" class="btn-mini-excel">
+                📊 Descargar esta lista de líderes (Excel)
+            </button>
         </div>
 
         <div class="dashboard-grid">
@@ -176,12 +185,10 @@
         if (error) return;
         baseDatos = data;
 
-        // Actualizar Meta
         const porc = (data.length / 5000) * 100;
         document.getElementById('barraProgreso').style.width = Math.min(porc, 100) + '%';
         document.getElementById('txtPorcentaje').innerText = `${porc.toFixed(1)}% (${data.length} de 5,000)`;
 
-        // Selector
         const select = document.getElementById('liderSelect');
         const lideresUnicos = [...new Set(data.map(v => v.lider))].filter(l => l && l !== 'Quien lo ingreso').sort();
         lideresUnicos.forEach(l => {
@@ -205,8 +212,6 @@
                 cantidad: baseDatos.filter(v => v.lider === nombre).length
             };
         });
-        
-        // Orden inicial A-Z
         ordenarLideres('nombre', true);
     }
 
@@ -215,28 +220,25 @@
             ordenActual.ascendente = !ordenActual.ascendente;
         } else {
             ordenActual.columna = columna;
-            ordenActual.ascendente = (columna === 'nombre'); // Texto A-Z, Números mayor a menor por defecto
+            ordenActual.ascendente = (columna === 'nombre'); 
             if(columna === 'cantidad') ordenActual.ascendente = false; 
         }
 
         listaLideresProcesada.sort((a, b) => {
             let valA = a[columna];
             let valB = b[columna];
-
             if (typeof valA === 'string') {
                 return ordenActual.ascendente ? valA.localeCompare(valB) : valB.localeCompare(valA);
             } else {
                 return ordenActual.ascendente ? valA - valB : valB - valA;
             }
         });
-
         renderizarTablaLideres();
     }
 
     function renderizarTablaLideres() {
         const tbody = document.getElementById('cuerpoLideresPrincipales');
         tbody.innerHTML = '';
-
         listaLideresProcesada.forEach(l => {
             tbody.innerHTML += `
                 <tr>
@@ -244,11 +246,29 @@
                     <td style="text-align: center;"><span class="badge directo">${l.cantidad}</span></td>
                     <td style="text-align: right;">
                         <button onclick="descargarExcelLider('${l.nombre}')" class="btn btn-excel" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 5px;">
-                           📥 Descargar
+                           📥 Excel Base
                         </button>
                     </td>
                 </tr>`;
         });
+    }
+
+    // NUEVA FUNCIÓN: Exportar la tabla resumen de líderes
+    function exportarTablaLideresExcel() {
+        // Mapear los datos para que el Excel tenga nombres de columna bonitos
+        const datosExcel = listaLideresProcesada.map(l => ({
+            "Nombre del Líder": l.nombre,
+            "Total Referidos": l.cantidad
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(datosExcel);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Resumen Lideres");
+        
+        // Estética básica: Ajustar ancho de columnas
+        ws['!cols'] = [{ wch: 40 }, { wch: 20 }];
+        
+        XLSX.writeFile(wb, "Resumen_Referidos_por_Lider.xlsx");
     }
 
     function descargarExcelLider(nombreLider) {
