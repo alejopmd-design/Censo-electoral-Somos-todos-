@@ -79,14 +79,16 @@
         .chart-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .chart-card h4 { margin-top: 0; text-align: center; color: #4a5568; margin-bottom: 20px; }
 
-        /* Tabla */
-        .table-container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; }
+        /* Tabla y Cuadro Líderes */
+        .table-container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; margin-bottom: 25px; }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { background: #f8fafc; padding: 15px; text-align: left; font-size: 0.85rem; color: #718096; border-bottom: 2px solid #edf2f7; }
         td { padding: 15px; border-bottom: 1px solid #edf2f7; font-size: 0.95rem; }
         .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
         .directo { background: #c6f6d5; color: #22543d; }
         .indirecto { background: #feebc8; color: #7b341e; }
+
+        .lideres-card { border-left: 5px solid var(--primary); background: #ebf4ff; }
 
         @media (max-width: 768px) {
             .controls-row { grid-template-columns: 1fr; }
@@ -122,8 +124,23 @@
         </div>
 
         <div class="actions-bar" data-html2canvas-ignore="true">
-            <button onclick="exportarExcel()" class="btn btn-excel">📊 Descargar Excel</button>
+            <button onclick="exportarExcel()" class="btn btn-excel">📊 Descargar Excel General</button>
             <button onclick="exportarPDF()" class="btn btn-pdf">📄 Descargar PDF</button>
+        </div>
+
+        <div class="table-container lideres-card">
+            <h4>⭐ Control Líderes Principales</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Líder Cabeza</th>
+                        <th style="text-align: center;">Total Referidos</th>
+                        <th style="text-align: right;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoLideresPrincipales">
+                    </tbody>
+            </table>
         </div>
 
         <div class="dashboard-grid">
@@ -155,7 +172,6 @@
 </div>
 
 <script>
-    // CREDENCIALES
     const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
@@ -163,7 +179,6 @@
     let baseDatos = [];
     let chartBar, chartDona;
 
-    // INICIO CON SEGURIDAD
     async function iniciar() {
         const { value: pass } = await Swal.fire({
             title: 'Acceso Administrativo',
@@ -186,12 +201,10 @@
         if (error) return;
         baseDatos = data;
 
-        // Actualizar barra de progreso (Meta 5000)
         const porc = (data.length / 5000) * 100;
         document.getElementById('barraProgreso').style.width = Math.min(porc, 100) + '%';
         document.getElementById('txtPorcentaje').innerText = `${porc.toFixed(1)}% (${data.length} de 5,000)`;
 
-        // Poblar Selector de Líderes
         const lideres = [...new Set(data.map(v => v.lider))].filter(l => l && l !== 'Quien lo ingreso');
         const select = document.getElementById('liderSelect');
         lideres.sort().forEach(l => {
@@ -201,7 +214,40 @@
             select.appendChild(opt);
         });
 
+        generarCuadroLideresPrincipales();
         cambiarVista();
+    }
+
+    // FUNCIÓN PARA EL NUEVO CUADRO DE LÍDERES ESPECÍFICOS
+    function generarCuadroLideresPrincipales() {
+        const principales = ["Rosse Mary Cabal Franco", "Freddy Alejandro Guevara"];
+        const tbody = document.getElementById('cuerpoLideresPrincipales');
+        tbody.innerHTML = '';
+
+        principales.forEach(nombre => {
+            const referidos = baseDatos.filter(v => v.lider === nombre);
+            tbody.innerHTML += `
+                <tr>
+                    <td><b>${nombre}</b></td>
+                    <td style="text-align: center;"><span class="badge directo">${referidos.length}</span></td>
+                    <td style="text-align: right;">
+                        <button onclick="descargarExcelLider('${nombre}')" class="btn btn-excel" style="padding: 5px 10px; font-size: 0.8rem; display: inline-flex;">
+                           📥 Excel
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function descargarExcelLider(nombreLider) {
+        const dataFiltrada = baseDatos.filter(v => v.lider === nombreLider);
+        if(dataFiltrada.length === 0) return Swal.fire('Aviso', 'Este líder no tiene registros aún', 'info');
+        
+        const ws = XLSX.utils.json_to_sheet(dataFiltrada);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Referidos");
+        XLSX.writeFile(wb, `Referidos_${nombreLider.replace(/ /g, '_')}.xlsx`);
     }
 
     function cambiarVista() {
@@ -240,7 +286,9 @@
         });
 
         const puestos = {};
-        [...dList, ...iList].forEach(v => puestos[v.puesto] = (puestos[v.puesto] || 0) + 1);
+        [...dList, ...iList].forEach(v => {
+            if(v.puesto) puestos[v.puesto] = (puestos[v.puesto] || 0) + 1;
+        });
 
         if(chartDona) chartDona.destroy();
         chartDona = new Chart(document.getElementById('chartDona'), {
@@ -265,7 +313,7 @@
                 <td><b>${v["Nombres y apellidos"]}</b></td>
                 <td>${v.cedula}</td>
                 <td><span class="badge ${v.c}">${v.t}</span></td>
-                <td>${v.puesto}</td>
+                <td>${v.puesto || 'No registrado'}</td>
             </tr>`;
         });
     }
