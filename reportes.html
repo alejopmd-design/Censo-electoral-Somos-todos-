@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Electoral Cali 2026 - Master</title>
+    <title>Dashboard Electoral Cali 2026 - Master Interactivo</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -19,14 +19,15 @@
         .top-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 24px; }
         .mid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
         
-        .stat-num { font-size: 2.8rem; font-weight: 800; color: var(--blue); text-align: center; letter-spacing: -1px; }
+        .stat-num { font-size: 2.8rem; font-weight: 800; color: var(--blue); text-align: center; }
         .stat-label { text-align: center; color: #64748b; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; }
         
         .progress-bg { background: #f1f5f9; height: 14px; border-radius: 7px; overflow: hidden; margin: 12px 0; }
-        .progress-fill { background: linear-gradient(90deg, #10b981, #059669); height: 100%; transition: 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .progress-fill { background: linear-gradient(90deg, #10b981, #059669); height: 100%; width: 0%; transition: 1.5s; }
 
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 14px; text-align: left; font-size: 0.75rem; color: #64748b; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; }
+        th { background: #f8fafc; padding: 14px; text-align: left; font-size: 0.75rem; color: #64748b; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; cursor: pointer; transition: 0.2s; user-select: none; }
+        th:hover { background: #f1f5f9; color: var(--blue); }
         td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
         
         .scroll-area { max-height: 450px; overflow-y: auto; border-radius: 12px; border: 1px solid #e2e8f0; }
@@ -37,10 +38,7 @@
 
         .btn { padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
         .btn-excel { background: #1D6F42; color: white; width: 100%; justify-content: center; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-
-        input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 1rem; transition: 0.2s; }
-        input:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); outline: none; }
+        input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 1rem; }
     </style>
 </head>
 <body>
@@ -51,16 +49,10 @@
             <strong>📊 Avance de Campaña 2026</strong>
             <div class="stat-num" id="totalCenso">0</div>
             <div class="progress-bg"><div id="barraMeta" class="progress-fill"></div></div>
-            <span id="porcLabel" style="font-size:0.8rem; color:#64748b; font-weight:600">Calculando meta...</span>
+            <span id="porcLabel" style="font-size:0.8rem; color:#64748b">Calculando...</span>
         </div>
-        <div class="card">
-            <div class="stat-label">Directos de Rosse Mary</div>
-            <div class="stat-num" id="totalD" style="color:#10b981">0</div>
-        </div>
-        <div class="card">
-            <div class="stat-label">Red Indirecta</div>
-            <div class="stat-num" id="totalI" style="color:#6366f1">0</div>
-        </div>
+        <div class="card"><div class="stat-label">Directos Rosse Mary</div><div class="stat-num" id="totalD" style="color:#10b981">0</div></div>
+        <div class="card"><div class="stat-label">Red Indirecta</div><div class="stat-num" id="totalI" style="color:#6366f1">0</div></div>
     </div>
 
     <div class="card">
@@ -69,19 +61,22 @@
 
     <div class="mid-grid">
         <div class="card">
-            <h4 style="margin-top:0">⭐ Ranking de Productividad (Líderes)</h4>
+            <h4 style="margin-top:0">⭐ Ranking de Líderes (Rosse Mary)</h4>
             <div class="scroll-area">
                 <table>
                     <thead>
-                        <tr><th onclick="ordenar('nombre')">Líder ↕</th><th style="text-align:center" onclick="ordenar('cantidad')">Referidos ↕</th></tr>
+                        <tr>
+                            <th onclick="ordenarLideres('nombre')">Líder <span id="sortL1">↕</span></th>
+                            <th style="text-align:center" onclick="ordenarLideres('cantidad')">Referidos <span id="sortL2">↕</span></th>
+                        </tr>
                     </thead>
                     <tbody id="cuerpoLideres"></tbody>
                 </table>
             </div>
-            <button onclick="exportarLideres()" class="btn btn-excel" style="margin-top:15px">Descargar Ranking a Excel</button>
+            <button onclick="exportarLideres()" class="btn btn-excel" style="margin-top:15px">Descargar Ranking Excel</button>
         </div>
         <div class="card" style="display:flex; flex-direction:column">
-            <h4 style="margin-top:0">📍 Peso Territorial por Comuna</h4>
+            <h4 style="margin-top:0">📍 Distribución Geográfica</h4>
             <div style="flex-grow:1; min-height:350px"><canvas id="chartDona"></canvas></div>
         </div>
     </div>
@@ -89,14 +84,20 @@
     <div class="card">
         <h4 style="margin-top:0">📋 Base de Datos Maestra (Detalle con Comuna)</h4>
         <div class="scroll-area" style="max-height:600px">
-            <table>
+            <table id="tablaMaestra">
                 <thead>
-                    <tr><th>Votante</th><th>Identificación</th><th>Puesto de Votación</th><th>Ubicación</th><th>Origen</th></tr>
+                    <tr>
+                        <th onclick="ordenarMaestra('Nombres y apellidos')">Votante <span id="sortM1">↕</span></th>
+                        <th onclick="ordenarMaestra('cedula')">Cédula <span id="sortM2">↕</span></th>
+                        <th onclick="ordenarMaestra('puesto')">Puesto <span id="sortM3">↕</span></th>
+                        <th onclick="ordenarMaestra('comuna')">Comuna <span id="sortM4">↕</span></th>
+                        <th onclick="ordenarMaestra('relacion')">Origen <span id="sortM5">↕</span></th>
+                    </tr>
                 </thead>
                 <tbody id="cuerpoDetalle"></tbody>
             </table>
         </div>
-        <button onclick="exportarTodo()" class="btn btn-excel" style="margin-top:20px; background:#0f172a">Descargar Consolidado General</button>
+        <button onclick="exportarTodo()" class="btn btn-excel" style="margin-top:20px; background:#0f172a">Descargar Censo Completo</button>
     </div>
 </div>
 
@@ -108,8 +109,8 @@
     let baseDatos = [];
     let lideresRosse = [];
     let myChart;
+    let sortConfig = { tableL: { col: null, asc: true }, tableM: { col: null, asc: true } };
 
-    // MATRIZ ULTRA-COMPLETA CALI (Variaciones y Sedes)
     const MATRIZ_CALI = {
         "1": ["CABAL", "SALADITO", "TERRON", "VISTA HERMOSA", "AMANDA", "MONTAÑUELAS", "BAJO AGUACATAL", "ESTRELLA"],
         "2": ["CAM", "FRANCIA", "GONZAGA", "ALAMOS", "LA FLORA", "VIPASA", "GRANADA", "CENTENARIO", "ATENAS", "SANTA TERESITA", "NORMANDIA", "JUANAMBU", "MENA", "CHIPICHAPE", "VERSALLES", "LICEO BENALCAZAR"],
@@ -138,58 +139,66 @@
     function obtenerComuna(puesto) {
         if(!puesto) return "SIN ASIGNAR";
         const t = puesto.toUpperCase();
-        for(let [c, claves] of Object.entries(MATRIZ_CALI)) {
-            if(claves.some(k => t.includes(k))) return "Comuna " + c;
-        }
+        for(let [c, claves] of Object.entries(MATRIZ_CALI)) { if(claves.some(k => t.includes(k))) return "Comuna " + c; }
         return "OTRA / RURAL";
     }
 
     async function iniciar() {
-        const { value: pass } = await Swal.fire({ 
-            title: 'Panel Administrativo', 
-            input: 'password', 
-            confirmButtonColor: '#0f172a',
-            allowOutsideClick: false
-        });
+        const { value: pass } = await Swal.fire({ title: 'Panel Admin', input: 'password', confirmButtonColor: '#0f172a', allowOutsideClick: false });
         if(pass === 'ADMIN2026') { document.getElementById('app').style.display = 'block'; await cargar(); }
     }
 
     async function cargar() {
         const { data } = await _supabase.from('VOTANTES').select('*');
-        baseDatos = data.map(v => ({...v, comuna: obtenerComuna(v.puesto)}));
+        baseDatos = data.map(v => ({...v, comuna: obtenerComuna(v.puesto), relacion: v.lider === "Rosse Mary Cabal Franco" ? "DIRECTO" : "INDIRECTO"}));
         procesarRosse();
         actualizar();
     }
 
     function procesarRosse() {
         const hijos = baseDatos.filter(v => v.lider === "Rosse Mary Cabal Franco");
-        lideresRosse = hijos.map(h => ({
-            nombre: h["Nombres y apellidos"],
-            cantidad: baseDatos.filter(v => v.lider === h["Nombres y apellidos"]).length
-        })).sort((a,b) => b.cantidad - a.cantidad);
+        lideresRosse = hijos.map(h => ({ nombre: h["Nombres y apellidos"], cantidad: baseDatos.filter(v => v.lider === h["Nombres y apellidos"]).length }));
     }
 
     function actualizar() {
         document.getElementById('totalCenso').innerText = baseDatos.length.toLocaleString();
-        const dCount = baseDatos.filter(v => v.lider === "Rosse Mary Cabal Franco").length;
-        document.getElementById('totalD').innerText = dCount;
-        document.getElementById('totalI').innerText = baseDatos.length - dCount;
-        
+        document.getElementById('totalD').innerText = baseDatos.filter(v => v.relacion === "DIRECTO").length;
+        document.getElementById('totalI').innerText = baseDatos.filter(v => v.relacion === "INDIRECTO").length;
         const p = (baseDatos.length / 5000) * 100;
         document.getElementById('barraMeta').style.width = Math.min(p, 100) + '%';
-        document.getElementById('porcLabel').innerText = `${p.toFixed(1)}% del objetivo (Meta: 5,000)`;
-
+        document.getElementById('porcLabel').innerText = `${p.toFixed(1)}% de la meta`;
         renderLideres();
         renderDona();
         renderDetalle();
     }
 
+    function ordenarLideres(col) {
+        sortConfig.tableL.asc = (sortConfig.tableL.col === col) ? !sortConfig.tableL.asc : true;
+        sortConfig.tableL.col = col;
+        lideresRosse.sort((a,b) => (a[col] > b[col] ? 1 : -1) * (sortConfig.tableL.asc ? 1 : -1));
+        document.getElementById('sortL1').innerText = sortConfig.tableL.col === 'nombre' ? (sortConfig.tableL.asc ? '↑' : '↓') : '↕';
+        document.getElementById('sortL2').innerText = sortConfig.tableL.col === 'cantidad' ? (sortConfig.tableL.asc ? '↑' : '↓') : '↕';
+        renderLideres();
+    }
+
+    function ordenarMaestra(col) {
+        sortConfig.tableM.asc = (sortConfig.tableM.col === col) ? !sortConfig.tableM.asc : true;
+        sortConfig.tableM.col = col;
+        baseDatos.sort((a,b) => ((a[col]||'') > (b[col]||'') ? 1 : -1) * (sortConfig.tableM.asc ? 1 : -1));
+        for(let i=1; i<=5; i++) document.getElementById('sortM'+i).innerText = '↕';
+        const idx = { 'Nombres y apellidos': 1, 'cedula': 2, 'puesto': 3, 'comuna': 4, 'relacion': 5 }[col];
+        document.getElementById('sortM'+idx).innerText = sortConfig.tableM.asc ? '↑' : '↓';
+        renderDetalle();
+    }
+
     function renderLideres() {
         const tbody = document.getElementById('cuerpoLideres');
-        tbody.innerHTML = '';
-        lideresRosse.forEach(l => {
-            tbody.innerHTML += `<tr><td><b>${l.nombre}</b></td><td style="text-align:center"><span class="badge bg-green">${l.cantidad}</span></td></tr>`;
-        });
+        tbody.innerHTML = lideresRosse.map(l => `<tr><td><b>${l.nombre}</b></td><td style="text-align:center"><span class="badge bg-green">${l.cantidad}</span></td></tr>`).join('');
+    }
+
+    function renderDetalle() {
+        const tbody = document.getElementById('cuerpoDetalle');
+        tbody.innerHTML = baseDatos.map(v => `<tr><td><b>${v["Nombres y apellidos"]}</b></td><td>${v.cedula}</td><td>${v.puesto||''}</td><td><span class="badge bg-blue">${v.comuna}</span></td><td><span class="badge ${v.relacion==='DIRECTO'?'bg-green':''}">${v.relacion}</span></td></tr>`).join('');
     }
 
     function renderDona() {
@@ -197,37 +206,7 @@
         const cont = {};
         baseDatos.forEach(v => cont[v.comuna] = (cont[v.comuna] || 0) + 1);
         if(myChart) myChart.destroy();
-        myChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(cont),
-                datasets: [{ 
-                    data: Object.values(cont), 
-                    backgroundColor: ['#0f172a', '#10b981', '#6366f1', '#f59e0b', '#ec4899', '#ef4444', '#8b5cf6', '#06b6d4', '#94a3b8'],
-                    borderWidth: 0
-                }]
-            },
-            options: { 
-                maintainAspectRatio: false, 
-                cutout: '70%',
-                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, weight: 'bold' }, padding: 15 } } } 
-            }
-        });
-    }
-
-    function renderDetalle() {
-        const tbody = document.getElementById('cuerpoDetalle');
-        tbody.innerHTML = '';
-        baseDatos.forEach(v => {
-            const rel = v.lider === "Rosse Mary Cabal Franco" ? "DIRECTO" : "INDIRECTO";
-            tbody.innerHTML += `<tr>
-                <td><b>${v["Nombres y apellidos"]}</b></td>
-                <td>${v.cedula}</td>
-                <td>${v.puesto||'NO REGISTRADO'}</td>
-                <td><span class="badge bg-blue">${v.comuna}</span></td>
-                <td><span class="badge ${rel==='DIRECTO'?'bg-green':''}">${rel}</span></td>
-            </tr>`;
-        });
+        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(cont), datasets: [{ data: Object.values(cont), backgroundColor: ['#0f172a', '#10b981', '#6366f1', '#f59e0b', '#ec4899', '#ef4444', '#8b5cf6', '#06b6d4', '#94a3b8'], borderWidth: 0 }] }, options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, weight: 'bold' }, padding: 15 } } } } });
     }
 
     function filtrar() {
@@ -236,19 +215,8 @@
         for(let f of filas) f.style.display = f.innerText.toUpperCase().includes(val) ? '' : 'none';
     }
 
-    function exportarLideres() {
-        const ws = XLSX.utils.json_to_sheet(lideresRosse.map(l => ({ "Líder": l.nombre, "Total Referidos": l.cantidad })));
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Ranking");
-        XLSX.writeFile(wb, "Ranking_Productividad_2026.xlsx");
-    }
-
-    function exportarTodo() {
-        const ws = XLSX.utils.json_to_sheet(baseDatos);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Censo Completo");
-        XLSX.writeFile(wb, "Censo_Total_Cali_2026.xlsx");
-    }
+    function exportarLideres() { const ws = XLSX.utils.json_to_sheet(lideresRosse); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Ranking"); XLSX.writeFile(wb, "Ranking_2026.xlsx"); }
+    function exportarTodo() { const ws = XLSX.utils.json_to_sheet(baseDatos); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Censo"); XLSX.writeFile(wb, "Censo_Cali_2026.xlsx"); }
 
     iniciar();
 </script>
