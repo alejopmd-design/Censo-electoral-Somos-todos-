@@ -118,12 +118,12 @@
         </div>
 
         <div class="table-container lideres-card">
-            <h4>⭐ Líderes Referidos por Rosse Mary y Freddy Alejandro</h4>
+            <h4>⭐ Referidos por líder</h4>
             <table>
                 <thead>
                     <tr>
-                        <th>Líder Registrado</th>
-                        <th style="text-align: center;">Total Referidos Propios</th>
+                        <th>Líder</th>
+                        <th style="text-align: center;">Cantidad de referidos</th>
                         <th style="text-align: right;">Base de Datos</th>
                     </tr>
                 </thead>
@@ -207,44 +207,49 @@
         cambiarVista();
     }
 
+    // AJUSTE SOLICITADO: Referidos por lider (A-Z) de los ingresados por cabezas
     function generarCuadroLideresPrincipales() {
         const cabezas = ["Rosse Mary Cabal Franco", "Freddy Alejandro Guevara"];
         const tbody = document.getElementById('cuerpoLideresPrincipales');
         tbody.innerHTML = '';
 
-        // Obtenemos nombres de personas inscritas por Rosse o Freddy
-        const inscritosPorCabezas = [...new Set(baseDatos
-            .filter(v => cabezas.includes(v.lider))
-            .map(v => v["Nombres y apellidos"])
-        )].sort();
+        // Obtenemos todos los que fueron ingresados por Rosse Mary o Freddy
+        const personasDeCabezas = baseDatos.filter(v => cabezas.includes(v.lider));
 
-        inscritosPorCabezas.forEach(nombreLider => {
-            // Contamos cuántos referidos tiene este líder específico
-            const referidos = baseDatos.filter(v => v.lider === nombreLider);
-            
-            // Solo lo mostramos en este cuadro si ya tiene gente inscrita (es líder)
-            if (referidos.length > 0) {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><b>${nombreLider}</b></td>
-                        <td style="text-align: center;"><span class="badge directo">${referidos.length}</span></td>
-                        <td style="text-align: right;">
-                            <button onclick="descargarExcelLider('${nombreLider}')" class="btn btn-excel" style="padding: 5px 12px; font-size: 0.8rem; display: inline-flex; border-radius: 5px;">
-                               📥 Descargar
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }
+        // Ordenamos alfabéticamente de la A a la Z
+        personasDeCabezas.sort((a, b) => {
+            const nombreA = (a["Nombres y apellidos"] || "").toUpperCase();
+            const nombreB = (b["Nombres y apellidos"] || "").toUpperCase();
+            return nombreA.localeCompare(nombreB);
         });
 
-        if (tbody.innerHTML === '') {
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#999;">No hay sub-líderes con referidos registrados bajo los cabezas principales.</td></tr>';
+        personasDeCabezas.forEach(persona => {
+            const nombre = persona["Nombres y apellidos"];
+            // Contamos cuántos referidos tiene esta persona
+            const totalReferidos = baseDatos.filter(v => v.lider === nombre).length;
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td><b>${nombre}</b></td>
+                    <td style="text-align: center;"><span class="badge directo">${totalReferidos}</span></td>
+                    <td style="text-align: right;">
+                        <button onclick="descargarExcelLider('${nombre}')" class="btn btn-excel" style="padding: 5px 12px; font-size: 0.8rem; display: inline-flex; border-radius: 5px;">
+                           📥 Descargar
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        if (personasDeCabezas.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#999;">No hay personas registradas bajo los cabezas principales.</td></tr>';
         }
     }
 
     function descargarExcelLider(nombreLider) {
         const filtrados = baseDatos.filter(v => v.lider === nombreLider);
+        if(filtrados.length === 0) return Swal.fire('Sin datos', 'Esta persona aún no tiene referidos registrados.', 'info');
+        
         const ws = XLSX.utils.json_to_sheet(filtrados);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Referidos");
