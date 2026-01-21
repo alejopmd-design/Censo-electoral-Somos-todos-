@@ -207,25 +207,24 @@
         cambiarVista();
     }
 
-    // AJUSTE SOLICITADO: Referidos por lider (A-Z) de los ingresados por cabezas
+    // MODIFICACIÓN: Solo Rosse Mary Cabal Franco
     function generarCuadroLideresPrincipales() {
-        const cabezas = ["Rosse Mary Cabal Franco", "Freddy Alejandro Guevara"];
+        const cabezaUnica = "Rosse Mary Cabal Franco";
         const tbody = document.getElementById('cuerpoLideresPrincipales');
         tbody.innerHTML = '';
 
-        // Obtenemos todos los que fueron ingresados por Rosse Mary o Freddy
-        const personasDeCabezas = baseDatos.filter(v => cabezas.includes(v.lider));
+        // Filtrar personas ingresadas por Rosse Mary
+        const personasDeRosse = baseDatos.filter(v => v.lider === cabezaUnica);
 
-        // Ordenamos alfabéticamente de la A a la Z
-        personasDeCabezas.sort((a, b) => {
+        // Ordenar de la A a la Z
+        personasDeRosse.sort((a, b) => {
             const nombreA = (a["Nombres y apellidos"] || "").toUpperCase();
             const nombreB = (b["Nombres y apellidos"] || "").toUpperCase();
             return nombreA.localeCompare(nombreB);
         });
 
-        personasDeCabezas.forEach(persona => {
+        personasDeRosse.forEach(persona => {
             const nombre = persona["Nombres y apellidos"];
-            // Contamos cuántos referidos tiene esta persona
             const totalReferidos = baseDatos.filter(v => v.lider === nombre).length;
             
             tbody.innerHTML += `
@@ -241,8 +240,8 @@
             `;
         });
 
-        if (personasDeCabezas.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#999;">No hay personas registradas bajo los cabezas principales.</td></tr>';
+        if (personasDeRosse.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#999;">No hay personas registradas bajo Rosse Mary Cabal Franco.</td></tr>';
         }
     }
 
