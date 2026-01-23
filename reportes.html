@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Informes Estratégicos - Cali 2026</title>
+    <title>Informes Rosse Mary - Cali 2026</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -29,7 +29,6 @@
         .scroll { max-height: 500px; overflow-y: auto; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; }
         th { background: var(--blue); color: white; padding: 14px; text-align: left; cursor: pointer; position: sticky; top: 0; font-size: 0.7rem; }
-        th:hover { background: #1e293b; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 700; }
         
         .search-input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #e2e8f0; margin-bottom: 20px; font-size: 1rem; }
@@ -44,10 +43,10 @@
             <small>CENSO ELECTORAL</small>
             <div class="stat-num" id="tV">0</div>
             <div class="meta-bg"><div id="metaFill" class="meta-fill"></div></div>
-            <small id="metaPct">META 10,000 (0%)</small>
+            <small id="metaPct">META 4,000 (0%)</small>
         </div>
         <div class="card" style="border-top: 4px solid var(--green)">
-            <small>VOTOS DIRECTOS</small>
+            <small>VOTOS DIRECTOS ROSSE</small>
             <div class="stat-num" id="tD" style="color:var(--green)">0</div>
         </div>
         <div class="card" style="border-top: 4px solid var(--accent)">
@@ -58,7 +57,7 @@
 
     <div class="main-layout">
         <div class="card">
-            <h4 style="margin:0 0 15px 0">🗺️ GEORREFERENCIACIÓN Y COMUNAS</h4>
+            <h4 style="margin:0 0 15px 0">🗺️ GEORREFERENCIACIÓN POR COMUNA</h4>
             <div style="display: grid; grid-template-columns: 1fr 280px; gap: 20px;">
                 <div id="map"></div>
                 <div>
@@ -69,13 +68,13 @@
         </div>
 
         <div class="card">
-            <h4 style="margin:0 0 15px 0">🏆 RANKING COMPLETO DE LÍDERES</h4>
+            <h4 style="margin:0 0 15px 0">🏆 EQUIPO DIRECTO DE ROSSE MARY</h4>
             <div class="scroll">
                 <table id="tablaLid" data-dir="desc">
                     <thead>
                         <tr>
-                            <th onclick="ordenarRank(0)">LÍDER ↕️</th>
-                            <th onclick="ordenarRank(1)" style="text-align:center">VOTOS ↕️</th>
+                            <th onclick="ordenarRank(0)">NOMBRE DEL LÍDER ↕️</th>
+                            <th onclick="ordenarRank(1)" style="text-align:center">VOTOS TRAÍDOS ↕️</th>
                         </tr>
                     </thead>
                     <tbody id="bodyLid"></tbody>
@@ -85,15 +84,15 @@
     </div>
 
     <div class="card">
-        <h4 style="margin:0 0 15px 0">🔍 DETALLE MAESTRO DE COINCIDENCIAS</h4>
-        <input type="text" id="bus" onkeyup="filtrar()" class="search-input" placeholder="BUSCAR POR NOMBRE O PUESTO...">
+        <h4 style="margin:0 0 15px 0">🔍 CENSO COMPLETO</h4>
+        <input type="text" id="bus" onkeyup="filtrar()" class="search-input" placeholder="BUSCAR VOTANTE O PUESTO...">
         <div class="scroll">
             <table id="tablaG">
                 <thead>
                     <tr>
                         <th onclick="sortTable(0)">VOTANTE ↕️</th>
                         <th onclick="sortTable(1)">CÉDULA ↕️</th>
-                        <th onclick="sortTable(2)">PUESTO REGISTRADO ↕️</th>
+                        <th onclick="sortTable(2)">PUESTO ↕️</th>
                         <th onclick="sortTable(3)">COMUNA ↕️</th>
                     </tr>
                 </thead>
@@ -109,7 +108,8 @@
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
     let votantes = [], puestosOficiales = [], map, capaBurbujas, chartDona;
-    const OBJETIVO = 10000;
+    const OBJETIVO = 4000;
+    const LIDER_PRINCIPAL = "Rosse Mary Cabal Franco";
 
     const GPS = {
         "1": [3.450, -76.550], "2": [3.475, -76.525], "3": [3.452, -76.533], "4": [3.468, -76.508], "5": [3.478, -76.492],
@@ -122,7 +122,7 @@
     function normalizar(t) { return t ? t.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, "") : ""; }
 
     async function login() {
-        const { value: p } = await Swal.fire({ title: 'CONTROL DE INFORMES', input: 'password', confirmButtonColor: '#0f172a' });
+        const { value: p } = await Swal.fire({ title: 'CONTROL ROSSE MARY 2026', input: 'password', confirmButtonColor: '#0f172a' });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
             map = L.map('map').setView([3.42, -76.52], 12);
@@ -152,41 +152,44 @@
     function renderUI() {
         const cCom = {}, cLid = {}, cDataMap = {};
         
-        // 1. EXTRAER TODOS LOS LIDERES POSIBLES (Incluso los registrados como votantes que actúan de líderes)
-        // Buscamos en toda la columna 'lider' para identificar quiénes han sido nombrados.
-        const todosLosNombresLideres = [...new Set(votantes.map(v => v.lider).filter(l => l !== "" && l !== null))];
+        // --- FILTRO OJO: SOLO LOS LIDERES INSCRITOS POR ROSSE MARY ---
+        // Buscamos a todas las personas cuyo líder es Rosse Mary (estos son sus líderes directos)
+        const equipoRosse = votantes.filter(v => v.lider === LIDER_PRINCIPAL);
+        const nombresEquipo = equipoRosse.map(v => v["Nombres y apellidos"]);
         
-        // 2. Inicializar el contador para TODOS con 0
-        todosLosNombresLideres.forEach(nom => cLid[nom] = 0);
+        // Inicializamos a cada miembro del equipo con 0 referidos
+        nombresEquipo.forEach(nom => cLid[nom] = 0);
 
-        // 3. Contar los referidos reales
+        // Contamos cuántas personas han traído estos miembros del equipo
         votantes.forEach(v => {
-            if(v.lider && cLid.hasOwnProperty(v.lider)) {
+            if(cLid.hasOwnProperty(v.lider)) {
                 cLid[v.lider]++;
             }
-            
+            // Datos para mapa y dona (Basado en toda la base)
             if(v.comuna !== "OTRA") {
                 cCom[v.comuna] = (cCom[v.comuna] || 0) + 1;
                 if(!cDataMap[v.comuna]) cDataMap[v.comuna] = { d:0, i:0 };
-                v.lider === "Rosse Mary Cabal Franco" ? cDataMap[v.comuna].d++ : cDataMap[v.comuna].i++;
+                v.lider === LIDER_PRINCIPAL ? cDataMap[v.comuna].d++ : cDataMap[v.comuna].i++;
             }
         });
 
-        // Totales
-        document.getElementById('tV').innerText = votantes.length;
-        document.getElementById('tD').innerText = votantes.filter(v=>v.lider==="Rosse Mary Cabal Franco").length;
-        document.getElementById('tI').innerText = votantes.length - votantes.filter(v=>v.lider==="Rosse Mary Cabal Franco").length;
-        const p = Math.min((votantes.length/OBJETIVO)*100, 100);
+        // Totales y Meta de 4000
+        const total = votantes.length;
+        document.getElementById('tV').innerText = total;
+        document.getElementById('tD').innerText = equipoRosse.length;
+        document.getElementById('tI').innerText = total - equipoRosse.length;
+        
+        const p = Math.min((total/OBJETIVO)*100, 100);
         document.getElementById('metaFill').style.width = p+'%';
-        document.getElementById('metaPct').innerText = `META 10,000 (${p.toFixed(1)}%)`;
+        document.getElementById('metaPct').innerText = `AVANCE: ${p.toFixed(1)}% DE 4,000`;
 
-        // Llenar Ranking (Asegurando que salgan los de 0)
+        // Ranking: Solo equipo de Rosse (Incluso los de 0)
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid)
-            .sort((a,b) => b[1] - a[1]) // Por defecto de mayor a menor
+            .sort((a,b) => b[1] - a[1])
             .map(([l,v]) => `
-                <tr style="${v === 0 ? 'color: #94a3b8;' : ''}">
+                <tr style="${v === 0 ? 'background-color: #fff1f2;' : ''}">
                     <td>${l}</td>
-                    <td style="text-align:center; color:${v > 0 ? 'var(--green)' : '#94a3b8'}">${v}</td>
+                    <td style="text-align:center; color:${v > 0 ? 'var(--green)' : '#e11d48'}">${v}</td>
                 </tr>
             `).join('');
 
@@ -199,12 +202,11 @@
         });
 
         if(chartDona) chartDona.destroy();
-        const colors = ['#0f172a','#10b981','#6366f1','#f59e0b','#ef4444','#06b6d4','#8b5cf6'];
         chartDona = new Chart(document.getElementById('donaComunas'), {
             type: 'doughnut',
             data: {
                 labels: Object.keys(cCom).map(c => 'C-'+c),
-                datasets: [{ data: Object.values(cCom), backgroundColor: colors }]
+                datasets: [{ data: Object.values(cCom), backgroundColor: ['#0f172a','#10b981','#6366f1','#f59e0b','#ef4444','#06b6d4','#8b5cf6'] }]
             },
             options: { cutout: '65%', plugins: { legend: { display: false } } }
         });
@@ -219,7 +221,6 @@
         `).join('');
     }
 
-    // PULSADORES DE ORDENAR RANKING
     function ordenarRank(n) {
         let table = document.getElementById("tablaLid");
         let rows = Array.from(table.rows).slice(1);
