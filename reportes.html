@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Electoral Cali 2026 - Resolución Puestos</title>
+    <title>Dashboard Electoral Cali 2026 - Resolución Completa</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,33 +12,30 @@
 
     <style>
         :root { --blue: #0f172a; --green: #10b981; --bg: #f8fafc; --white: #ffffff; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; }
-        .container { max-width: 1300px; margin: auto; display: none; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; text-transform: uppercase; }
+        .container { max-width: 1350px; margin: auto; display: none; }
         
         .card { background: var(--white); border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 24px; border: 1px solid #e2e8f0; }
         .top-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 24px; }
         .mid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
         
-        .stat-num { font-size: 2.8rem; font-weight: 800; color: var(--blue); text-align: center; }
-        .stat-label { text-align: center; color: #64748b; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; }
+        .stat-num { font-size: 2.8rem; font-weight: 800; color: var(--blue); text-align: center; line-height: 1; }
+        .stat-label { text-align: center; color: #64748b; font-size: 0.75rem; font-weight: 700; margin-top: 10px; }
         
         .progress-bg { background: #f1f5f9; height: 14px; border-radius: 7px; overflow: hidden; margin: 12px 0; }
         .progress-fill { background: linear-gradient(90deg, #10b981, #059669); height: 100%; width: 0%; transition: 1.5s; }
 
-        table { width: 100%; border-collapse: collapse; text-transform: uppercase; }
-        th { background: #f8fafc; padding: 14px; text-align: left; font-size: 0.75rem; color: #64748b; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; cursor: pointer; user-select: none; }
-        th:hover { background: #f1f5f9; color: var(--blue); }
-        td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8fafc; padding: 14px; text-align: left; font-size: 0.75rem; color: #64748b; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; cursor: pointer; }
+        td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 600; }
         
-        .scroll-area { max-height: 450px; overflow-y: auto; border-radius: 12px; border: 1px solid #e2e8f0; }
-        
+        .scroll-area { max-height: 500px; overflow-y: auto; border-radius: 12px; border: 1px solid #e2e8f0; }
         .badge { padding: 4px 10px; border-radius: 8px; font-weight: 700; font-size: 0.7rem; }
         .bg-blue { background: #dbeafe; color: #1e40af; }
         .bg-green { background: #d1fae5; color: #065f46; }
 
-        .btn { padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
-        .btn-excel { background: #1D6F42; color: white; width: 100%; justify-content: center; }
-        input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 1rem; text-transform: uppercase; }
+        input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 1rem; outline: none; box-sizing: border-box; }
+        .btn-excel { background: #1D6F42; color: white; width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -46,58 +43,53 @@
 <div id="app" class="container">
     <div class="top-grid">
         <div class="card">
-            <strong>📊 AVANCE DE CAMPAÑA 2026</strong>
+            <strong>📊 AVANCE ESTRATÉGICO 2026</strong>
             <div class="stat-num" id="totalCenso">0</div>
             <div class="progress-bg"><div id="barraMeta" class="progress-fill"></div></div>
-            <span id="porcLabel" style="font-size:0.8rem; color:#64748b">CALCULANDO...</span>
+            <span id="porcLabel" style="font-size:0.8rem; color:#64748b">CARGANDO META...</span>
         </div>
-        <div class="card"><div class="stat-label">DIRECTOS ROSSE MARY</div><div class="stat-num" id="totalD" style="color:#10b981">0</div></div>
+        <div class="card"><div class="stat-label">VOTOS DIRECTOS</div><div class="stat-num" id="totalD" style="color:#10b981">0</div></div>
         <div class="card"><div class="stat-label">RED INDIRECTA</div><div class="stat-num" id="totalI" style="color:#6366f1">0</div></div>
     </div>
 
     <div class="card">
-        <input type="text" id="buscador" onkeyup="filtrar()" placeholder="🔍 BUSCAR POR NOMBRE, CÉDULA, PUESTO O COMUNA...">
+        <input type="text" id="buscador" onkeyup="filtrar()" placeholder="🔍 BUSCAR POR NOMBRE, CÉDULA, TELÉFONO O PUESTO...">
     </div>
 
     <div class="mid-grid">
         <div class="card">
-            <h4 style="margin-top:0">⭐ RANKING DE LÍDERES</h4>
+            <h4 style="margin-top:0">⭐ RANKING LIDERAZGO</h4>
             <div class="scroll-area">
                 <table>
-                    <thead>
-                        <tr>
-                            <th onclick="ordenarLideres('nombre')">LÍDER <span id="sortL1">↕</span></th>
-                            <th style="text-align:center" onclick="ordenarLideres('cantidad')">REFERIDOS <span id="sortL2">↕</span></th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>LÍDER</th><th style="text-align:center">VOTOS</th></tr></thead>
                     <tbody id="cuerpoLideres"></tbody>
                 </table>
             </div>
-            <button onclick="exportarLideres()" class="btn btn-excel" style="margin-top:15px">DESCARGAR RANKING EXCEL</button>
+            <button onclick="exportarLideres()" class="btn-excel">DESCARGAR RANKING</button>
         </div>
         <div class="card" style="display:flex; flex-direction:column">
-            <h4 style="margin-top:0">📍 DISTRIBUCIÓN POR COMUNA</h4>
+            <h4 style="margin-top:0">📍 GEOPOLÍTICA (POR COMUNA)</h4>
             <div style="flex-grow:1; min-height:350px"><canvas id="chartDona"></canvas></div>
         </div>
     </div>
 
     <div class="card">
-        <h4 style="margin-top:0">📋 BASE MAESTRA (POR COMUNAS)</h4>
+        <h4 style="margin-top:0">📋 LISTADO MAESTRO</h4>
         <div class="scroll-area" style="max-height:600px">
             <table id="tablaMaestra">
                 <thead>
                     <tr>
-                        <th onclick="ordenarMaestra('Nombres y apellidos')">VOTANTE <span id="sortM1">↕</span></th>
-                        <th onclick="ordenarMaestra('cedula')">CÉDULA <span id="sortM2">↕</span></th>
-                        <th onclick="ordenarMaestra('puesto')">PUESTO <span id="sortM3">↕</span></th>
-                        <th onclick="ordenarMaestra('comuna')">COMUNA <span id="sortM4">↕</span></th>
-                        <th onclick="ordenarMaestra('relacion')">ORIGEN <span id="sortM5">↕</span></th>
+                        <th onclick="ordenarMaestra('Nombres y apellidos')">VOTANTE ↕</th>
+                        <th onclick="ordenarMaestra('cedula')">CÉDULA ↕</th>
+                        <th onclick="ordenarMaestra('telefono')">TELÉFONO ↕</th>
+                        <th onclick="ordenarMaestra('puesto')">PUESTO ↕</th>
+                        <th onclick="ordenarMaestra('comuna')">COMUNA ↕</th>
                     </tr>
                 </thead>
                 <tbody id="cuerpoDetalle"></tbody>
             </table>
         </div>
-        <button onclick="exportarTodo()" class="btn btn-excel" style="margin-top:20px; background:#0f172a">DESCARGAR CENSO COMPLETO</button>
+        <button onclick="exportarTodo()" class="btn-excel" style="background:#0f172a; margin-top:20px">DESCARGAR CENSO COMPLETO</button>
     </div>
 </div>
 
@@ -106,73 +98,87 @@
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    let baseDatos = [];
-    let lideresRosse = [];
-    let myChart;
-    let sortConfig = { tableL: { col: 'cantidad', asc: false }, tableM: { col: 'comuna', asc: true } };
+    let baseDatos = [], lideresRosse = [], myChart;
 
-    // MATRIZ ACTUALIZADA SEGÚN RESOLUCIÓN DE AYER
+    // RESOLUCIÓN COMPLETA DE PUESTOS CALI 2026
     const MATRIZ_CALI = {
-        "1": ["ACEVEDO", "GOMEZ", "MUTIS", "CELESTINO", "GARCES", "AGUACATAL"],
-        "7": ["10 DE MAYO", "DIEZ DE MAYO", "PUMAREJO", "MALLARINO", "CELMIRA"],
-        "12": ["SANTA FE", "VILLA DEL SUR", "SINDICAL", "RODEO", "FENALCO"],
-        "19": ["CIEGOS", "SORDOS", "COLISEO", "PASCUAL", "ESTADIO", "LIDO"],
-        "RURAL": ["HORMIGUERO", "MONTEBELLO", "FELIDIA", "SALADITO", "BUITRERA"]
+        "1": ["ACEVEDO", "GOMEZ", "MUTIS", "CELESTINO", "GARCES", "AGUACATAL", "TERRON", "VISTA HERMOSA"],
+        "2": ["CAM", "FRANCIA", "GONZAGA", "ALAMOS", "LA FLORA", "VIPASA", "GRANADA", "CENTENARIO", "ATENAS", "SANTA TERESITA", "NORMANDIA", "JUANAMBU", "CHIPICHAPE", "VERSALLES"],
+        "3": ["LIBRADA", "SAN ANTONIO", "PEÑON", "JUSTICIA", "MERCED", "SANTA ROSA", "SAN NICOLAS", "PILOTO"],
+        "4": ["SANTANDER", "ISAACS", "OLAYA", "PORVENIR", "POPULAR", "GUILLERMO VALENCIA", "METROPOLITANO SEDE"],
+        "5": ["INEM", "ZAMORANO", "RIVERA", "VILLAS DE VERACRUZ", "CONFENALCO", "CHIMINANGOS 1", "SALOMIA SEDE"],
+        "6": ["SALOMIA", "GUAYACANES", "CHIMINANGOS", "FLORALIA", "ALCAZARES", "PETECUY", "CALIMA"],
+        "7": ["CAICEDO", "ALFONSO LOPEZ", "SIETE DE AGOSTO", "MALLARINO", "PUERTO MALLARINO", "FUENMAYOR", "VILLAMAGRE", "BELISARIO", "10 DE MAYO", "DIEZ DE MAYO", "CELMIRA"],
+        "8": ["MARIANO RAMOS SEDE", "CAMACHO", "AMERICAS", "INDUSTRIAL", "MUNICIPAL", "PRIMAVERAS", "SANTA MONICA", "URIBE"],
+        "9": ["TAFUR", "ARANJUEZ", "GUAYAQUIL", "BRETAÑA", "JUNIN", "ALAMEDA", "CHAMPAGNAT"],
+        "10": ["LLOREDA", "GUABAL", "SAN CRISTOBAL", "DEPARTAMENTAL", "PASOANCHO", "COLSEGUROS", "SELVA"],
+        "11": ["SAN CARLOS", "HOLGUIN", "ESPERANZA", "CIUDAD DE CALI", "INDEPENDENCIA", "LA CASCADA", "REPUBLICA DE ISRAEL"],
+        "12": ["SANTA FE", "VILLA DEL SUR", "SINDICAL", "VILLANUEVA", "RODEO", "FLORESTA", "ASTURIAS", "FENALCO", "EDUARDO SANTOS"],
+        "13": ["DIAMANTE", "TRIANA", "POBLADO", "CHARCO AZUL", "PONDAJE", "VILLACOLOMBIA", "CALIPSO"],
+        "14": ["MARROQUIN", "ALIRIO MORA", "PUERTA DEL SOL", "LAS ORQUIDEAS", "MANUELA BELTRAN SEDE 1", "TALANGA SEDE"],
+        "15": ["CORDOBA", "LLANO VERDE", "RETIRO", "MOJICA", "VALLADO", "LAUREANO", "MORICHAL"],
+        "16": ["SUCRE", "ISRAEL", "UNION DE VIVIENDA", "MARIANO RAMOS PRINCIPAL", "GRAN COLOMBIA", "CRISTOBAL COLON"],
+        "17": ["UNIVALLE", "INGENIO", "CANEY", "LIMONAR", "CAPRI", "MAYOTTE", "LACORDAIRE", "VALLE DEL LILI", "NUEVO LATIR"],
+        "18": ["POLITECNICO", "MELENDEZ", "CARVAJAL", "JORDAN", "ALTOS", "CUARTA BRIGADA"],
+        "19": ["CIEGOS", "SORDOS", "COLISEO", "PASCUAL", "ESTADIO", "EUSTAQUIO", "LIDO", "TEQUENDAMA", "SANTIAGO", "CUARTO DE LEGUA", "SAN FERNANDO"],
+        "20": ["MULTIPROPOSITO", "SILOE", "LLERAS", "BRISAS DE MAYO"],
+        "21": ["DESEPAZ", "COMPARTIR", "TALANGA", "VALLE GRANDE", "POTRERO GRANDE"],
+        "22": ["ICESI", "JAVERIANA", "PANCE", "JARDIN", "SAN BUENAVENTURA", "ALEMAN", "BERCHMANS"],
+        "RURAL": ["HORMIGUERO", "MONTEBELLO", "FELIDIA", "SALADITO", "BUITRERA", "PICACHO", "GOLONDRINAS", "PAZ", "CARMITA"]
     };
 
-    function obtenerComuna(puesto) {
-        if(!puesto) return "SIN ASIGNAR";
-        const t = puesto.toUpperCase();
-        for(let [c, claves] of Object.entries(MATRIZ_CALI)) { 
-            if(claves.some(k => t.includes(k))) return c === "RURAL" ? "RURAL" : "COMUNA " + c; 
+    function getC(p) {
+        if(!p) return "SIN ASIGNAR";
+        const t = p.toUpperCase();
+        for(let [c, k] of Object.entries(MATRIZ_CALI)) { 
+            if(k.some(x => t.includes(x))) return c === "RURAL" ? "RURAL" : "COMUNA " + c; 
         }
         return "OTRA / REVISAR";
     }
 
     async function iniciar() {
-        const { value: pass } = await Swal.fire({ title: 'PANEL ADMIN', input: 'password', confirmButtonColor: '#0f172a', allowOutsideClick: false });
+        const { value: pass } = await Swal.fire({ title: 'ADMINISTRACIÓN', input: 'password', confirmButtonColor: '#0f172a' });
         if(pass === 'ADMIN2026') { document.getElementById('app').style.display = 'block'; await cargar(); }
     }
 
     async function cargar() {
         const { data } = await _supabase.from('VOTANTES').select('*');
-        baseDatos = data.map(v => ({
-            ...v, 
-            comuna: obtenerComuna(v.puesto), 
-            relacion: v.lider === "Rosse Mary Cabal Franco" ? "DIRECTO" : "INDIRECTO"
-        }));
-        baseDatos.sort((a,b) => (a.comuna > b.comuna ? 1 : -1));
-        procesarRosse();
-        actualizar();
-    }
-
-    function procesarRosse() {
+        baseDatos = data.map(v => ({...v, comuna: getC(v.puesto), rel: v.lider === "Rosse Mary Cabal Franco" ? "D" : "I"}));
+        
+        // Ranking Líderes
         const hijos = baseDatos.filter(v => v.lider === "Rosse Mary Cabal Franco");
         lideresRosse = hijos.map(h => ({ 
-            nombre: h["Nombres y apellidos"], 
-            cantidad: baseDatos.filter(v => v.lider === h["Nombres y apellidos"]).length 
-        }));
-        lideresRosse.sort((a,b) => b.cantidad - a.cantidad);
+            n: h["Nombres y apellidos"], 
+            v: baseDatos.filter(v => v.lider === h["Nombres y apellidos"]).length 
+        })).sort((a,b) => b.v - a.v);
+
+        actualizar();
     }
 
     function actualizar() {
         document.getElementById('totalCenso').innerText = baseDatos.length.toLocaleString();
-        document.getElementById('totalD').innerText = baseDatos.filter(v => v.relacion === "DIRECTO").length;
-        document.getElementById('totalI').innerText = baseDatos.filter(v => v.relacion === "INDIRECTO").length;
+        document.getElementById('totalD').innerText = baseDatos.filter(v => v.rel === "D").length;
+        document.getElementById('totalI').innerText = baseDatos.filter(v => v.rel === "I").length;
+        
         const p = (baseDatos.length / 5000) * 100;
         document.getElementById('barraMeta').style.width = Math.min(p, 100) + '%';
-        document.getElementById('porcLabel').innerText = `${p.toFixed(1)}% DE LA META`;
-        renderLideres();
+        document.getElementById('porcLabel').innerText = `${p.toFixed(1)}% DE LA META (5.000 VOTOS)`;
+
+        document.getElementById('cuerpoLideres').innerHTML = lideresRosse.map(l => `<tr><td><b>${l.n}</b></td><td style="text-align:center"><span class="badge bg-green">${l.v}</span></td></tr>`).join('');
+        renderDetalle(baseDatos);
         renderDona();
-        renderDetalle();
     }
 
-    function renderLideres() {
-        document.getElementById('cuerpoLideres').innerHTML = lideresRosse.map(l => `<tr><td><b>${l.nombre}</b></td><td style="text-align:center"><span class="badge bg-green">${l.cantidad}</span></td></tr>`).join('');
-    }
-
-    function renderDetalle() {
-        document.getElementById('cuerpoDetalle').innerHTML = baseDatos.map(v => `<tr><td><b>${v["Nombres y apellidos"]}</b></td><td>${v.cedula}</td><td>${v.puesto||''}</td><td><span class="badge bg-blue">${v.comuna}</span></td><td><span class="badge ${v.relacion==='DIRECTO'?'bg-green':''}">${v.relacion}</span></td></tr>`).join('');
+    function renderDetalle(datos) {
+        document.getElementById('cuerpoDetalle').innerHTML = datos.map(v => `
+            <tr>
+                <td><b>${v["Nombres y apellidos"]}</b></td>
+                <td>${v.cedula}</td>
+                <td>${v.telefono || '---'}</td>
+                <td>${v.puesto || ''}</td>
+                <td><span class="badge bg-blue">${v.comuna}</span></td>
+            </tr>
+        `).join('');
     }
 
     function filtrar() {
@@ -183,14 +189,13 @@
 
     function renderDona() {
         const ctx = document.getElementById('chartDona');
-        const cont = {};
-        baseDatos.forEach(v => cont[v.comuna] = (cont[v.comuna] || 0) + 1);
+        const cont = {}; baseDatos.forEach(v => cont[v.comuna] = (cont[v.comuna] || 0) + 1);
         if(myChart) myChart.destroy();
-        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(cont), datasets: [{ data: Object.values(cont), backgroundColor: ['#0f172a', '#10b981', '#6366f1', '#f59e0b', '#ec4899', '#ef4444'], borderWidth: 0 }] }, options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, weight: 'bold' } } } } } });
+        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(cont), datasets: [{ data: Object.values(cont), backgroundColor: ['#0f172a', '#10b981', '#6366f1', '#f59e0b', '#ec4899', '#ef4444', '#8b5cf6'], borderWidth: 0 }] }, options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9, weight: 'bold' } } } } } });
     }
 
-    function exportarLideres() { const ws = XLSX.utils.json_to_sheet(lideresRosse); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "RANKING"); XLSX.writeFile(wb, "RANKING_2026.xlsx"); }
-    function exportarTodo() { const ws = XLSX.utils.json_to_sheet(baseDatos); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "CENSO"); XLSX.writeFile(wb, "CENSO_2026.xlsx"); }
+    function exportarLideres() { const ws = XLSX.utils.json_to_sheet(lideresRosse); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Ranking"); XLSX.writeFile(wb, "Ranking_Lideres.xlsx"); }
+    function exportarTodo() { const ws = XLSX.utils.json_to_sheet(baseDatos); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Censo"); XLSX.writeFile(wb, "Censo_Completo_2026.xlsx"); }
 
     iniciar();
 </script>
