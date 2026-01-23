@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TABLERO DE CONTROL ELECTORAL 2026</title>
+    <title>TABLERO OPERATIVO CALI 2026</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -11,95 +11,66 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
-        :root { --blue: #0f172a; --green: #10b981; --bg: #f8fafc; --white: #ffffff; }
-        body { 
-            font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 15px; 
-            color: #1e293b; text-transform: uppercase; overflow: hidden; /* Evita el crecimiento infinito */
-        }
+        :root { --blue: #0f172a; --green: #10b981; --bg: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 15px; text-transform: uppercase; overflow: hidden; }
         .container { max-width: 100%; height: 95vh; display: none; flex-direction: column; gap: 15px; }
-        
-        /* GRID PRINCIPAL TIPO TABLERO */
         .top-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; flex-shrink: 0; }
-        .mid-row { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; flex-grow: 1; min-height: 0; }
-        
-        .card { background: var(--white); border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; flex-direction: column; }
-        .stat-num { font-size: 2.5rem; font-weight: 800; color: var(--blue); text-align: center; margin: 5px 0; }
-        .stat-label { text-align: center; color: #64748b; font-size: 0.75rem; font-weight: 700; }
-
-        /* TABLAS CON SCROLL INTERNO */
-        .scroll-area { flex-grow: 1; overflow-y: auto; border: 1px solid #f1f5f9; border-radius: 8px; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-        th { background: #f8fafc; padding: 10px; text-align: left; position: sticky; top: 0; border-bottom: 2px solid #e2e8f0; cursor: pointer; z-index: 5; }
+        .mid-row { display: grid; grid-template-columns: 0.8fr 1.4fr 0.8fr; gap: 15px; flex-grow: 1; min-height: 0; }
+        .card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; display: flex; flex-direction: column; }
+        .stat-num { font-size: 2.2rem; font-weight: 800; color: var(--blue); text-align: center; }
+        .stat-lab { text-align: center; color: #64748b; font-size: 0.7rem; font-weight: 700; }
+        .scroll { flex-grow: 1; overflow-y: auto; border: 1px solid #f1f5f9; border-radius: 8px; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+        th { background: #f8fafc; padding: 10px; text-align: left; position: sticky; top: 0; border-bottom: 2px solid #e2e8f0; cursor: pointer; z-index: 10; }
         td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; }
-
-        /* BUSCADOR FIJO */
-        #buscador { 
-            width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--blue); 
-            font-weight: 800; font-size: 0.9rem; outline: none; margin-bottom: 10px;
-        }
-
-        .badge { padding: 3px 8px; border-radius: 4px; font-weight: 800; font-size: 0.65rem; }
-        .bg-blue { background: #eff6ff; color: #1e40af; }
-        .bg-green { background: #ecfdf5; color: #065f46; }
-        
+        #buscador { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--blue); font-weight: 800; outline: none; }
+        .badge { padding: 3px 6px; border-radius: 4px; font-weight: 800; font-size: 0.6rem; }
+        .bg-comuna { background: #e0f2fe; color: #0369a1; }
+        .bg-directo { background: #dcfce7; color: #166534; }
         .btn-excel { background: var(--blue); color: white; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; width: 100%; margin-top: 5px; }
-        canvas { max-height: 100% !important; }
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
     <div class="top-row">
-        <div class="card">
-            <div class="stat-label">META ELECTORAL (TOTAL)</div>
-            <div class="stat-num" id="totalCenso">0</div>
-        </div>
-        <div class="card">
-            <div class="stat-label">VOTOS DIRECTOS</div>
-            <div class="stat-num" id="totalD" style="color:var(--green)">0</div>
-        </div>
-        <div class="card">
-            <div class="stat-label">RED INDIRECTA</div>
-            <div class="stat-num" id="totalI" style="color:#6366f1">0</div>
-        </div>
+        <div class="card"><div class="stat-lab">CENSO TOTAL</div><div class="stat-num" id="tC">0</div></div>
+        <div class="card"><div class="stat-lab">VOTOS DIRECTOS</div><div class="stat-num" id="tD" style="color:var(--green)">0</div></div>
+        <div class="card"><div class="stat-lab">RED INDIRECTA</div><div class="stat-num" id="tI" style="color:#6366f1">0</div></div>
     </div>
 
     <div class="mid-row">
         <div class="card">
             <strong>⭐ RANKING LÍDERES</strong>
-            <div class="scroll-area">
+            <div class="scroll">
                 <table>
-                    <thead>
-                        <tr><th onclick="sortL('nombre')">LÍDER ↕</th><th onclick="sortL('cantidad')">VOTOS ↕</th></tr>
-                    </thead>
-                    <tbody id="cuerpoLideres"></tbody>
+                    <thead><tr><th onclick="sortL('n')">LÍDER</th><th onclick="sortL('v')">VOTOS</th></tr></thead>
+                    <tbody id="cL"></tbody>
                 </table>
             </div>
         </div>
 
         <div class="card">
-            <input type="text" id="buscador" onkeyup="filtrar()" placeholder="🔍 BUSCAR NOMBRE, CÉDULA O PUESTO...">
-            <div class="scroll-area">
-                <table id="tablaPrincipal">
+            <input type="text" id="buscador" oninput="filtrar()" placeholder="🔍 BUSCAR POR NOMBRE, CÉDULA O PUESTO...">
+            <div class="scroll">
+                <table id="tP">
                     <thead>
                         <tr>
-                            <th onclick="sortM('Nombres y apellidos')">NOMBRE ↕</th>
-                            <th onclick="sortM('cedula')">CÉDULA ↕</th>
-                            <th onclick="sortM('puesto')">PUESTO ↕</th>
-                            <th onclick="sortM('comuna')">UBIC. ↕</th>
+                            <th onclick="sortM('Nombres y apellidos')">NOMBRE</th>
+                            <th onclick="sortM('cedula')">CÉDULA</th>
+                            <th onclick="sortM('puesto')">PUESTO</th>
+                            <th onclick="sortM('comuna')">UBIC.</th>
                         </tr>
                     </thead>
-                    <tbody id="cuerpoDetalle"></tbody>
+                    <tbody id="cM"></tbody>
                 </table>
             </div>
-            <button onclick="exportarTodo()" class="btn-excel">DESCARGAR BASE COMPLETA</button>
+            <button onclick="descargar()" class="btn-excel">📥 EXPORTAR REPORTE</button>
         </div>
 
         <div class="card">
-            <strong>📍 GEOPOLÍTICA CALI</strong>
-            <div style="flex-grow:1; position:relative;">
-                <canvas id="chartDona"></canvas>
-            </div>
+            <strong>📍 GEOPOLÍTICA</strong>
+            <div style="flex-grow:1;"><canvas id="chartD"></canvas></div>
         </div>
     </div>
 </div>
@@ -109,127 +80,104 @@
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    let baseDatos = [];
-    let lideresRosse = [];
-    let myChart;
-    let sM = { c: null, a: true }, sL = { c: 'cantidad', a: false };
+    let base = [], lideres = [], chart;
+    let sM = {c:'Nombres y apellidos', a:true}, sL = {c:'v', a:false};
 
-    // MATRIZ COMPLETA SEGÚN RESOLUCIÓN
-    const MATRIZ_CALI = {
-        "1": ["ACEVEDO", "GOMEZ", "MUTIS", "CELESTINO", "GARCES", "DELFINA", "TERRON", "VISTA HERMOSA", "AGUACATAL", "ESTRELLA", "SANTUARIO"],
-        "2": ["NAVIA VARON", "FRANCIA", "LA MERCED", "VIPASA", "LA FLORA", "ALAMOS", "GONZAGA", "GRANADA", "VERSALLES", "JUANAMBU", "CHIPICHAPE", "MENA", "ATENAS", "CENTENARIO", "NORMANDIA", "BENALCAZAR", "SAGRADA", "LANS", "SENA SALOMIA", "ESTACION", "PRADOS DEL NORTE", "VALLE DEL LILI 2"],
-        "3": ["LIBRADA", "ANTONIO", "PASCUAL", "NICOLAS", "ELOY", "PILOTO", "FRAY DAMIAN", "PEÑON", "MERCED", "ROSA", "CORAJE", "JUSTICIA"],
-        "4": ["ISAACS", "SANTANDER", "OLAYA", "PORVENIR", "POPULAR", "VALENCIA", "METROPOLITANO", "FLORENCIA", "BERLIN", "MANUELA B 2"],
-        "5": ["INEM", "CAYZEDO", "VIVAS BALCAZAR", "ZAMORANO", "RIVERA", "VERACRUZ", "CONFENALCO", "CHIMINANGOS 1", "SALOMIA", "BARRANQUILLA"],
-        "6": ["FLORALIA", "CALIMA", "GUAYACANES", "CHIMINANGOS", "ALCAZARES", "PETECUY", "COMFANDI CALIMA", "PUEBLO NUEVO", "GAITAN"],
-        "7": ["LOPEZ", "PUMAREJO", "10 DE MAYO", "MALLARINO", "FUENMAYOR", "VILLAMAGRE", "BELISARIO", "7 DE AGOSTO", "GALAN"],
-        "8": ["RAMOS", "CAMACHO", "AMERICAS", "INDUSTRIAL", "MUNICIPAL", "PRIMAVERAS", "MONICA", "URIBE", "HERRERA", "LOPEZ DE MESA", "ACACIAS"],
-        "9": ["CALDAS", "FRANCISCO J", "AMPUDIA", "TAFUR", "ARANJUEZ", "GUAYAQUIL", "BRETAÑA", "JUNIN", "ALAMEDA", "CHAMPAGNAT", "CAÑIZARES", "CENTRO"],
-        "10": ["DEPARTAMENTAL", "GUABAL", "SAN CRISTOBAL", "LLOREDA", "PASOANCHO", "COLSEGUROS", "SELVA", "PANAMERICANO", "HELENA", "DOMINGO"],
-        "11": ["ISRAEL", "CIUDAD DE CALI", "SAN CARLOS", "ESPERANZA", "INDEPENDENCIA", "CASCADA", "PRADOS ORIENTE", "LA LUISA", "MOLINA"],
-        "12": ["VILLA DEL SUR", "SANTA FE", "SINDICAL", "VILLANUEVA", "RODEO", "FLORESTA", "ASTURIAS", "FENALCO", "EDUARDO SANTOS", "PROVIVIENDA", "12 OCTUBRE"],
-        "13": ["DIAMANTE", "NIETO", "TRIANA", "POBLADO", "CHARCO AZUL", "PONDAJE", "CALIPSO", "AMAZONAS", "VILLA DEL LAGO", "LLOREDA"],
-        "14": ["CALIXTO", "ALVAREZ", "TALANGA", "ALIRIO MORA", "PUERTA SOL", "ORQUIDEAS", "MANUELA BELTRAN", "PROSPERO", "MARROQUIN", "RETIRO"],
-        "15": ["LLANO VERDE", "ISAURA", "RODRIGUEZ", "MOJICA", "VALLADO", "LAUREANO", "MORICHAL", "CORDOBA", "CDI", "DIAMANTE 2"],
-        "16": ["ROJAS", "NAVIA", "COLON", "UNION VIVIENDA", "GRAN COLOMBIA", "VILLA HERMOSA", "CARCEL"],
-        "17": ["UNIVALLE", "LATIR", "INGENIO", "CANEY", "LIMONAR", "CAPRI", "MAYOTTE", "LACORDAIRE", "VALLE DEL LILI", "CIUDADELA", "HACIENDA", "BOCHALEMA"],
-        "18": ["POLITECNICO", "CARVAJAL", "MELENDEZ", "JORDAN", "ALTOS", "4 BRIGADA", "ANITA", "CHORROS", "MAMPUESTO"],
-        "19": ["CIEGOS", "SORDOS", "COLISEO", "PASCUAL", "ESTADIO", "EUSTAQUIO", "LIDO", "TEQUENDAMA", "SANTIAGO", "4 LEGUA", "CAÑAVERALEJO", "FERNANDO"],
+    // MATRIZ DE PUESTOS CON ABREVIATURAS DE TUS IMÁGENES
+    const MAPA = {
+        "1": ["ACEVEDO", "GOMEZ", "MUTIS", "CELESTINO", "GARCES", "TERRON", "VISTA HERMOSA", "AGUACATAL"],
+        "2": ["NAVIA", "FRANCIA", "MERCED", "VIPASA", "LA FLORA", "ALAMOS", "GONZAGA", "GRANADA", "VERSALLES", "SENA SALOMIA", "ESTACION"],
+        "3": ["SANTA LIBRADA", "SAN ANTONIO", "SAN PASCUAL", "SAN NICOLAS", "PILOTO", "FRAY DAMIAN", "EL PEÑON"],
+        "4": ["ISAACS", "SANTANDER", "OLAYA", "PORVENIR", "POPULAR", "VALENCIA", "METROPOLITANO", "FLORENCIA", "BERLIN"],
+        "5": ["INEM", "CAYZEDO", "VIVAS BALCAZAR", "ZAMORANO", "RIVERA", "VERACRUZ", "CONFENALCO", "CHIMINANGOS", "SALOMIA"],
+        "6": ["FLORALIA", "CALIMA", "GUAYACANES", "ALCAZARES", "PETECUY", "PUEBLO NUEVO", "GAITAN"],
+        "7": ["ALFONSO LOPEZ", "10 DE MAYO", "DIEZ DE MAYO", "MALLARINO", "FUENMAYOR", "BELISARIO", "7 DE AGOSTO"],
+        "8": ["MARIANO RAMOS", "CAMACHO", "AMERICAS", "INDUSTRIAL", "MUNICIPAL", "PRIMAVERAS", "SANTA MONICA", "URIBE"],
+        "9": ["CALDAS", "FRANCISCO J", "AMPUDIA", "TAFUR", "ARANJUEZ", "GUAYAQUIL", "BRETAÑA", "JUNIN", "ALAMEDA", "CHAMPAGNAT"],
+        "10": ["DEPARTAMENTAL", "GUABAL", "SAN CRISTOBAL", "LLOREDA", "PASOANCHO", "COLSEGUROS", "SELVA", "PANAMERICANO"],
+        "11": ["ISRAEL", "CIUDAD DE CALI", "SAN CARLOS", "ESPERANZA", "INDEPENDENCIA", "LA CASCADA", "PRADOS DE ORIENTE"],
+        "12": ["VILLA DEL SUR", "SANTA FE", "SINDICAL", "VILLANUEVA", "RODEO", "FLORESTA", "ASTURIAS", "FENALCO", "DOCE DE OCTUBRE"],
+        "13": ["EL DIAMANTE", "RICARDO NIETO", "POBLADO", "CHARCO AZUL", "PONDAJE", "CALIPSO", "AMAZONAS", "VILLA DEL LAGO"],
+        "14": ["CALIXTO", "ALVAREZ", "TALANGA", "ALIRIO MORA", "PUERTA DEL SOL", "ORQUIDEAS", "MANUELA BELTRAN", "MARROQUIN"],
+        "15": ["LLANO VERDE", "ISAURA", "RODRIGUEZ", "MOJICA", "VALLADO", "LAUREANO", "MORICHAL", "CDI", "DIAMANTE 2"],
+        "16": ["ESTEBAN ROJAS", "HERNANDO NAVIA", "CRISTOBAL COLON", "UNION DE VIVIENDA", "GRAN COLOMBIA"],
+        "17": ["UNIVALLE", "NUEVO LATIR", "EL INGENIO", "CANEY", "LIMONAR", "CAPRI", "MAYOTTE", "LACORDAIRE", "VALLE DEL LILI", "BOCHALEMA"],
+        "18": ["POLITECNICO", "CARVAJAL", "MELENDEZ", "JORDAN", "ALTOS", "CUARTA BRIGADA", "SANTA ANITA", "CHORROS"],
+        "19": ["CIEGOS", "SORDOS", "COLISEO", "PASCUAL", "ESTADIO", "EUSTAQUIO", "LIDO", "TEQUENDAMA", "SANTIAGO", "CUARTO DE LEGUA"],
         "20": ["MULTIPROPOSITO", "SILOE", "LLERAS", "BRISAS", "SULTANA"],
-        "21": ["DESEPAZ", "CALIMIO", "SANTA ISABEL", "HUNGRIA", "COMPARTIR", "VALLE GRANDE", "POTRERO", "REMIGIO"],
-        "22": ["ICESI", "JAVERIANA", "PANCE", "JARDIN", "BUENAVENTURA", "ALEMAN", "LUMEN", "BERCHMANS", "BENNETT", "CANDELARIA", "CAÑASGORDAS"],
-        "RURAL": ["MONTEBELLO", "FELIDIA", "SALADITO", "KM 18", "ELVIRA", "LEONERA", "PICHINDE", "ANDES", "VILLACARMELO", "BUITRERA", "NAVARRO", "HORMIGUERO", "CASCAJAL", "GOLONDRINAS", "PAZ", "CASEY", "KM 30", "VORAGINE"]
+        "21": ["DESEPAZ", "CALIMIO", "SANTA ISABEL", "HUNGRIA", "COMPARTIR", "VALLE GRANDE", "POTRERO GRANDE"],
+        "22": ["ICESI", "JAVERIANA", "PANCE", "JARDIN", "BUENAVENTURA", "ALEMAN", "LUMEN", "BERCHMANS", "BENNETT", "CAÑASGORDAS"],
+        "RURAL": ["MONTEBELLO", "FELIDIA", "SALADITO", "ELVIRA", "LEONERA", "PICHINDE", "ANDES", "VILLACARMELO", "BUITRERA", "HORMIGUERO", "CASCAJAL", "GOLONDRINAS", "LA PAZ"]
     };
 
-    function norm(t) { return t ? t.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : ""; }
+    function nrm(t) { return t ? t.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : ""; }
 
-    function getUbi(p) {
-        const t = norm(p); if(!t) return "S.D";
-        for(let [c, ks] of Object.entries(MATRIZ_CALI)) {
+    function getU(p) {
+        const t = nrm(p); if(!t || t === "NO APLICA") return "S.D";
+        for(let [c, ks] of Object.entries(MAPA)) {
             if(ks.some(k => t.includes(k))) return c === "RURAL" ? "RURAL" : "C" + c;
         }
         return "OTRA";
     }
 
-    async function iniciar() {
-        const { value: p } = await Swal.fire({ title: 'LOGIN DASHBOARD', input: 'password', confirmButtonColor: '#0f172a' });
-        if(p === 'ADMIN2026') { document.getElementById('app').style.display = 'flex'; await cargar(); }
+    async function login() {
+        const { value: p } = await Swal.fire({ title: 'ACCESO PRIVADO', input: 'password', confirmButtonColor: '#0f172a' });
+        if(p === 'ADMIN2026') { document.getElementById('app').style.display = 'flex'; await load(); }
     }
 
-    async function cargar() {
+    async function load() {
         const { data } = await _supabase.from('VOTANTES').select('*');
-        baseDatos = data.map(v => ({
-            ...v,
-            comuna: getUbi(v.puesto),
-            relacion: v.lider === "Rosse Mary Cabal Franco" ? "DIRECTO" : "INDIRECTO"
-        }));
-        const hijos = baseDatos.filter(v => v.lider === "Rosse Mary Cabal Franco");
-        lideresRosse = hijos.map(h => ({
-            nombre: h["Nombres y apellidos"],
-            cantidad: baseDatos.filter(v => v.lider === h["Nombres y apellidos"]).length
-        }));
-        actualizar();
+        base = data.map(v => ({...v, comuna: getU(v.puesto), origen: v.lider === "Rosse Mary Cabal Franco" ? "DIRECTO" : "INDIRECTO"}));
+        
+        const r = base.filter(v => v.lider === "Rosse Mary Cabal Franco");
+        lideres = r.map(l => ({ n: l["Nombres y apellidos"], v: base.filter(x => x.lider === l["Nombres y apellidos"]).length }));
+        
+        upd();
     }
 
-    function actualizar() {
-        document.getElementById('totalCenso').innerText = baseDatos.length;
-        document.getElementById('totalD').innerText = baseDatos.filter(v => v.relacion === "DIRECTO").length;
-        document.getElementById('totalI').innerText = baseDatos.filter(v => v.relacion === "INDIRECTO").length;
+    function upd() {
+        document.getElementById('tC').innerText = base.length;
+        document.getElementById('tD').innerText = base.filter(v => v.origen === "DIRECTO").length;
+        document.getElementById('tI').innerText = base.filter(v => v.origen === "INDIRECTO").length;
         renderL(); renderM(); renderC();
     }
 
     function filtrar() {
-        const f = norm(document.getElementById('buscador').value);
-        const filas = document.getElementById('cuerpoDetalle').getElementsByTagName('tr');
-        for(let r of filas) r.style.display = norm(r.innerText).includes(f) ? "" : "none";
-    }
-
-    function sortM(col) {
-        sM.a = sM.c === col ? !sM.a : true; sM.c = col;
-        baseDatos.sort((a,b) => {
-            let v1 = a[col]||"", v2 = b[col]||"";
-            return sM.a ? v1.toString().localeCompare(v2) : v2.toString().localeCompare(v1);
-        });
-        renderM();
-    }
-
-    function sortL(col) {
-        sL.a = sL.c === col ? !sL.a : true; sL.c = col;
-        lideresRosse.sort((a,b) => {
-            if(col === 'cantidad') return sL.a ? a.cantidad - b.cantidad : b.cantidad - a.cantidad;
-            return sL.a ? a.nombre.localeCompare(b.nombre) : b.nombre.localeCompare(a.nombre);
-        });
-        renderL();
+        const val = nrm(document.getElementById('buscador').value);
+        const filas = document.getElementById('cM').getElementsByTagName('tr');
+        for(let r of filas) {
+            r.style.display = nrm(r.innerText).includes(val) ? "" : "none";
+        }
     }
 
     function renderL() {
-        document.getElementById('cuerpoLideres').innerHTML = lideresRosse.map(l => `<tr><td><b>${l.nombre}</b></td><td><span class="badge bg-green">${l.cantidad}</span></td></tr>`).join('');
+        lideres.sort((a,b) => sL.a ? a[sL.c] > b[sL.c] ? 1:-1 : a[sL.c] < b[sL.c] ? 1:-1);
+        document.getElementById('cL').innerHTML = lideres.map(l => `<tr><td><b>${l.n}</b></td><td><span class="badge bg-directo">${l.v}</span></td></tr>`).join('');
     }
 
     function renderM() {
-        document.getElementById('cuerpoDetalle').innerHTML = baseDatos.map(v => `<tr><td><b>${v["Nombres y apellidos"]}</b></td><td>${v.cedula}</td><td>${v.puesto||'S.D'}</td><td><span class="badge bg-blue">${v.comuna}</span></td></tr>`).join('');
-        if(document.getElementById('buscador').value) filtrar();
+        base.sort((a,b) => sM.a ? nrm(a[sM.c]) > nrm(b[sM.c]) ? 1:-1 : nrm(a[sM.c]) < nrm(b[sM.c]) ? 1:-1);
+        document.getElementById('cM').innerHTML = base.map(v => `<tr><td><b>${v["Nombres y apellidos"]}</b></td><td>${v.cedula}</td><td>${v.puesto||'S.D'}</td><td><span class="badge bg-comuna">${v.comuna}</span></td></tr>`).join('');
     }
 
     function renderC() {
-        const ctx = document.getElementById('chartDona');
-        const cont = {}; baseDatos.forEach(v => cont[v.comuna] = (cont[v.comuna]||0)+1);
-        if(myChart) myChart.destroy();
-        myChart = new Chart(ctx, { 
-            type: 'doughnut', 
-            data: { labels: Object.keys(cont), datasets: [{ data: Object.values(cont), backgroundColor: ['#0f172a','#10b981','#6366f1','#f59e0b','#ec4899','#ef4444','#8b5cf6'] }] },
-            options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } } } }
-        });
+        const ctx = document.getElementById('chartD');
+        const d = {}; base.forEach(v => d[v.comuna] = (d[v.comuna]||0)+1);
+        if(chart) chart.destroy();
+        chart = new Chart(ctx, { type:'doughnut', data:{ labels:Object.keys(d), datasets:[{data:Object.values(d), backgroundColor:['#0f172a','#10b981','#6366f1','#f59e0b','#ec4899','#ef4444','#8b5cf6']}]}, options:{maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:8, font:{size:9}}}}}});
     }
 
-    function exportarTodo() {
-        const ws = XLSX.utils.json_to_sheet(baseDatos);
+    function sortM(c) { sM.a = sM.c === c ? !sM.a : true; sM.c = c; renderM(); }
+    function sortL(c) { sL.a = sL.c === c ? !sL.a : true; sL.c = c; renderL(); }
+
+    function descargar() {
+        const ws = XLSX.utils.json_to_sheet(base);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "CENSO");
-        XLSX.writeFile(wb, "DASHBOARD_2026.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "DATOS");
+        XLSX.writeFile(wb, "ESTRUCTURA_2026.xlsx");
     }
 
-    iniciar();
+    login();
 </script>
 </body>
 </html>
