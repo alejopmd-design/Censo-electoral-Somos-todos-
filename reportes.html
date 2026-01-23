@@ -32,9 +32,8 @@
         th:hover { background: #1e293b; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 700; }
         
-        .badge-zero { color: #94a3b8; font-weight: 400; font-style: italic; }
-        .badge-puesto { background: #f0f9ff; color: #0369a1; padding: 4px 8px; border-radius: 6px; font-size: 0.65rem; border: 1px solid #bae6fd; display: inline-block; }
         .search-input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #e2e8f0; margin-bottom: 20px; font-size: 1rem; }
+        .badge-puesto { background: #f0f9ff; color: #0369a1; padding: 4px 8px; border-radius: 6px; font-size: 0.65rem; border: 1px solid #bae6fd; display: inline-block; }
     </style>
 </head>
 <body>
@@ -59,7 +58,7 @@
 
     <div class="main-layout">
         <div class="card">
-            <h4 style="margin:0 0 15px 0">🗺️ GEORREFERENCIACIÓN Y DESCRIPCIONES</h4>
+            <h4 style="margin:0 0 15px 0">🗺️ GEORREFERENCIACIÓN Y COMUNAS</h4>
             <div style="display: grid; grid-template-columns: 1fr 280px; gap: 20px;">
                 <div id="map"></div>
                 <div>
@@ -70,13 +69,13 @@
         </div>
 
         <div class="card">
-            <h4 style="margin:0 0 15px 0">🏆 RANKING COMPLETO (INCLUYE 0)</h4>
+            <h4 style="margin:0 0 15px 0">🏆 RANKING COMPLETO DE LIDERAZGO</h4>
             <div class="scroll">
-                <table id="tablaLideres">
+                <table id="tablaLid">
                     <thead>
                         <tr>
-                            <th onclick="ordenarLideres(0)">LÍDER ↕️</th>
-                            <th onclick="ordenarLideres(1)" style="text-align:center">VOTOS ↕️</th>
+                            <th onclick="ordenarRank(0)">LÍDER ↕️</th>
+                            <th onclick="ordenarRank(1)" style="text-align:center">VOTOS ↕️</th>
                         </tr>
                     </thead>
                     <tbody id="bodyLid"></tbody>
@@ -123,7 +122,7 @@
     function normalizar(t) { return t ? t.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, "") : ""; }
 
     async function login() {
-        const { value: p } = await Swal.fire({ title: 'PANEL DE CONTROL', input: 'password', confirmButtonColor: '#0f172a' });
+        const { value: p } = await Swal.fire({ title: 'CONTROL DE INFORMES', input: 'password', confirmButtonColor: '#0f172a' });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
             map = L.map('map').setView([3.42, -76.52], 12);
@@ -153,20 +152,25 @@
     function renderUI() {
         const cCom = {}, cLid = {}, cDataMap = {};
         
-        // LOGICA PARA RANKING COMPLETO (Captura a todos los líderes que aparecen en la columna 'lider')
-        const todosLosLideres = [...new Set(votantes.map(v => v.lider).filter(l => l))];
-        todosLosLideres.forEach(l => cLid[l] = 0);
+        // --- LÓGICA DE RANKING INCLUSIVO ---
+        // 1. Obtener lista única de todos los nombres que aparecen en la columna "lider"
+        const nombresLideres = [...new Set(votantes.map(v => v.lider).filter(l => l))];
+        
+        // 2. Inicializar todos en 0
+        nombresLideres.forEach(nom => cLid[nom] = 0);
 
+        // 3. Contar votos reales (quien aparece como 'lider' de un registro suma +1)
         votantes.forEach(v => {
+            if(v.lider) cLid[v.lider]++;
+            
             if(v.comuna !== "OTRA") {
                 cCom[v.comuna] = (cCom[v.comuna] || 0) + 1;
                 if(!cDataMap[v.comuna]) cDataMap[v.comuna] = { d:0, i:0 };
                 v.lider === "Rosse Mary Cabal Franco" ? cDataMap[v.comuna].d++ : cDataMap[v.comuna].i++;
             }
-            if(v.lider) cLid[v.lider]++;
         });
 
-        // Totales y Meta
+        // Metas y Totales
         document.getElementById('tV').innerText = votantes.length;
         document.getElementById('tD').innerText = votantes.filter(v=>v.lider==="Rosse Mary Cabal Franco").length;
         document.getElementById('tI').innerText = votantes.length - votantes.filter(v=>v.lider==="Rosse Mary Cabal Franco").length;
@@ -174,22 +178,19 @@
         document.getElementById('metaFill').style.width = p+'%';
         document.getElementById('metaPct').innerText = `META 10,000 (${p.toFixed(1)}%)`;
 
-        // Ranking de Líderes
+        // Ranking Tabla (Se llena con todos, incluso los de 0)
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v])=>`
-            <tr style="${v === 0 ? 'opacity: 0.5' : ''}">
+            <tr style="${v === 0 ? 'opacity: 0.6' : ''}">
                 <td>${l}</td>
-                <td style="text-align:center; color:${v > 0 ? 'var(--green)' : '#94a3b8'}">
-                    ${v === 0 ? '<span class="badge-zero">0 REFERIDOS</span>' : v}
-                </td>
+                <td style="text-align:center; color:${v > 0 ? 'var(--green)' : '#94a3b8'}">${v}</td>
             </tr>
         `).join('');
 
-        // Mapa y Dona (se mantiene igual)
+        // Mapa y Dona
         capaBurbujas.clearLayers();
         Object.entries(cDataMap).forEach(([c, val]) => {
             if(GPS[c]) {
-                L.circle(GPS[c], { color: '#10b981', radius: 250 + (val.d+val.i)*30, fillOpacity: 0.5 })
-                .addTo(capaBurbujas).bindPopup(`<b>COMUNA ${c}</b><br>Total: ${val.d+val.i} votos`);
+                L.circle(GPS[c], { color: '#10b981', radius: 250 + (val.d+val.i)*30, fillOpacity: 0.5 }).addTo(capaBurbujas);
             }
         });
 
@@ -203,42 +204,30 @@
             },
             options: { cutout: '65%', plugins: { legend: { display: false } } }
         });
-        
-        document.getElementById('donaLegend').innerHTML = Object.keys(cCom).map((c, i) => `
-            <div style="display:flex; justify-content:space-between; margin-bottom:2px">
-                <span><span style="color:${colors[i%colors.length]}">●</span> COMUNA ${c}</span>
-                <span>${cCom[c]}</span>
-            </div>
-        `).join('');
 
-        // Tabla Maestra
         document.getElementById('bodyM').innerHTML = votantes.map(v=>`
             <tr>
                 <td>${v["Nombres y apellidos"]}</td>
                 <td>${v.cedula}</td>
                 <td>${v.puesto}<br><span class="badge-puesto">🎯 ${v.oficial}</span></td>
-                <td><span style="background:#dcfce7; color:#166534; padding:3px 8px; border-radius:5px">C-${v.comuna}</span></td>
+                <td>C-${v.comuna}</td>
             </tr>
         `).join('');
     }
 
-    // BOTONES DE ORDENAMIENTO DE LIDERES
-    function ordenarLideres(n) {
-        let table = document.getElementById("tablaLideres");
+    // FUNCIÓN PARA ORDENAR EL RANKING (NOMBRE O VOTOS)
+    function ordenarRank(n) {
+        let table = document.getElementById("tablaLid");
         let rows = Array.from(table.rows).slice(1);
         let dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
         rows.sort((a, b) => {
             let x = a.cells[n].innerText.toLowerCase();
             let y = b.cells[n].innerText.toLowerCase();
-            if (n === 1) { // Ordenar por cantidad (número)
-                x = parseInt(x) || 0;
-                y = parseInt(y) || 0;
-                return dir === "asc" ? x - y : y - x;
-            }
+            if(n === 1) return dir === "asc" ? parseInt(x) - parseInt(y) : parseInt(y) - parseInt(x);
             return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
         });
         table.setAttribute("data-dir", dir);
-        rows.forEach(row => table.tBodies[0].appendChild(row));
+        rows.forEach(r => table.tBodies[0].appendChild(r));
     }
 
     function sortTable(n) {
@@ -251,7 +240,7 @@
             return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
         });
         table.setAttribute("data-dir", dir);
-        rows.forEach(row => table.tBodies[0].appendChild(row));
+        rows.forEach(r => table.tBodies[0].appendChild(r));
     }
 
     function filtrar() {
