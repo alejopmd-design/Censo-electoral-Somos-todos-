@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA ESTRATÉGICO TOTAL 2026</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISTEMA ESTRATÉGICO ROSSE MARY CABAL 2026</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,119 +17,120 @@
 
     <style>
         :root { 
-            --blue: #0f172a; --green: #10b981; --accent: #6366f1; --bg: #f8fafc; 
-            --red: #ef4444; --orange: #f59e0b; --gray: #475569;
+            --primary: #0f172a; --secondary: #1e293b; --accent: #6366f1; 
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --text: #f8fafc;
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; text-transform: uppercase; color: var(--blue); }
-        .container { max-width: 1700px; margin: auto; display: none; padding-bottom: 40px; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0b0f1a; margin: 0; padding: 25px; color: var(--text); text-transform: uppercase; }
+        .container { max-width: 1800px; margin: auto; display: none; }
         
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; }
-        .header-top h2 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
+        /* Header Estilo Corporate */
+        .master-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 1px solid #1e293b; padding-bottom: 20px; }
+        .header-title h1 { margin: 0; font-size: 1.8rem; letter-spacing: 2px; color: #fff; font-weight: 800; }
+        .header-title span { color: var(--accent); font-size: 0.9rem; font-weight: 700; }
         
-        .card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; margin-bottom: 20px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px; }
-        
-        .stat-num { font-size: 2.8rem; font-weight: 900; line-height: 1; margin: 10px 0; }
-        small { font-size: 0.85rem; font-weight: 700; color: var(--gray); }
-        
-        .meta-bg { background: #e2e8f0; border-radius: 50px; height: 12px; margin-top: 10px; overflow: hidden; }
-        .meta-fill { background: linear-gradient(90deg, var(--green), #34d399); height: 100%; transition: 1s ease; }
+        /* Dashboard Grid */
+        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--secondary); border-radius: 16px; padding: 25px; border: 1px solid #334155; position: relative; overflow: hidden; }
+        .stat-card::after { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent); }
+        .stat-val { font-size: 3.5rem; font-weight: 900; margin: 10px 0; color: #fff; }
+        .stat-label { font-size: 0.85rem; color: #94a3b8; letter-spacing: 1px; }
 
-        .main-layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; }
-        .map-wrapper { display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+        /* Meta Progress */
+        .progress-container { background: #334155; height: 10px; border-radius: 10px; margin-top: 15px; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--success)); border-radius: 10px; transition: 1s ease; width: 0%; }
 
-        @media (max-width: 1200px) { .main-layout, .map-wrapper { grid-template-columns: 1fr; } }
+        /* Layout Principal */
+        .main-content { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 25px; }
+        .panel { background: var(--secondary); border-radius: 16px; padding: 20px; border: 1px solid #334155; margin-bottom: 25px; }
+        h3 { font-size: 1rem; margin-top: 0; color: #cbd5e1; display: flex; align-items: center; gap: 10px; }
 
-        #map { height: 480px; width: 100%; border-radius: 12px; border: 1px solid #cbd5e1; z-index: 1; }
-        .scroll { max-height: 450px; overflow-y: auto; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: var(--blue); color: white; padding: 12px; font-size: 0.75rem; position: sticky; top: 0; z-index: 10; cursor: pointer; text-align: left; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 700; }
-        
-        .btn-exp { padding: 8px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: 800; font-size: 0.7rem; color: white; margin-left: 5px; }
-        .xlsx { background: #166534; } .pdf { background: #991b1b; }
-        .search-input, .select-input { padding: 12px; border-radius: 10px; border: 2px solid #e2e8f0; font-size: 0.9rem; }
+        /* Tablas */
+        .scroll { max-height: 500px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--accent) #1e293b; }
+        table { width: 100%; border-collapse: collapse; background: #161e2e; border-radius: 8px; overflow: hidden; }
+        th { background: #1e293b; color: var(--accent); padding: 15px; text-align: left; font-size: 0.75rem; position: sticky; top: 0; z-index: 10; }
+        td { padding: 14px 15px; border-bottom: 1px solid #334155; font-size: 0.9rem; color: #e2e8f0; font-weight: 600; }
+        tr:hover { background: #1f2937; }
 
-        .row-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
-        
-        .alert-zone { padding: 12px; border-radius: 8px; margin-bottom: 8px; font-weight: 800; font-size: 0.75rem; border-left: 5px solid; }
-        .alert-red { background: #fee2e2; color: #991b1b; border-color: var(--red); }
-        .alert-orange { background: #ffedd5; color: #9a3412; border-color: var(--orange); }
+        /* Herramientas */
+        .controls { display: flex; gap: 12px; }
+        .select-master, .input-master { background: #0f172a; border: 1px solid #334155; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: 700; outline: none; }
+        .btn-master { padding: 10px 18px; border-radius: 8px; border: none; font-weight: 800; cursor: pointer; transition: 0.3s; font-size: 0.75rem; }
+        .btn-excel { background: #166534; color: #fff; }
+        .btn-pdf { background: #991b1b; color: #fff; }
+
+        /* Alertas */
+        .alert-box { padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; font-weight: 700; font-size: 0.8rem; }
+        .bg-red { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); color: #fecaca; }
+        .bg-orange { background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning); color: #fed7aa; }
+
+        #map { height: 500px; border-radius: 12px; border: 1px solid #334155; }
+        .leader-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #334155; font-size: 0.85rem; }
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
-    <div class="header-top">
-        <div>
-            <h2><i class="fas fa-crown"></i> COMMAND CENTER: ROSSE MARY CABAL 2026</h2>
-            <div id="real-time" style="font-weight: 800; color: var(--accent); font-size: 0.9rem; margin-top: 5px;"></div>
+    <header class="master-header">
+        <div class="header-title">
+            <h1>ROSSE MARY CABAL <small style="color:var(--success)">2026</small></h1>
+            <span id="real-clock">SISTEMA DE CONTROL ESTRATÉGICO INTEGRAL</span>
         </div>
-        <div style="display:flex; gap:15px; align-items:center;">
-            <label style="font-size:0.8rem; font-weight:900">RANGO TEMPORAL:</label>
-            <select id="filtroFecha" class="select-input" onchange="renderUI()">
-                <option value="all">TIEMPO TOTAL</option>
-                <option value="hoy">GESTIÓN HOY</option>
-                <option value="ayer">GESTIÓN AYER</option>
-                <option value="3dias">ÚLTIMOS 3 DÍAS</option>
-                <option value="semana">ESTA SEMANA</option>
+        <div class="controls">
+            <select id="filtroFecha" class="select-master" onchange="renderUI()">
+                <option value="all">📊 HISTÓRICO TOTAL</option>
+                <option value="hoy">📅 GESTIÓN HOY</option>
+                <option value="ayer">📅 GESTIÓN AYER</option>
+                <option value="3dias">🕒 ÚLTIMOS 3 DÍAS</option>
+                <option value="semana">📅 ESTA SEMANA</option>
             </select>
         </div>
+    </header>
+
+    <div class="dash-grid">
+        <div class="stat-card">
+            <div class="stat-label">CENSO INTEGRAL</div>
+            <div class="stat-val" id="tV">0</div>
+            <div class="progress-container"><div id="metaFill" class="progress-bar"></div></div>
+            <div style="display:flex; justify-content:space-between; margin-top:10px">
+                <small>OBJETIVO: 7,000</small>
+                <small id="metaPct">0%</small>
+            </div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid var(--danger)">
+            <div class="stat-label">ZONAS CRÍTICAS</div>
+            <div class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</div>
+            <small>COMUNAS EN RIESGO O BAJAS</small>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid var(--success)">
+            <div class="stat-label">LÍDERES ACTIVOS</div>
+            <div class="stat-val" id="tLidActivos" style="color:var(--success)">0</div>
+            <small>RED DE TRABAJO EN CAMPO</small>
+        </div>
     </div>
 
-    <div class="stats-grid">
-        <div class="card">
-            <small><i class="fas fa-users"></i> CENSO INTEGRAL</small>
-            <div class="stat-num" id="tV">0</div>
-            <div class="meta-bg"><div id="metaFill" class="meta-fill"></div></div>
-            <small id="metaPct" style="font-size: 0.7rem; margin-top: 5px; display: block;">META 7,000 (0%)</small>
-        </div>
-        <div class="card" style="border-top: 5px solid var(--red)">
-            <small><i class="fas fa-exclamation-triangle"></i> ZONAS CRÍTICAS (EN 0 O BAJAS)</small>
-            <div class="stat-num" id="tZonasCriticas" style="color:var(--red)">0</div>
-            <small>REVISAR ALERTAS DE INTERVENCIÓN</small>
-        </div>
-        <div class="card" style="border-top: 5px solid var(--accent)">
-            <small><i class="fas fa-network-wired"></i> RED DE LÍDERES (ÚLT. 10 REGISTROS)</small>
-            <div id="recentList" class="scroll" style="max-height: 100px; margin-top: 10px; border-top: 1px solid #eee;"></div>
-        </div>
-    </div>
-
-    <div class="main-layout">
-        <div style="display: flex; flex-direction: column; gap: 20px;">
-            <div class="card">
-                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px">
-                    <h4 style="margin:0"><i class="fas fa-map-marked-alt"></i> GEORREFERENCIACIÓN ESTRATÉGICA</h4>
-                    <button class="btn-exp xlsx" onclick="expComunas('xlsx')">EXPORTAR COMUNAS</button>
+    <div class="main-content">
+        <div class="left-col">
+            <div class="panel">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+                    <h3><i class="fas fa-map-marked-alt"></i> GEORREFERENCIACIÓN ELECTORAL</h3>
+                    <button class="btn-master btn-excel" onclick="expBase('xlsx')">EXPORTAR BASE</button>
                 </div>
-                <div class="map-wrapper">
-                    <div id="map"></div>
-                    <div>
-                        <canvas id="donaComunas"></canvas>
-                        <div id="donaLegend" class="scroll" style="max-height: 250px; margin-top:15px"></div>
-                    </div>
-                </div>
+                <div id="map"></div>
             </div>
 
-            <div class="card">
-                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px">
-                    <h4 style="margin:0"><i class="fas fa-list-ul"></i> CENSO MAESTRO</h4>
-                    <div style="display:flex; gap:10px">
-                        <input type="text" id="bus" onkeyup="filtrar()" class="search-input" placeholder="BUSCAR...">
-                        <button class="btn-exp xlsx" onclick="expBase('xlsx')">XLS</button>
-                        <button class="btn-exp pdf" onclick="expBase('pdf')">PDF</button>
-                    </div>
+            <div class="panel">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+                    <h3><i class="fas fa-database"></i> REGISTROS MAESTROS</h3>
+                    <input type="text" id="bus" onkeyup="filtrar()" class="input-master" placeholder="BUSCAR VOTANTE O CÉDULA...">
                 </div>
                 <div class="scroll">
-                    <table id="tablaG" data-dir="asc">
+                    <table id="tablaG">
                         <thead>
                             <tr>
-                                <th onclick="sortTable('tablaG', 0)">VOTANTE ↕️</th>
-                                <th onclick="sortTable('tablaG', 1)">CEDULA ↕️</th>
+                                <th onclick="sortTable('tablaG', 0)">NOMBRE ↕️</th>
+                                <th onclick="sortTable('tablaG', 1)">CÉDULA ↕️</th>
                                 <th onclick="sortTable('tablaG', 2)">PUESTO ↕️</th>
-                                <th onclick="sortTable('tablaG', 3)">COM ↕️</th>
+                                <th onclick="sortTable('tablaG', 3)">C ↕️</th>
                             </tr>
                         </thead>
                         <tbody id="bodyM"></tbody>
@@ -138,36 +139,33 @@
             </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 20px;">
-            <div class="card" style="border-left: 6px solid var(--red)">
-                <h4 style="margin:0 0 15px 0; color:var(--red)"><i class="fas fa-bolt"></i> ALERTAS DE INTERVENCIÓN</h4>
-                <div id="alertasContainer" class="scroll" style="max-height: 220px;"></div>
+        <div class="right-col">
+            <div class="panel" style="border-top: 4px solid var(--danger)">
+                <h3><i class="fas fa-bolt"></i> ALERTAS DE INTERVENCIÓN</h3>
+                <div id="alertasContainer" class="scroll" style="max-height: 250px;"></div>
             </div>
 
-            <div class="card">
-                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px">
-                    <h4 style="margin:0"><i class="fas fa-medal"></i> RANKING DE LÍDERES</h4>
-                    <div>
-                        <button class="btn-exp xlsx" onclick="expRanking('xlsx')">XLS</button>
-                        <button class="btn-exp pdf" onclick="expRanking('pdf')">PDF</button>
+            <div class="panel">
+                <h3><i class="fas fa-network-wired"></i> RED DE LÍDERES (ÚLT. 10 CARGAS)</h3>
+                <div id="recentList" class="scroll" style="max-height: 350px;"></div>
+            </div>
+
+            <div class="panel">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
+                    <h3><i class="fas fa-medal"></i> RANKING DE EFECTIVIDAD</h3>
+                    <div style="display:flex; gap:5px">
+                        <button class="btn-master btn-excel" onclick="expRanking('xlsx')">XLS</button>
+                        <button class="btn-master btn-pdf" onclick="expRanking('pdf')">PDF</button>
                     </div>
                 </div>
                 <div class="scroll">
-                    <table id="tablaLid" data-dir="desc">
+                    <table id="tablaLid">
                         <thead>
-                            <tr>
-                                <th onclick="sortTable('tablaLid', 0)">LÍDER ↕️</th>
-                                <th onclick="sortTable('tablaLid', 1, true)" style="text-align:center">VOTOS ↕️</th>
-                            </tr>
+                            <tr><th>LÍDER</th><th style="text-align:center">PRODUCCIÓN</th></tr>
                         </thead>
                         <tbody id="bodyLid"></tbody>
                     </table>
                 </div>
-            </div>
-
-            <div class="card">
-                <h4 style="margin:0 0 15px 0"><i class="fas fa-traffic-light"></i> SEMÁFORO DE GESTIÓN</h4>
-                <div id="semaforoLid" class="scroll" style="max-height: 300px;"></div>
             </div>
         </div>
     </div>
@@ -178,40 +176,28 @@
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    let votantes = [], puestosOficiales = [], map, capaBurbujas, chartDona;
+    let votantes = [], puestosOficiales = [], map, capaBurbujas;
     const GPS = { "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],"6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],"11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],"16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],"21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510],"25":[3.370,-76.570],"33":[3.480,-76.570] };
-    const COLORES = ['#0f172a','#10b981','#6366f1','#f59e0b','#ef4444','#06b6d4','#8b5cf6','#d946ef','#f97316','#a3e635','#2dd4bf','#fb7185','#be185d','#8b5cf6','#c084fc','#e879f9','#f472b6','#a16207','#65a30d','#0891b2'];
-
-    function norm(t) { return t ? t.toString().toUpperCase().trim() : ""; }
-
-    function sortTable(tableId, n, isNumeric = false) {
-        let table = document.getElementById(tableId);
-        let rows = Array.from(table.rows).slice(1);
-        let dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
-        rows.sort((a, b) => {
-            let x = a.cells[n].innerText.toUpperCase();
-            let y = b.cells[n].innerText.toUpperCase();
-            if (isNumeric) return dir === "asc" ? parseInt(x) - parseInt(y) : parseInt(y) - parseInt(x);
-            return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
-        });
-        table.setAttribute("data-dir", dir);
-        rows.forEach(r => table.tBodies[0].appendChild(r));
-    }
 
     async function login() {
-        const { value: p } = await Swal.fire({ title: 'ACCESO MASTER', input: 'password', confirmButtonColor: '#0f172a' });
+        const { value: p } = await Swal.fire({ 
+            title: 'AUTENTICACIÓN MÁSTER', 
+            input: 'password', 
+            background: '#1e293b', 
+            color: '#fff',
+            confirmButtonColor: '#6366f1' 
+        });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
             initMap(); 
             await cargarBase();
-            setInterval(() => { document.getElementById('real-time').innerText = new Date().toLocaleString(); }, 1000);
+            setInterval(() => { document.getElementById('real-clock').innerText = new Date().toLocaleString(); }, 1000);
         }
     }
 
     function initMap() {
-        if(map) return;
         map = L.map('map').setView([3.42, -76.52], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
         capaBurbujas = L.layerGroup().addTo(map);
     }
 
@@ -219,8 +205,8 @@
         const { data: pData } = await _supabase.from('PUESTOS_VOTACION').select('*');
         puestosOficiales = pData || [];
         const { data: vData } = await _supabase.from('VOTANTES').select('*');
-        // REGLA MAESTRA: EXCLUIR ROSSE MARY CABAL
-        votantes = (vData || []).filter(v => norm(v.lider) !== "ROSSE MARY CABAL");
+        // REGLA: Rosse Mary Cabal es la cabeza, no se cuenta como líder a sí misma
+        votantes = (vData || []).filter(v => v.lider && v.lider.toUpperCase() !== "ROSSE MARY CABAL");
         renderUI();
     }
 
@@ -228,117 +214,80 @@
         const fType = document.getElementById('filtroFecha').value;
         const hoy = new Date();
         const ayer = new Date(); ayer.setDate(hoy.getDate() - 1);
-        const tresDias = new Date(); tresDias.setDate(hoy.getDate() - 3);
+        const tresD = new Date(); tresD.setDate(hoy.getDate() - 3);
 
         const filtered = votantes.filter(v => {
             const fv = new Date(v.created_at);
             if(fType === 'all') return true;
             if(fType === 'hoy') return fv.toDateString() === hoy.toDateString();
             if(fType === 'ayer') return fv.toDateString() === ayer.toDateString();
-            if(fType === '3dias') return fv >= tresDias;
+            if(fType === '3dias') return fv >= tresD;
             if(fType === 'semana') return (hoy - fv) < (7 * 24 * 60 * 60 * 1000);
         });
 
         const cCom = {}, cLid = {};
         const procesados = filtered.map(v => {
-            const pTxt = v.puesto?.toLowerCase() || "";
-            const m = puestosOficiales.find(po => po.nombre_puesto.toLowerCase().includes(pTxt));
+            const m = puestosOficiales.find(po => po.nombre_puesto.toLowerCase().includes((v.puesto||"").toLowerCase()));
             const com = m ? m.comuna : "OTRA";
             if(com !== "OTRA") cCom[com] = (cCom[com] || 0) + 1;
+            if(v.lider) cLid[v.lider] = (cLid[v.lider] || 0) + 1;
             return { ...v, comuna: com, oficial: m ? m.nombre_puesto : "PENDIENTE" };
         });
 
-        // STATS
-        const total = procesados.length;
-        document.getElementById('tV').innerText = total.toLocaleString();
-        const pct = Math.min((total / 7000) * 100, 100);
+        // Dashboard Stats
+        document.getElementById('tV').innerText = procesados.length.toLocaleString();
+        document.getElementById('tLidActivos').innerText = Object.keys(cLid).length;
+        const pct = Math.min((procesados.length / 7000) * 100, 100);
         document.getElementById('metaFill').style.width = pct + '%';
-        document.getElementById('metaPct').innerText = `META 7,000 (${pct.toFixed(1)}%)`;
+        document.getElementById('metaPct').innerText = pct.toFixed(1) + '%';
 
-        // ALERTAS
-        let htmlAlertas = "";
+        // Alertas
+        let hAlert = "";
         const enCero = Object.keys(GPS).filter(c => !cCom[c]);
-        enCero.forEach(c => htmlAlertas += `<div class="alert-zone alert-red"><i class="fas fa-radiation"></i> COMUNA ${c}: SIN REGISTROS (0)</div>`);
+        enCero.forEach(c => hAlert += `<div class="alert-box bg-red"><i class="fas fa-radiation"></i> COMUNA ${c}: SIN REGISTROS</div>`);
         const bajos = Object.entries(cCom).sort((a,b)=>a[1]-b[1]).slice(0, 5);
-        bajos.forEach(([c,t]) => htmlAlertas += `<div class="alert-zone alert-orange"><i class="fas fa-exclamation-triangle"></i> COMUNA ${c}: BAJO RENDIMIENTO (${t})</div>`);
-        document.getElementById('alertasContainer').innerHTML = htmlAlertas || "ZONAS EN ESTADO ÓPTIMO";
+        bajos.forEach(([c,t]) => hAlert += `<div class="alert-box bg-orange"><i class="fas fa-exclamation-circle"></i> COMUNA ${c}: PRODUCCIÓN BAJA (${t})</div>`);
+        document.getElementById('alertasContainer').innerHTML = hAlert || "SITUACIÓN BAJO CONTROL";
         document.getElementById('tZonasCriticas').innerText = enCero.length + bajos.length;
 
-        // RANKING
-        procesados.forEach(v => { if(v.lider) cLid[v.lider] = (cLid[v.lider] || 0) + 1; });
+        // Ranking
         const sortedLid = Object.entries(cLid).sort((a,b)=>b[1]-a[1]);
-        document.getElementById('bodyLid').innerHTML = sortedLid.map(([l,v])=>`<tr><td>${norm(l)}</td><td align="center">${v}</td></tr>`).join('');
-        document.getElementById('semaforoLid').innerHTML = sortedLid.map(([l,v])=>`<div class="row-item"><span><span class="dot" style="background:var(--green)"></span>${norm(l)}</span><span>${v}</span></div>`).join('');
-        
-        // RED DE LÍDERES (Últimos 10 con fecha y líder)
+        document.getElementById('bodyLid').innerHTML = sortedLid.map(([l,v])=>`<tr><td>${l.toUpperCase()}</td><td align="center">${v}</td></tr>`).join('');
+
+        // Red de Líderes (Últimos 10)
         const ultimos10 = [...procesados].reverse().slice(0, 10);
         document.getElementById('recentList').innerHTML = ultimos10.map(u => {
-            const fecha = new Date(u.created_at);
-            return `<div class="row-item" style="padding:4px 0; border-bottom:1px solid #f8fafc">
-                <small style="color:var(--accent)">[${fecha.getDate()}/${fecha.getMonth()+1} ${fecha.getHours()}:${fecha.getMinutes()}]</small>
-                <small><b>${norm(u["Nombres y apellidos"])}</b></small>
-                <small style="color:var(--gray)">LÍDER: ${norm(u.lider)}</small>
+            const f = new Date(u.created_at);
+            return `<div class="leader-item">
+                <div>
+                    <span style="color:var(--accent); font-size:0.7rem">[${f.getHours()}:${f.getMinutes()}]</span> 
+                    <strong>${u["Nombres y apellidos"].toUpperCase()}</strong>
+                </div>
+                <div style="font-size:0.7rem; color:var(--success)">LÍDER: ${u.lider.toUpperCase()}</div>
             </div>`;
         }).join('');
 
-        // MAPA Y DONA
+        // Mapa
         capaBurbujas.clearLayers();
-        const eti = Object.keys(cCom).sort((a,b)=>a-b);
-        eti.forEach((c, i) => {
+        Object.entries(cCom).forEach(([c,t]) => {
             if(GPS[c]) {
-                const col = COLORES[i % COLORES.length];
-                L.circle(GPS[c], { color: col, fillColor: col, fillOpacity: 0.5, radius: 300+(cCom[c]*15) }).addTo(capaBurbujas).bindPopup(`COMUNA ${c}: ${cCom[c]}`);
+                L.circle(GPS[c], { color: '#6366f1', fillColor: '#6366f1', fillOpacity: 0.4, radius: 400+(t*10) }).addTo(capaBurbujas).bindPopup(`COMUNA ${c}: ${t}`);
             }
         });
 
-        if(chartDona) chartDona.destroy();
-        chartDona = new Chart(document.getElementById('donaComunas'), {
-            type: 'doughnut',
-            data: { labels: eti.map(e=>'C'+e), datasets: [{ data: eti.map(e=>cCom[e]), backgroundColor: COLORES }] },
-            options: { plugins: { legend: { display: false } } }
-        });
-        document.getElementById('donaLegend').innerHTML = eti.map((e, i) => `<div class="row-item"><span><span class="dot" style="background:${COLORES[i % COLORES.length]}"></span>C${e}</span><span>${cCom[e]}</span></div>`).join('');
+        document.getElementById('bodyM').innerHTML = procesados.map(v => `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.oficial}</td><td style="color:var(--accent)">${v.comuna}</td></tr>`).join('');
+    }
 
-        document.getElementById('bodyM').innerHTML = procesados.map(v => `<tr><td>${norm(v["Nombres y apellidos"])}</td><td>${v.cedula}</td><td>${norm(v.oficial)}</td><td>${v.comuna}</td></tr>`).join('');
+    function sortTable(id, n) {
+        const table = document.getElementById(id);
+        const rows = Array.from(table.rows).slice(1);
+        rows.sort((a,b) => a.cells[n].innerText.localeCompare(b.cells[n].innerText));
+        rows.forEach(r => table.tBodies[0].appendChild(r));
     }
 
     function filtrar() {
         const q = document.getElementById('bus').value.toUpperCase();
         Array.from(document.getElementById('bodyM').rows).forEach(r => r.style.display = r.innerText.toUpperCase().includes(q) ? '' : 'none');
-    }
-
-    // EXPORTS
-    function expRanking(t) {
-        const rows = Array.from(document.querySelectorAll("#bodyLid tr")).map(r => [r.cells[0].innerText, r.cells[1].innerText]);
-        if(t==='xlsx'){
-            const ws = XLSX.utils.aoa_to_sheet([["LIDER", "VOTOS"], ...rows]);
-            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Rank");
-            XLSX.writeFile(wb, "RANKING_LIDERES.xlsx");
-        } else {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            doc.autoTable({ head:[["LIDER", "VOTOS"]], body: rows });
-            doc.save("RANKING_LIDERES.pdf");
-        }
-    }
-
-    function expBase(t) {
-        const rows = Array.from(document.getElementById('bodyM').rows).filter(r=>r.style.display!=='none').map(r => [r.cells[0].innerText, r.cells[1].innerText, r.cells[2].innerText, r.cells[3].innerText]);
-        if(t==='xlsx'){
-            const ws = XLSX.utils.aoa_to_sheet([["NOMBRE", "CEDULA", "PUESTO", "COMUNA"], ...rows]);
-            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Censo");
-            XLSX.writeFile(wb, "CENSO.xlsx");
-        } else {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            doc.autoTable({ head:[["NOMBRE", "CEDULA", "PUESTO", "COMUNA"]], body: rows });
-            doc.save("CENSO.pdf");
-        }
-    }
-
-    function expComunas(t) {
-        const rows = Array.from(document.querySelectorAll("#donaLegend .row-item")).map(r => [r.children[0].innerText, r.children[1].innerText]);
-        const ws = XLSX.utils.aoa_to_sheet([["COMUNA", "TOTAL"], ...rows]);
-        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Com");
-        XLSX.writeFile(wb, "REPORTE_COMUNAS.xlsx");
     }
 
     login();
