@@ -50,7 +50,7 @@
             <small id="metaPct">META 7,000 (0%)</small>
         </div>
         <div class="card" style="border-top: 4px solid var(--green)">
-            <small>DIRECTOS ROSSE MARY</small>
+            <small>VOTOS DIRECTOS</small>
             <div class="stat-num" id="tD" style="color:var(--green)">0</div>
         </div>
         <div class="card" style="border-top: 4px solid var(--accent)">
@@ -240,7 +240,6 @@
         for(let f of filas) f.style.display = normalizar(f.innerText).includes(q) ? '' : 'none';
     }
 
-    // Exportación
     function expRanking(tipo) {
         if(tipo==='xlsx'){
             const ws = XLSX.utils.table_to_sheet(document.getElementById('tablaLid'));
@@ -274,8 +273,7 @@
             const a = document.createElement('a'); a.href = url; a.download = 'Resumen_Comunas.txt'; a.click();
         } else {
             const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            doc.text("RESUMEN DE COMUNAS", 10, 10);
-            doc.text(resumen, 10, 20); doc.save("Comunas.pdf");
+            doc.text("RESUMEN DE COMUNAS", 10, 10); doc.text(resumen, 10, 20); doc.save("Comunas.pdf");
         }
     }
 
