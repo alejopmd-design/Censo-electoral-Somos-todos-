@@ -19,47 +19,39 @@
         .top-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 24px; }
         .map-section { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; }
         .stat-num { font-size: 2.8rem; font-weight: 800; color: var(--blue); text-align: center; }
-        #map { height: 450px; border-radius: 12px; border: 2px solid var(--blue); background: #e2e8f0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #f8fafc; padding: 12px; text-align: left; font-size: 0.75rem; border-bottom: 2px solid #e2e8f0; }
+        #map { height: 450px; border-radius: 12px; border: 3px solid var(--blue); background: #ffffff; }
+        .votos-resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 20px; }
+        .resumen-item { background: #ffffff; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #e2e8f0; border-top: 5px solid var(--blue); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .val-votos { font-size: 1.8rem; font-weight: 800; color: #ef4444; display: block; }
+        table { width: 100%; border-collapse: collapse; }
         td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 600; }
-        .comuna-tag { background: #0f172a; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; }
-        .votos-resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 20px; }
-        .resumen-item { background: #f1f5f9; padding: 15px; border-radius: 10px; text-align: center; border-left: 5px solid var(--blue); }
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
     <div class="top-grid">
-        <div class="card">
-            <strong>📊 POTENCIAL TOTAL (CENSO)</strong>
-            <div class="stat-num" id="totalCenso">0</div>
-        </div>
+        <div class="card"><strong>📊 POTENCIAL TOTAL</strong><div class="stat-num" id="totalCenso">0</div></div>
         <div class="card"><div style="color:#64748b">VOTOS DIRECTOS</div><div class="stat-num" id="totalD" style="color:#10b981">0</div></div>
         <div class="card"><div style="color:#64748b">RED INDIRECTA</div><div class="stat-num" id="totalI" style="color:#6366f1">0</div></div>
     </div>
 
     <div class="map-section">
         <div class="card">
-            <h4 style="margin-top:0">🗺️ MAPA DE CALOR GEOPOLÍTICO</h4>
+            <h4 style="margin-top:0">🗺️ MAPA DE CALOR (SENSIBILIDAD ALTA)</h4>
             <div id="map"></div>
             
-            <h4 style="margin-bottom:10px">📝 DESCRIPCIÓN POR COMUNAS</h4>
-            <div id="listaComunasResumen" class="votos-resumen">
-                </div>
+            <h4 style="margin-top:25px">📝 RESUMEN DE VOTOS POR COMUNA</h4>
+            <div id="listaComunasResumen" class="votos-resumen"></div>
         </div>
 
         <div class="card">
-            <h4 style="margin-top:0">📍 DISTRIBUCIÓN (GEOPOLÍTICA)</h4>
-            <div style="height: 350px;"><canvas id="chartDona"></canvas></div>
+            <h4 style="margin-top:0">📍 DISTRIBUCIÓN GEOPOLÍTICA</h4>
+            <div style="height: 300px;"><canvas id="chartDona"></canvas></div>
             
             <h4 style="margin-top:20px">⭐ RANKING LIDERAZGO</h4>
-            <div style="max-height: 300px; overflow-y: auto;">
-                <table id="tablaLideres">
-                    <thead><tr><th>LÍDER</th><th style="text-align:center">VOTOS</th></tr></thead>
-                    <tbody id="cuerpoLideres"></tbody>
-                </table>
+            <div style="max-height: 350px; overflow-y: auto;">
+                <table><tbody id="cuerpoLideres"></tbody></table>
             </div>
         </div>
     </div>
@@ -72,6 +64,7 @@
 
     let baseDatos = [], map, myChart, geoJsonLayer;
 
+    // Matriz de búsqueda
     const MATRIZ_CALI = {
         "1": ["ACEVEDO", "GOMEZ", "MUTIS", "CELESTINO", "TERRON"],
         "2": ["CAM", "FRANCIA", "LA FLORA", "VIPASA", "VERSALLES"],
@@ -81,67 +74,75 @@
         "22": ["ICESI", "JAVERIANA", "PANCE", "JARDIN", "BERCHMANS"]
     };
 
-    function getC(p) {
-        if(!p) return "OTRA";
-        const t = p.toUpperCase();
-        for(let [c, k] of Object.entries(MATRIZ_CALI)) { if(k.some(x => t.includes(x))) return c; }
-        return "OTRA";
-    }
-
     async function iniciar() {
-        const { value: pass } = await Swal.fire({ title: 'ADMINISTRACIÓN', input: 'password', confirmButtonColor: '#0f172a' });
-        if(pass === 'ADMIN2026') { 
-            document.getElementById('app').style.display = 'block'; 
-            initMap(); 
-            await cargar(); 
-        }
+        const { value: pass } = await Swal.fire({ title: 'ADMIN', input: 'password', confirmButtonColor: '#0f172a' });
+        if(pass === 'ADMIN2026') { document.getElementById('app').style.display = 'block'; initMap(); await cargar(); }
     }
 
     function initMap() {
         map = L.map('map').setView([3.4372, -76.5225], 12);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     }
 
     async function cargar() {
         const { data } = await _supabase.from('VOTANTES').select('*');
-        baseDatos = data.map(v => ({...v, comuna: getC(v.puesto)}));
-        actualizarTodo();
+        baseDatos = data.map(v => {
+            let com = "OTRA";
+            const p = (v.puesto || "").toUpperCase();
+            for(let [c, k] of Object.entries(MATRIZ_CALI)) { if(k.some(x => p.includes(x))) { com = c; break; } }
+            return {...v, comuna: com};
+        });
+        actualizar();
     }
 
-    function actualizarTodo() {
+    function actualizar() {
         const conteo = {};
         baseDatos.forEach(v => { if(v.comuna !== "OTRA") conteo[v.comuna] = (conteo[v.comuna] || 0) + 1; });
 
-        // Stats Superiores
         document.getElementById('totalCenso').innerText = baseDatos.length;
         document.getElementById('totalD').innerText = baseDatos.filter(v => v.lider === "Rosse Mary Cabal Franco").length;
         document.getElementById('totalI').innerText = baseDatos.length - baseDatos.filter(v => v.lider === "Rosse Mary Cabal Franco").length;
 
-        // Tabla de Resumen abajo del mapa
-        document.getElementById('listaComunasResumen').innerHTML = Object.entries(conteo)
-            .map(([c, v]) => `<div class="resumen-item"><b>COMUNA ${c}</b><br><span style="font-size:1.5rem; color:#0f172a">${v}</span><br>VOTOS</div>`).join('');
+        // Descripción por comunas abajo
+        const sortedComunas = Object.entries(conteo).sort((a,b) => b[1] - a[1]);
+        document.getElementById('listaComunasResumen').innerHTML = sortedComunas.map(([c, v]) => `
+            <div class="resumen-item">
+                <small>COMUNA</small>
+                <strong style="font-size:1.2rem; display:block">${c}</strong>
+                <span class="val-votos">${v}</span>
+                <small>VOTOS</small>
+            </div>
+        `).join('');
 
-        renderDona(conteo);
         pintarMapa(conteo);
+        renderDona(conteo);
         renderLideres();
     }
 
     function pintarMapa(conteo) {
-        const max = Math.max(...Object.values(conteo), 1);
-        const colores = ['#eff6ff', '#60a5fa', '#2563eb', '#1e3a8a']; // Escala de azules profundos
-
+        // Forzamos colores brillantes desde el primer voto
+        const maxV = Math.max(...Object.values(conteo), 1);
+        
         fetch('https://raw.githubusercontent.com/skatpe/cali-geojson/master/comunas.json')
         .then(r => r.json())
         .then(data => {
             if(geoJsonLayer) map.removeLayer(geoJsonLayer);
             geoJsonLayer = L.geoJson(data, {
                 style: (f) => {
-                    const c = f.properties.comuna.toString().replace(/\D/g, "");
-                    const v = conteo[c] || 0;
-                    return {
-                        fillColor: v > max*0.7 ? '#ef4444' : v > max*0.4 ? '#f59e0b' : v > 0 ? '#10b981' : '#cbd5e1',
-                        weight: 2, color: 'white', fillOpacity: 0.8
-                    };
+                    const cNum = f.properties.comuna.toString().replace(/\D/g, "");
+                    const v = conteo[cNum] || 0;
+                    
+                    // LÓGICA DE COLOR FORZADA:
+                    let color = '#cbd5e1'; // Gris si es 0
+                    if (v > 0) color = '#4ade80'; // Verde si tiene algo
+                    if (v > maxV * 0.4) color = '#fbbf24'; // Amarillo si tiene más
+                    if (v > maxV * 0.8) color = '#ef4444'; // Rojo si es la líder
+                    
+                    return { fillColor: color, weight: 3, color: 'white', fillOpacity: 0.9 };
+                },
+                onEachFeature: (f, l) => {
+                    const cNum = f.properties.comuna.toString().replace(/\D/g, "");
+                    l.bindPopup(`<b>COMUNA ${cNum}</b><br>Votos: ${conteo[cNum] || 0}`);
                 }
             }).addTo(map);
         });
@@ -153,10 +154,10 @@
         myChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: Object.keys(conteo).map(c => "COMUNA " + c),
-                datasets: [{ data: Object.values(conteo), backgroundColor: ['#0f172a', '#10b981', '#6366f1', '#f59e0b', '#ec4899'] }]
+                labels: Object.keys(conteo).map(c => "C" + c),
+                datasets: [{ data: Object.values(conteo), backgroundColor: ['#ef4444', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6'] }]
             },
-            options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            options: { maintainAspectRatio: false }
         });
     }
 
@@ -164,7 +165,7 @@
         const hijos = baseDatos.filter(v => v.lider === "Rosse Mary Cabal Franco");
         const ranking = hijos.map(h => ({ n: h["Nombres y apellidos"], v: baseDatos.filter(v => v.lider === h["Nombres y apellidos"]).length }));
         ranking.sort((a,b) => b.v - a.v);
-        document.getElementById('cuerpoLideres').innerHTML = ranking.map(l => `<tr><td>${l.n}</td><td style="text-align:center"><b>${l.v}</b></td></tr>`).join('');
+        document.getElementById('cuerpoLideres').innerHTML = ranking.map(l => `<tr><td>${l.n}</td><td style="text-align:right"><span style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:5px">${l.v}</span></td></tr>`).join('');
     }
 
     iniciar();
