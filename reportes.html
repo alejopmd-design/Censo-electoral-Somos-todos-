@@ -10,42 +10,256 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0pXcLaTbu8v+TjM3g/sE5P/fJ0e8w/c4/P6pLg8p4W5Vf5+04/d8+Yf6g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <style>
-        :root { --blue: #0f172a; --green: #10b981; --accent: #6366f1; --bg: #f8fafc; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 10px; text-transform: uppercase; }
-        .container { max-width: 1600px; margin: auto; display: none; }
-        .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 20px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat-num { font-size: 2.8rem; font-weight: 900; color: var(--blue); line-height: 1; margin: 10px 0; }
-        .meta-bg { background: #e2e8f0; border-radius: 50px; height: 12px; margin-top: 10px; overflow: hidden; }
-        .meta-fill { background: linear-gradient(90deg, #10b981, #34d399); height: 100%; transition: 1s ease; }
-        
-        .main-layout { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
-        
-        /* CORRECCIÓN DE MAPA Y DONA PARA MÓVILES */
-        .map-grid { display: grid; grid-template-columns: 1fr 280px; gap: 15px; }
-        
-        @media (max-width: 1000px) { 
-            .main-layout { grid-template-columns: 1fr; }
-            .map-grid { grid-template-columns: 1fr; } /* Mapa arriba, dona abajo */
-            #map { height: 350px !important; } /* Altura cómoda para dedo */
-            .chart-wrapper { max-width: 300px; margin: 0 auto; }
+        /* Variables CSS para colores */
+        :root { 
+            --blue: #0f172a; /* Azul oscuro para texto y fondos de encabezado */
+            --green: #10b981; /* Verde primario para énfasis */
+            --accent: #6366f1; /* Azul violeta para acentos */
+            --bg: #f8fafc; /* Fondo general muy claro */
+            --card-bg: #ffffff; /* Fondo de las tarjetas */
+            --border-color: #e2e8f0; /* Color de borde para tarjetas */
+            --hover-shadow: rgba(0,0,0,0.1); /* Sombra al pasar el ratón */
         }
 
-        #map { height: 450px; width: 100%; border-radius: 12px; border: 1px solid #cbd5e1; z-index: 1; }
-        .scroll { max-height: 450px; overflow-y: auto; border-radius: 8px; border: 1px solid #f1f5f9; }
-        table { width: 100%; border-collapse: collapse; background: white; }
-        th { background: var(--blue); color: white; padding: 12px; text-align: left; cursor: pointer; position: sticky; top: 0; font-size: 0.7rem; z-index: 5; }
-        td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 0.75rem; font-weight: 700; }
-        .btn-exp { padding: 8px 15px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-size: 0.7rem; margin-right: 5px; color: white; transition: 0.3s; }
-        .xlsx { background: #166534; }
-        .pdf { background: #991b1b; }
-        .search-input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #e2e8f0; margin-bottom: 10px; font-size: 1rem; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 10px; 
+            text-transform: uppercase; /* Todo en mayúsculas por defecto */
+            color: var(--blue); /* Color de texto principal */
+        }
+
+        .container { 
+            max-width: 1600px; 
+            margin: auto; 
+            display: none; /* Oculto hasta el login */
+        }
+
+        .card { 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 20px; /* Más padding para que respire */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            border: 1px solid var(--border-color); 
+            margin-bottom: 20px; 
+            transition: all 0.3s ease; /* Transición para el hover */
+        }
+        .card:hover { /* Efecto de elevación al pasar el ratón */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 12px var(--hover-shadow);
+        }
+
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 20px; /* Más espacio */
+            margin-bottom: 20px; 
+        }
+
+        .stat-num { 
+            font-size: 3rem; /* Más grande */
+            font-weight: 900; 
+            color: var(--blue); 
+            line-height: 1; 
+            margin: 10px 0; 
+        }
+
+        .meta-bg { 
+            background: #e2e8f0; 
+            border-radius: 50px; 
+            height: 12px; 
+            margin-top: 10px; 
+            overflow: hidden; 
+        }
+        .meta-fill { 
+            background: linear-gradient(90deg, #10b981, #34d399); /* Degradado más moderno */
+            height: 100%; 
+            transition: width 1s ease; /* Suaviza la animación de la barra */
+        }
+
+        .main-layout { 
+            display: grid; 
+            grid-template-columns: 1.2fr 0.8fr; 
+            gap: 20px; 
+        }
+        
+        /* Contenedor para mapa y dona */
+        .map-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 280px; 
+            gap: 15px; 
+        }
+
+        /* Estilos responsivos para móvil */
+        @media (max-width: 1000px) { 
+            .main-layout { 
+                grid-template-columns: 1fr; /* Columna única para el layout principal */
+            }
+            .map-grid { 
+                grid-template-columns: 1fr; /* Mapa arriba, dona abajo */
+            }
+            #map { 
+                height: 350px !important; /* Altura cómoda para dedo */
+            }
+            .chart-wrapper { /* Centrar la dona en móvil */
+                max-width: 300px; 
+                margin: 0 auto; 
+            }
+            .card > div:first-child { /* Ajuste para botones de exportación en móvil */
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .card > div:first-child > div { /* Margen para los botones */
+                margin-top: 10px;
+            }
+        }
+
+        #map { 
+            height: 450px; 
+            width: 100%; 
+            border-radius: 12px; 
+            border: 1px solid var(--border-color); 
+            z-index: 1; /* Asegura que el mapa se vea bien */
+        }
+        
+        .scroll { 
+            max-height: 450px; 
+            overflow-y: auto; 
+            border-radius: 8px; 
+            border: 1px solid #f1f5f9; 
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            background: var(--card-bg); 
+        }
+        th { 
+            background: var(--blue); 
+            color: white; 
+            padding: 12px; 
+            text-align: left; 
+            cursor: pointer; 
+            position: sticky; 
+            top: 0; 
+            font-size: 0.75rem; /* Un poco más grande */
+            z-index: 5; 
+            letter-spacing: 0.5px; /* Más legible */
+        }
+        td { 
+            padding: 10px; 
+            border-bottom: 1px solid #f1f5f9; 
+            font-size: 0.8rem; /* Tamaño de fuente para el contenido de la tabla */
+            font-weight: 700; 
+            color: var(--blue); /* Color de texto para el contenido de la tabla */
+        }
+        td small {
+            font-size: 0.65rem;
+            color: #64748b; /* Color para texto secundario en tablas */
+        }
+        tr:last-child td {
+            border-bottom: none; /* Eliminar el borde de la última fila */
+        }
+
+        /* Estilos para botones de exportación */
+        .btn-exp { 
+            padding: 10px 18px; /* Más padding */
+            border-radius: 8px; /* Bordes más suaves */
+            border: none; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 0.75rem; /* Un poco más grande */
+            margin-right: 8px; 
+            color: white; 
+            transition: all 0.3s ease; /* Transición para el hover */
+            letter-spacing: 0.5px;
+        }
+        .btn-exp:hover { 
+            opacity: 0.9; 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .xlsx { background: #16a34a; } /* Verde más oscuro */
+        .pdf { background: #dc2626; } /* Rojo más oscuro */
+        
+        .search-input { 
+            width: 100%; 
+            padding: 15px; 
+            border-radius: 12px; 
+            border: 2px solid var(--border-color); 
+            margin-bottom: 15px; 
+            font-size: 1rem; 
+            box-sizing: border-box; 
+            color: var(--blue);
+            background: #fdfdfe;
+            transition: border-color 0.3s ease;
+        }
+        .search-input::placeholder {
+            color: #94a3b8;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Estilos para "Últimos Registros" */
+        .latest-records ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .latest-records li {
+            padding: 8px 0;
+            border-bottom: 1px dashed #f1f5f9;
+            display: flex;
+            align-items: center;
+        }
+        .latest-records li:last-child {
+            border-bottom: none;
+        }
+        .latest-records li .dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--green);
+            border-radius: 50%;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .latest-records li span {
+            font-size: 0.8rem;
+            color: var(--blue);
+        }
+        
+        /* Estilos para el Semáforo de Rendimiento */
+        .performance-segment {
+            padding: 8px 0;
+            border-bottom: 1px dashed #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--blue);
+        }
+        .performance-segment:last-child {
+            border-bottom: none;
+        }
+        .performance-segment .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            display: inline-block;
+        }
+        .status-dot.green { background-color: var(--green); }
+        .status-dot.red { background-color: #ef4444; } /* Rojo para 0 votos */
     </style>
 </head>
 <body>
@@ -68,12 +282,18 @@
             <small>RED DE LÍDERES</small>
             <div class="stat-num" id="tI" style="color:var(--accent)">0</div>
         </div>
+        <div class="card latest-records" style="border-top: 4px solid #f59e0b;">
+            <h4 style="margin:0; font-size: 1rem;"><i class="fas fa-history" style="color: #f59e0b;"></i> ÚLTIMOS REGISTROS</h4>
+            <ul id="latestRecordsList" style="margin-top: 15px;">
+                <li><span class="dot"></span> <span>CARGANDO...</span></li>
+            </ul>
+        </div>
     </div>
 
     <div class="main-layout">
         <div class="card">
             <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px; flex-wrap: wrap; gap: 10px;">
-                <h4 style="margin:0">🗺️ GEORREFERENCIACIÓN Y COMUNAS</h4>
+                <h4 style="margin:0; font-size: 1rem;"><i class="fas fa-map-marked-alt" style="color: var(--accent);"></i> GEORREFERENCIACIÓN Y COMUNAS</h4>
                 <div>
                     <button class="btn-exp xlsx" onclick="expComunas('xlsx')">EXCEL</button>
                     <button class="btn-exp pdf" onclick="expComunas('pdf')">PDF</button>
@@ -90,7 +310,7 @@
 
         <div class="card">
             <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px; flex-wrap: wrap; gap: 10px;">
-                <h4 style="margin:0">🏆 RANKING LÍDERES</h4>
+                <h4 style="margin:0; font-size: 1rem;"><i class="fas fa-trophy" style="color: var(--green);"></i> RANKING LÍDERES</h4>
                 <div>
                     <button class="btn-exp xlsx" onclick="expRanking('xlsx')">EXCEL</button>
                     <button class="btn-exp pdf" onclick="expRanking('pdf')">PDF</button>
@@ -107,9 +327,24 @@
         </div>
     </div>
 
+    <div class="card" style="border-top: 4px solid #ef4444;">
+        <h4 style="margin:0; font-size: 1rem;"><i class="fas fa-traffic-light" style="color: #ef4444;"></i> SEMÁFORO DE RENDIMIENTO (LÍDERES)</h4>
+        <div id="performanceSemaphore" style="margin-top: 15px;">
+            <div class="performance-segment">
+                <span><span class="status-dot green"></span>LÍDER ACTIVO: </span>
+                <span>CARGANDO...</span>
+            </div>
+            <div class="performance-segment">
+                <span><span class="status-dot red"></span>LÍDER INACTIVO (0 VOTOS): </span>
+                <span>CARGANDO...</span>
+            </div>
+        </div>
+    </div>
+
+
     <div class="card">
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px; flex-wrap: wrap; gap: 10px;">
-            <h4 style="margin:0">🔍 CENSO GENERAL MAESTRO</h4>
+            <h4 style="margin:0; font-size: 1rem;"><i class="fas fa-search" style="color: var(--blue);"></i> CENSO GENERAL MAESTRO</h4>
             <div>
                 <button class="btn-exp xlsx" onclick="expBase('xlsx')">EXCEL</button>
                 <button class="btn-exp pdf" onclick="expBase('pdf')">PDF</button>
@@ -133,14 +368,16 @@
 </div>
 
 <script>
+    // Configuración de Supabase
     const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
     let votantes = [], puestosOficiales = [], map, capaBurbujas, chartDona;
     const OBJETIVO = 7000;
-    const LIDER_PRINCIPAL = "Rosse Mary Cabal Franco";
+    const LIDER_PRINCIPAL = "Rosse Mary Cabal Franco"; // Nombre del líder principal para "VOTOS DIRECTOS"
 
+    // Coordenadas GPS para las comunas (ejemplo para Cali, ajusta según tu ciudad)
     const GPS = {
         "1": [3.450, -76.550], "2": [3.475, -76.525], "3": [3.452, -76.533], "4": [3.468, -76.508], "5": [3.478, -76.492],
         "6": [3.485, -76.485], "7": [3.458, -76.488], "8": [3.445, -76.500], "9": [3.440, -76.515], "10": [3.428, -76.520],
@@ -149,159 +386,59 @@
         "21": [3.425, -76.465], "22": [3.355, -76.535], "24": [3.350, -76.510], "25": [3.370, -76.570], "33": [3.480, -76.570]
     };
 
-    function norm(t) { return t ? t.toString().toUpperCase().trim() : ""; }
+    // Función para normalizar texto a mayúsculas y sin acentos para búsquedas/comparaciones
+    function norm(t) { 
+        return t ? t.toString().toUpperCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : ""; 
+    }
 
+    // Función de login con SweetAlert2
     async function login() {
-        const { value: p } = await Swal.fire({ title: 'PANEL DE CONTROL', input: 'password', confirmButtonColor: '#0f172a' });
+        const { value: p } = await Swal.fire({ 
+            title: 'PANEL DE CONTROL', 
+            input: 'password', 
+            inputPlaceholder: 'INGRESA LA CONTRASEÑA',
+            confirmButtonText: 'ACCEDER',
+            confirmButtonColor: '#0f172a',
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
             initMap();
             await cargarBase();
+        } else if (p) { // Si ingresó algo pero no es correcto
+            Swal.fire({
+                icon: 'error',
+                title: 'ACCESO DENEGADO',
+                text: 'Contraseña incorrecta. Intenta de nuevo.',
+                confirmButtonColor: '#dc2626'
+            }).then(() => login()); // Reintentar login
+        } else { // Si presionó cancelar o cerró el modal
+            Swal.fire({
+                icon: 'warning',
+                title: 'SESIÓN CANCELADA',
+                text: 'Debes iniciar sesión para acceder al panel.',
+                confirmButtonColor: '#f59e0b'
+            });
         }
     }
 
+    // Inicialización del mapa Leaflet
     function initMap() {
-        if(map) return;
-        map = L.map('map').setView([3.42, -76.52], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        if(map) return; // Si el mapa ya existe, no lo inicializa de nuevo
+        map = L.map('map').setView([3.42, -76.52], 12); // Coordenadas centrales de Cali
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
         capaBurbujas = L.layerGroup().addTo(map);
-        setTimeout(() => { map.invalidateSize(); }, 800);
+        // Pequeño retardo para asegurar que el mapa se renderice correctamente en cualquier tamaño de pantalla
+        setTimeout(() => { map.invalidateSize(); }, 800); 
     }
 
+    // Carga inicial de datos desde Supabase
     async function cargarBase() {
-        const { data: pData } = await _supabase.from('PUESTOS_VOTACION').select('*');
-        puestosOficiales = pData || [];
-        const { data: vData } = await _supabase.from('VOTANTES').select('*');
-        votantes = vData.map(v => {
-            const txt = v.puesto ? v.puesto.toLowerCase().trim() : "";
-            let m = puestosOficiales.find(po => po.nombre_puesto.toLowerCase().includes(txt) || txt.includes(po.nombre_puesto.toLowerCase()));
-            return { ...v, comuna: m ? m.comuna : "OTRA", oficial: m ? m.nombre_puesto : "PENDIENTE" };
-        });
-        renderUI();
-    }
-
-    function renderUI() {
-        const cCom = {}, cLid = {}, cMap = {};
-        const equipo = votantes.filter(v => v.lider === LIDER_PRINCIPAL);
-        equipo.forEach(v => cLid[v["Nombres y apellidos"]] = 0);
-        
-        votantes.forEach(v => {
-            if(cLid.hasOwnProperty(v.lider)) cLid[v.lider]++;
-            if(v.comuna !== "OTRA") {
-                cCom[v.comuna] = (cCom[v.comuna] || 0) + 1;
-                cMap[v.comuna] = (cMap[v.comuna] || 0) + 1;
-            }
-        });
-
-        document.getElementById('tV').innerText = votantes.length;
-        document.getElementById('tD').innerText = equipo.length;
-        document.getElementById('tI').innerText = votantes.length - equipo.length;
-        const p = Math.min((votantes.length/OBJETIVO)*100, 100);
-        document.getElementById('metaFill').style.width = p+'%';
-        document.getElementById('metaPct').innerText = `META 7,000 (${p.toFixed(1)}%)`;
-
-        document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v])=>`
-            <tr style="${v === 0 ? 'background:#fff1f2' : ''}"><td>${norm(l)}</td><td style="text-align:center; color:${v>0?'#10b981':'#e11d48'}">${v}</td></tr>
-        `).join('');
-
-        capaBurbujas.clearLayers();
-        Object.entries(cMap).forEach(([c, t]) => {
-            if(GPS[c]) L.circle(GPS[c], { color: '#6366f1', radius: 300 + (t*15), fillOpacity: 0.6 }).addTo(capaBurbujas).bindPopup(`COMUNA ${c}: ${t} REGISTROS`);
-        });
-
-        if(chartDona) chartDona.destroy();
-        const eti = Object.keys(cCom).sort((a,b)=>a-b);
-        chartDona = new Chart(document.getElementById('donaComunas'), {
-            type: 'doughnut',
-            data: { labels: eti.map(e=>'C'+e), datasets: [{ data: eti.map(e=>cCom[e]), backgroundColor: ['#0f172a','#10b981','#6366f1','#f59e0b','#ef4444','#06b6d4','#8b5cf6'] }] },
-            options: { plugins: { legend: { display: false } } }
-        });
-
-        document.getElementById('donaLegend').innerHTML = eti.map(e => `<div style="display:flex; justify-content:space-between; border-bottom:1px dashed #eee; margin-bottom:2px"><span>COMUNA ${e}</span><span>${cCom[e]}</span></div>`).join('');
-
-        document.getElementById('bodyM').innerHTML = votantes.map(v=>`
-            <tr><td>${norm(v["Nombres y apellidos"])}</td><td>${v.cedula}</td><td>${norm(v.puesto)}<br><small style="color:var(--accent)">🎯 ${norm(v.oficial)}</small></td><td>C-${v.comuna}</td></tr>
-        `).join('');
-    }
-
-    function sortTable(n) {
-        let table = document.getElementById("tablaG"), rows = Array.from(table.rows).slice(1), dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
-        rows.sort((a, b) => {
-            let x = a.cells[n].innerText.toUpperCase(), y = b.cells[n].innerText.toUpperCase();
-            return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
-        });
-        table.setAttribute("data-dir", dir);
-        rows.forEach(r => table.tBodies[0].appendChild(r));
-    }
-
-    function ordenarRank(n) {
-        let table = document.getElementById("tablaLid"), rows = Array.from(table.rows).slice(1), dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
-        rows.sort((a,b) => {
-            let x = a.cells[n].innerText.toUpperCase(), y = b.cells[n].innerText.toUpperCase();
-            if(n === 1) return dir === "asc" ? parseInt(x) - parseInt(y) : parseInt(y) - parseInt(x);
-            return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
-        });
-        table.setAttribute("data-dir", dir);
-        rows.forEach(r => table.tBodies[0].appendChild(r));
-    }
-
-    function filtrar() {
-        const q = document.getElementById('bus').value.toUpperCase();
-        const filas = document.getElementById('bodyM').getElementsByTagName('tr');
-        for(let f of filas) f.style.display = f.innerText.toUpperCase().includes(q) ? '' : 'none';
-    }
-
-    function expRanking(tipo) {
-        const rows = Array.from(document.querySelectorAll("#bodyLid tr")).map(tr => [tr.cells[0].innerText.toUpperCase(), tr.cells[1].innerText]);
-        if(tipo==='xlsx'){
-            const ws = XLSX.utils.aoa_to_sheet([["LIDER", "VOTOS"], ...rows]);
-            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Ranking");
-            XLSX.writeFile(wb, "RANKING_LIDERES.xlsx");
-        } else {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            doc.text("RANKING DE LÍDERES", 14, 15);
-            doc.autoTable({ head:[["LIDER", "VOTOS"]], body: rows, startY: 20, theme: 'grid', headStyles: {fillColor: [15, 23, 42]} });
-            doc.save("RANKING_LIDERES.pdf");
-        }
-    }
-
-    function expBase(tipo) {
-        const rows = Array.from(document.querySelectorAll("#bodyM tr")).filter(tr => tr.style.display !== 'none').map(tr => [
-            tr.cells[0].innerText.toUpperCase(),
-            tr.cells[1].innerText.toUpperCase(),
-            tr.cells[2].innerText.split('\n')[0].toUpperCase(),
-            tr.cells[3].innerText.toUpperCase()
-        ]);
-        if(tipo==='xlsx'){
-            const ws = XLSX.utils.aoa_to_sheet([["NOMBRE", "CEDULA", "PUESTO", "COMUNA"], ...rows]);
-            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Base");
-            XLSX.writeFile(wb, "CENSO_GENERAL.xlsx");
-        } else {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            doc.text("CENSO GENERAL MAESTRO", 14, 15);
-            doc.autoTable({ head:[["NOMBRE", "CEDULA", "PUESTO", "COMUNA"]], body: rows, startY: 20, theme: 'grid', styles: {fontSize: 8}, headStyles: {fillColor: [15, 23, 42]} });
-            doc.save("CENSO_GENERAL.pdf");
-        }
-    }
-
-    function expComunas(tipo) {
-        const rows = Array.from(document.querySelectorAll("#donaLegend div")).map(div => {
-            const spans = div.querySelectorAll('span');
-            return [spans[0].innerText.toUpperCase(), spans[1].innerText];
-        });
-        if(tipo==='xlsx'){
-            const ws = XLSX.utils.aoa_to_sheet([["COMUNA", "TOTAL"], ...rows]);
-            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Comunas");
-            XLSX.writeFile(wb, "RESUMEN_COMUNAS.xlsx");
-        } else {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            doc.text("RESUMEN DE VOTOS POR COMUNA", 14, 15);
-            doc.autoTable({ head:[["COMUNA", "TOTAL"]], body: rows, startY: 20, theme: 'grid', headStyles: {fillColor: [15, 23, 42]} });
-            doc.save("RESUMEN_COMUNAS.pdf");
-        }
-    }
-
-    login();
-</script>
-</body>
-</html>
+        Swal.fire({
+            title: 'CARGANDO DATOS...',
+            text: 'Por favor, espera un momento.',
+            allowOutsideClick: false,
+            allow
