@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PANEL DE ADMINISTRACIÓN</title>
+    <title>PANEL DE ADMINISTRACIÓN PRO</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -13,287 +13,89 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0pXcLaTbu8v+TjM3g/sE5P/fJ0e8w/c4/P6pLg8p4W5Vf5+04/d8+Yf6g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* Variables CSS para colores */
         :root { 
-            --blue: #0f172a; /* Azul oscuro para texto y fondos de encabezado */
-            --green: #10b981; /* Verde primario para énfasis */
-            --accent: #6366f1; /* Azul violeta para acentos */
-            --bg: #f8fafc; /* Fondo general muy claro */
-            --card-bg: #ffffff; /* Fondo de las tarjetas */
-            --border-color: #e2e8f0; /* Color de borde para tarjetas */
-            --hover-shadow: rgba(0,0,0,0.1); /* Sombra al pasar el ratón */
+            --blue: #0f172a; --green: #10b981; --accent: #6366f1; --bg: #f1f5f9; 
+            --red: #ef4444; --orange: #f59e0b;
         }
-
         body { 
-            font-family: 'Inter', sans-serif; 
-            background: var(--bg); 
-            margin: 0; 
-            padding: 10px; 
-            text-transform: uppercase; /* Todo en mayúsculas por defecto */
-            color: var(--blue); /* Color de texto principal */
+            font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 10px; 
+            text-transform: uppercase; color: var(--blue); 
         }
-
-        .container { 
-            max-width: 1600px; 
-            margin: auto; 
-            display: none; /* Oculto hasta el login */
-        }
-
+        .container { max-width: 1600px; margin: auto; display: none; padding-bottom: 40px; }
+        
+        /* Tarjetas con Efecto Elevación */
         .card { 
-            background: var(--card-bg); 
-            border-radius: 16px; 
-            padding: 20px; /* Más padding para que respire */
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-            border: 1px solid var(--border-color); 
-            margin-bottom: 20px; 
-            transition: all 0.3s ease; /* Transición para el hover */
+            background: white; border-radius: 16px; padding: 20px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; 
+            margin-bottom: 20px; transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .card:hover { /* Efecto de elevación al pasar el ratón */
-            transform: translateY(-3px);
-            box-shadow: 0 8px 12px var(--hover-shadow);
-        }
-
-        .stats-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-            gap: 20px; /* Más espacio */
-            margin-bottom: 20px; 
-        }
-
-        .stat-num { 
-            font-size: 3rem; /* Más grande */
-            font-weight: 900; 
-            color: var(--blue); 
-            line-height: 1; 
-            margin: 10px 0; 
-        }
-
-        .meta-bg { 
-            background: #e2e8f0; 
-            border-radius: 50px; 
-            height: 12px; 
-            margin-top: 10px; 
-            overflow: hidden; 
-        }
-        .meta-fill { 
-            background: linear-gradient(90deg, #10b981, #34d399); /* Degradado más moderno */
-            height: 100%; 
-            transition: width 1s ease; /* Suaviza la animación de la barra */
-        }
-
-        .main-layout { 
-            display: grid; 
-            grid-template-columns: 1.2fr 0.8fr; 
-            gap: 20px; 
-        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
         
-        /* Contenedor para mapa y dona */
-        .map-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 280px; 
-            gap: 15px; 
-        }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-num { font-size: 2.8rem; font-weight: 900; line-height: 1; margin: 10px 0; }
+        
+        /* Meta con Degradado */
+        .meta-bg { background: #e2e8f0; border-radius: 50px; height: 12px; margin-top: 10px; overflow: hidden; }
+        .meta-fill { background: linear-gradient(90deg, var(--green), #34d399); height: 100%; transition: 1s ease; }
+        
+        .main-layout { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
+        .map-grid { display: grid; grid-template-columns: 1fr 280px; gap: 15px; }
 
-        /* Estilos responsivos para móvil */
         @media (max-width: 1000px) { 
-            .main-layout { 
-                grid-template-columns: 1fr; /* Columna única para el layout principal */
-            }
-            .map-grid { 
-                grid-template-columns: 1fr; /* Mapa arriba, dona abajo */
-            }
-            #map { 
-                height: 350px !important; /* Altura cómoda para dedo */
-            }
-            .chart-wrapper { /* Centrar la dona en móvil */
-                max-width: 300px; 
-                margin: 0 auto; 
-            }
-            .card > div:first-child { /* Ajuste para botones de exportación en móvil */
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .card > div:first-child > div { /* Margen para los botones */
-                margin-top: 10px;
-            }
+            .main-layout, .map-grid { grid-template-columns: 1fr; }
+            #map { height: 350px !important; }
         }
 
-        #map { 
-            height: 450px; 
-            width: 100%; 
-            border-radius: 12px; 
-            border: 1px solid var(--border-color); 
-            z-index: 1; /* Asegura que el mapa se vea bien */
-        }
+        #map { height: 450px; width: 100%; border-radius: 12px; border: 1px solid #cbd5e1; z-index: 1; }
+        .scroll { max-height: 400px; overflow-y: auto; border-radius: 8px; border: 1px solid #f1f5f9; }
         
-        .scroll { 
-            max-height: 450px; 
-            overflow-y: auto; 
-            border-radius: 8px; 
-            border: 1px solid #f1f5f9; 
-        }
-
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            background: var(--card-bg); 
-        }
-        th { 
-            background: var(--blue); 
-            color: white; 
-            padding: 12px; 
-            text-align: left; 
-            cursor: pointer; 
-            position: sticky; 
-            top: 0; 
-            font-size: 0.75rem; /* Un poco más grande */
-            z-index: 5; 
-            letter-spacing: 0.5px; /* Más legible */
-        }
-        td { 
-            padding: 10px; 
-            border-bottom: 1px solid #f1f5f9; 
-            font-size: 0.8rem; /* Tamaño de fuente para el contenido de la tabla */
-            font-weight: 700; 
-            color: var(--blue); /* Color de texto para el contenido de la tabla */
-        }
-        td small {
-            font-size: 0.65rem;
-            color: #64748b; /* Color para texto secundario en tablas */
-        }
-        tr:last-child td {
-            border-bottom: none; /* Eliminar el borde de la última fila */
-        }
-
-        /* Estilos para botones de exportación */
-        .btn-exp { 
-            padding: 10px 18px; /* Más padding */
-            border-radius: 8px; /* Bordes más suaves */
-            border: none; 
-            cursor: pointer; 
-            font-weight: bold; 
-            font-size: 0.75rem; /* Un poco más grande */
-            margin-right: 8px; 
-            color: white; 
-            transition: all 0.3s ease; /* Transición para el hover */
-            letter-spacing: 0.5px;
-        }
-        .btn-exp:hover { 
-            opacity: 0.9; 
-            transform: translateY(-2px); 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .xlsx { background: #16a34a; } /* Verde más oscuro */
-        .pdf { background: #dc2626; } /* Rojo más oscuro */
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--blue); color: white; padding: 12px; font-size: 0.7rem; position: sticky; top: 0; z-index: 10; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.75rem; font-weight: 700; }
         
-        .search-input { 
-            width: 100%; 
-            padding: 15px; 
-            border-radius: 12px; 
-            border: 2px solid var(--border-color); 
-            margin-bottom: 15px; 
-            font-size: 1rem; 
-            box-sizing: border-box; 
-            color: var(--blue);
-            background: #fdfdfe;
-            transition: border-color 0.3s ease;
-        }
-        .search-input::placeholder {
-            color: #94a3b8;
-        }
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-        }
+        .btn-exp { padding: 8px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-size: 0.7rem; color: white; transition: 0.3s; margin-left: 5px; }
+        .xlsx { background: #166534; } .pdf { background: #991b1b; }
+        .search-input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #e2e8f0; margin-bottom: 15px; font-size: 1rem; box-sizing: border-box; }
 
-        /* Estilos para "Últimos Registros" */
-        .latest-records ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .latest-records li {
-            padding: 8px 0;
-            border-bottom: 1px dashed #f1f5f9;
-            display: flex;
-            align-items: center;
-        }
-        .latest-records li:last-child {
-            border-bottom: none;
-        }
-        .latest-records li .dot {
-            width: 8px;
-            height: 8px;
-            background-color: var(--green);
-            border-radius: 50%;
-            margin-right: 10px;
-            flex-shrink: 0;
-        }
-        .latest-records li span {
-            font-size: 0.8rem;
-            color: var(--blue);
-        }
-        
-        /* Estilos para el Semáforo de Rendimiento */
-        .performance-segment {
-            padding: 8px 0;
-            border-bottom: 1px dashed #f1f5f9;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.8rem;
-            color: var(--blue);
-        }
-        .performance-segment:last-child {
-            border-bottom: none;
-        }
-        .performance-segment .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 8px;
-            display: inline-block;
-        }
-        .status-dot.green { background-color: var(--green); }
-        .status-dot.red { background-color: #ef4444; } /* Rojo para 0 votos */
+        /* Estilos Semáforo y Últimos Registros */
+        .status-tag { display: flex; align-items: center; justify-content: space-between; padding: 8px; border-bottom: 1px solid #f1f5f9; font-size: 0.75rem; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .dot-green { background: var(--green); } .dot-red { background: var(--red); } .dot-orange { background: var(--orange); }
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
-    <h2 style="text-align: center; color: var(--blue); margin-top: 0; letter-spacing: 2px;">PANEL DE ADMINISTRACIÓN</h2>
+    <h2 style="text-align: center; letter-spacing: 3px;"><i class="fas fa-chart-line"></i> PANEL DE ADMINISTRACIÓN ESTRATÉGICO</h2>
 
     <div class="stats-grid">
         <div class="card">
-            <small>CENSO ELECTORAL</small>
+            <small><i class="fas fa-users"></i> CENSO ELECTORAL</small>
             <div class="stat-num" id="tV">0</div>
             <div class="meta-bg"><div id="metaFill" class="meta-fill"></div></div>
             <small id="metaPct">META 7,000 (0%)</small>
         </div>
-        <div class="card" style="border-top: 4px solid var(--green)">
-            <small>VOTOS DIRECTOS</small>
+        <div class="card" style="border-top: 5px solid var(--green)">
+            <small><i class="fas fa-user-check"></i> VOTOS DIRECTOS</small>
             <div class="stat-num" id="tD" style="color:var(--green)">0</div>
         </div>
-        <div class="card" style="border-top: 4px solid var(--accent)">
-            <small>RED DE LÍDERES</small>
+        <div class="card" style="border-top: 5px solid var(--accent)">
+            <small><i class="fas fa-network-wired"></i> RED DE LÍDERES</small>
             <div class="stat-num" id="tI" style="color:var(--accent)">0</div>
         </div>
-        <div class="card latest-records" style="border-top: 4px solid #f59e0b;">
-            <h4 style="margin:0; font-size: 1rem;"><i class="fas fa-history" style="color: #f59e0b;"></i> ÚLTIMOS REGISTROS</h4>
-            <ul id="latestRecordsList" style="margin-top: 15px;">
-                <li><span class="dot"></span> <span>CARGANDO...</span></li>
-            </ul>
+        <div class="card" style="border-top: 5px solid var(--orange)">
+            <small><i class="fas fa-clock"></i> ÚLTIMOS 5 REGISTROS</small>
+            <div id="recentList" style="margin-top:10px"></div>
         </div>
     </div>
 
     <div class="main-layout">
         <div class="card">
-            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px; flex-wrap: wrap; gap: 10px;">
-                <h4 style="margin:0; font-size: 1rem;"><i class="fas fa-map-marked-alt" style="color: var(--accent);"></i> GEORREFERENCIACIÓN Y COMUNAS</h4>
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px; flex-wrap:wrap">
+                <h4 style="margin:0"><i class="fas fa-map-marked-alt"></i> GEORREFERENCIACIÓN</h4>
                 <div>
                     <button class="btn-exp xlsx" onclick="expComunas('xlsx')">EXCEL</button>
                     <button class="btn-exp pdf" onclick="expComunas('pdf')">PDF</button>
@@ -301,16 +103,16 @@
             </div>
             <div class="map-grid">
                 <div id="map"></div>
-                <div class="chart-wrapper">
+                <div>
                     <canvas id="donaComunas"></canvas>
-                    <div id="donaLegend" style="margin-top:10px; font-size:0.75rem; max-height:200px; overflow-y:auto"></div>
+                    <div id="donaLegend" style="margin-top:10px; font-size:0.7rem; max-height:180px; overflow-y:auto"></div>
                 </div>
             </div>
         </div>
 
         <div class="card">
-            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px; flex-wrap: wrap; gap: 10px;">
-                <h4 style="margin:0; font-size: 1rem;"><i class="fas fa-trophy" style="color: var(--green);"></i> RANKING LÍDERES</h4>
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px">
+                <h4 style="margin:0"><i class="fas fa-trophy"></i> RANKING</h4>
                 <div>
                     <button class="btn-exp xlsx" onclick="expRanking('xlsx')">EXCEL</button>
                     <button class="btn-exp pdf" onclick="expRanking('pdf')">PDF</button>
@@ -324,27 +126,14 @@
                     <tbody id="bodyLid"></tbody>
                 </table>
             </div>
+            <h4 style="margin:20px 0 10px 0; border-top:1px solid #eee; pt:10px"><i class="fas fa-traffic-light"></i> SEMÁFORO</h4>
+            <div id="semaforoLid"></div>
         </div>
     </div>
-
-    <div class="card" style="border-top: 4px solid #ef4444;">
-        <h4 style="margin:0; font-size: 1rem;"><i class="fas fa-traffic-light" style="color: #ef4444;"></i> SEMÁFORO DE RENDIMIENTO (LÍDERES)</h4>
-        <div id="performanceSemaphore" style="margin-top: 15px;">
-            <div class="performance-segment">
-                <span><span class="status-dot green"></span>LÍDER ACTIVO: </span>
-                <span>CARGANDO...</span>
-            </div>
-            <div class="performance-segment">
-                <span><span class="status-dot red"></span>LÍDER INACTIVO (0 VOTOS): </span>
-                <span>CARGANDO...</span>
-            </div>
-        </div>
-    </div>
-
 
     <div class="card">
-        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px; flex-wrap: wrap; gap: 10px;">
-            <h4 style="margin:0; font-size: 1rem;"><i class="fas fa-search" style="color: var(--blue);"></i> CENSO GENERAL MAESTRO</h4>
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px">
+            <h4 style="margin:0"><i class="fas fa-database"></i> CENSO GENERAL MAESTRO</h4>
             <div>
                 <button class="btn-exp xlsx" onclick="expBase('xlsx')">EXCEL</button>
                 <button class="btn-exp pdf" onclick="expBase('pdf')">PDF</button>
@@ -368,16 +157,14 @@
 </div>
 
 <script>
-    // Configuración de Supabase
     const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
     let votantes = [], puestosOficiales = [], map, capaBurbujas, chartDona;
     const OBJETIVO = 7000;
-    const LIDER_PRINCIPAL = "Rosse Mary Cabal Franco"; // Nombre del líder principal para "VOTOS DIRECTOS"
+    const LIDER_PRINCIPAL = "Rosse Mary Cabal Franco";
 
-    // Coordenadas GPS para las comunas (ejemplo para Cali, ajusta según tu ciudad)
     const GPS = {
         "1": [3.450, -76.550], "2": [3.475, -76.525], "3": [3.452, -76.533], "4": [3.468, -76.508], "5": [3.478, -76.492],
         "6": [3.485, -76.485], "7": [3.458, -76.488], "8": [3.445, -76.500], "9": [3.440, -76.515], "10": [3.428, -76.520],
@@ -386,59 +173,166 @@
         "21": [3.425, -76.465], "22": [3.355, -76.535], "24": [3.350, -76.510], "25": [3.370, -76.570], "33": [3.480, -76.570]
     };
 
-    // Función para normalizar texto a mayúsculas y sin acentos para búsquedas/comparaciones
-    function norm(t) { 
-        return t ? t.toString().toUpperCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : ""; 
-    }
+    function norm(t) { return t ? t.toString().toUpperCase().trim() : ""; }
 
-    // Función de login con SweetAlert2
     async function login() {
-        const { value: p } = await Swal.fire({ 
-            title: 'PANEL DE CONTROL', 
-            input: 'password', 
-            inputPlaceholder: 'INGRESA LA CONTRASEÑA',
-            confirmButtonText: 'ACCEDER',
-            confirmButtonColor: '#0f172a',
-            allowOutsideClick: false,
-            allowEscapeKey: false
-        });
+        const { value: p } = await Swal.fire({ title: 'CONTROL DE ACCESO', input: 'password', confirmButtonColor: '#0f172a' });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
             initMap();
             await cargarBase();
-        } else if (p) { // Si ingresó algo pero no es correcto
-            Swal.fire({
-                icon: 'error',
-                title: 'ACCESO DENEGADO',
-                text: 'Contraseña incorrecta. Intenta de nuevo.',
-                confirmButtonColor: '#dc2626'
-            }).then(() => login()); // Reintentar login
-        } else { // Si presionó cancelar o cerró el modal
-            Swal.fire({
-                icon: 'warning',
-                title: 'SESIÓN CANCELADA',
-                text: 'Debes iniciar sesión para acceder al panel.',
-                confirmButtonColor: '#f59e0b'
-            });
         }
     }
 
-    // Inicialización del mapa Leaflet
     function initMap() {
-        if(map) return; // Si el mapa ya existe, no lo inicializa de nuevo
-        map = L.map('map').setView([3.42, -76.52], 12); // Coordenadas centrales de Cali
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+        if(map) return;
+        map = L.map('map').setView([3.42, -76.52], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         capaBurbujas = L.layerGroup().addTo(map);
-        // Pequeño retardo para asegurar que el mapa se renderice correctamente en cualquier tamaño de pantalla
-        setTimeout(() => { map.invalidateSize(); }, 800); 
+        setTimeout(() => map.invalidateSize(), 800);
     }
 
-    // Carga inicial de datos desde Supabase
     async function cargarBase() {
-        Swal.fire({
-            title: 'CARGANDO DATOS...',
-            text: 'Por favor, espera un momento.',
-            allowOutsideClick: false,
-            allow
+        const { data: pData } = await _supabase.from('PUESTOS_VOTACION').select('*');
+        puestosOficiales = pData || [];
+        const { data: vData } = await _supabase.from('VOTANTES').select('*');
+        votantes = vData || [];
+        renderUI();
+    }
+
+    function renderUI() {
+        const cCom = {}, cLid = {}, cMap = {};
+        
+        // Procesar Votantes
+        const procesados = votantes.map(v => {
+            const pTxt = v.puesto ? v.puesto.toLowerCase() : "";
+            const m = puestosOficiales.find(po => po.nombre_puesto.toLowerCase().includes(pTxt) || pTxt.includes(po.nombre_puesto.toLowerCase()));
+            const com = m ? m.comuna : "OTRA";
+            if(com !== "OTRA") cCom[com] = (cCom[com] || 0) + 1;
+            return { ...v, comuna: com, oficial: m ? m.nombre_puesto : "PENDIENTE" };
+        });
+
+        // Contadores Líderes
+        const equipoRosse = procesados.filter(v => v.lider === LIDER_PRINCIPAL);
+        equipoRosse.forEach(l => cLid[l["Nombres y apellidos"]] = 0);
+        procesados.forEach(v => { if(cLid.hasOwnProperty(v.lider)) cLid[v.lider]++; });
+
+        // Stats
+        document.getElementById('tV').innerText = procesados.length.toLocaleString();
+        document.getElementById('tD').innerText = equipoRosse.length.toLocaleString();
+        document.getElementById('tI').innerText = (procesados.length - equipoRosse.length).toLocaleString();
+        const pct = Math.min((procesados.length/OBJETIVO)*100, 100);
+        document.getElementById('metaFill').style.width = pct+'%';
+        document.getElementById('metaPct').innerText = `META 7,000 (${pct.toFixed(1)}%)`;
+
+        // Últimos 5
+        const ultimos = [...procesados].reverse().slice(0, 5);
+        document.getElementById('recentList').innerHTML = ultimos.map(u => `
+            <div style="font-size:0.7rem; margin-bottom:5px; border-bottom:1px solid #eee">
+                <i class="fas fa-user-plus" style="color:var(--orange)"></i> ${norm(u["Nombres y apellidos"])}
+            </div>
+        `).join('');
+
+        // Ranking y Semáforo
+        const sortedLid = Object.entries(cLid).sort((a,b)=>b[1]-a[1]);
+        document.getElementById('bodyLid').innerHTML = sortedLid.map(([l,v])=>`
+            <tr><td>${norm(l)}</td><td style="text-align:center">${v}</td></tr>
+        `).join('');
+
+        document.getElementById('semaforoLid').innerHTML = sortedLid.map(([l,v])=>`
+            <div class="status-tag">
+                <span><span class="dot ${v>0?'dot-green':'dot-red'}"></span>${norm(l)}</span>
+                <span style="font-weight:900">${v==0?'INACTIVO':'ACTIVO'}</span>
+            </div>
+        `).join('');
+
+        // Mapa y Dona
+        capaBurbujas.clearLayers();
+        Object.entries(cCom).forEach(([c,t]) => {
+            if(GPS[c]) L.circle(GPS[c], {color: '#6366f1', radius: 300+(t*10), fillOpacity:0.5}).addTo(capaBurbujas);
+        });
+
+        if(chartDona) chartDona.destroy();
+        const eti = Object.keys(cCom).sort((a,b)=>a-b);
+        chartDona = new Chart(document.getElementById('donaComunas'), {
+            type: 'doughnut',
+            data: { labels: eti.map(e=>'C'+e), datasets: [{ data: eti.map(e=>cCom[e]), backgroundColor: ['#0f172a','#10b981','#6366f1','#f59e0b','#ef4444','#06b6d4'] }] },
+            options: { plugins: { legend: { display: false } } }
+        });
+        document.getElementById('donaLegend').innerHTML = eti.map(e => `<div class="status-tag"><span>COMUNA ${e}</span><span>${cCom[e]}</span></div>`).join('');
+
+        // Tabla Maestra
+        document.getElementById('bodyM').innerHTML = procesados.map(v => `
+            <tr><td>${norm(v["Nombres y apellidos"])}</td><td>${v.cedula}</td><td>${norm(v.puesto)}<br><small style="color:var(--accent)">🎯 ${norm(v.oficial)}</small></td><td>C-${v.comuna}</td></tr>
+        `).join('');
+    }
+
+    // Funciones de utilidad (Sort, Filtro, Exportación)
+    function sortTable(n) {
+        let table = document.getElementById("tablaG"), rows = Array.from(table.rows).slice(1), dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
+        rows.sort((a,b) => {
+            let x = a.cells[n].innerText.toUpperCase(), y = b.cells[n].innerText.toUpperCase();
+            return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
+        });
+        table.setAttribute("data-dir", dir); rows.forEach(r => table.tBodies[0].appendChild(r));
+    }
+
+    function ordenarRank(n) {
+        let table = document.getElementById("tablaLid"), rows = Array.from(table.rows).slice(1), dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
+        rows.sort((a,b) => {
+            let x = a.cells[n].innerText, y = b.cells[n].innerText;
+            return n==1 ? (dir=="asc"?x-y:y-x) : (dir=="asc"?x.localeCompare(y):y.localeCompare(x));
+        });
+        table.setAttribute("data-dir", dir); rows.forEach(r => table.tBodies[0].appendChild(r));
+    }
+
+    function filtrar() {
+        const q = document.getElementById('bus').value.toUpperCase();
+        Array.from(document.getElementById('bodyM').rows).forEach(r => r.style.display = r.innerText.toUpperCase().includes(q) ? '' : 'none');
+    }
+
+    function expRanking(tipo) {
+        const rows = Array.from(document.querySelectorAll("#bodyLid tr")).map(r => [r.cells[0].innerText, r.cells[1].innerText]);
+        if(tipo==='xlsx') {
+            const ws = XLSX.utils.aoa_to_sheet([["LIDER", "VOTOS"], ...rows]);
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Rank");
+            XLSX.writeFile(wb, "RANKING.xlsx");
+        } else {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.text("RANKING DE LIDERES", 14, 15);
+            doc.autoTable({ head:[["LIDER", "VOTOS"]], body: rows, startY: 20, theme:'grid' });
+            doc.save("RANKING.pdf");
+        }
+    }
+
+    function expBase(tipo) {
+        const rows = Array.from(document.getElementById('bodyM').rows).filter(r=>r.style.display!=='none').map(r => [r.cells[0].innerText, r.cells[1].innerText, r.cells[2].innerText.split('\n')[0], r.cells[3].innerText]);
+        if(tipo==='xlsx') {
+            const ws = XLSX.utils.aoa_to_sheet([["NOMBRE", "CEDULA", "PUESTO", "COMUNA"], ...rows]);
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Censo");
+            XLSX.writeFile(wb, "CENSO_MAESTRO.xlsx");
+        } else {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.text("CENSO GENERAL", 14, 15);
+            doc.autoTable({ head:[["NOMBRE", "CEDULA", "PUESTO", "COMUNA"]], body: rows, startY: 20, theme:'grid', styles:{fontSize:7} });
+            doc.save("CENSO.pdf");
+        }
+    }
+
+    function expComunas(t) {
+        const data = Array.from(document.querySelectorAll("#donaLegend .status-tag")).map(el => [el.children[0].innerText, el.children[1].innerText]);
+        if(t==='xlsx') {
+            const ws = XLSX.utils.aoa_to_sheet([["COMUNA", "TOTAL"], ...data]);
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Comunas");
+            XLSX.writeFile(wb, "COMUNAS.xlsx");
+        } else {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.autoTable({ head:[["COMUNA", "TOTAL"]], body: data, theme:'grid' });
+            doc.save("COMUNAS.pdf");
+        }
+    }
+
+    login();
+</script>
+</body>
+</html>
