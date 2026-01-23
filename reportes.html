@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DASHBOARD ELECTORAL CALI 2026</title>
+    <title>DASHBOARD ELECTORAL 2026</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -11,95 +11,91 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
-        :root { --blue: #0f172a; --green: #10b981; --bg: #f1f5f9; --white: #ffffff; }
+        :root { --blue: #0f172a; --green: #10b981; --bg: #f8fafc; }
         body { 
-            font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; 
-            text-transform: uppercase; overflow: hidden; height: 100vh; box-sizing: border-box;
+            font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 15px; 
+            text-transform: uppercase; overflow: hidden; height: 100vh;
         }
         .container { display: none; height: 100%; flex-direction: column; gap: 15px; }
         
-        /* FILA SUPERIOR: INDICADORES */
-        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; flex-shrink: 0; }
-        .stat-card { background: var(--white); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 6px solid var(--blue); }
-        .stat-val { font-size: 2.8rem; font-weight: 900; color: var(--blue); line-height: 1; }
-        .stat-lab { font-size: 0.8rem; color: #64748b; font-weight: bold; margin-top: 5px; }
+        /* FILA SUPERIOR: TAL CUAL TUS FOTOS */
+        .top-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; flex-shrink: 0; }
+        .stat-box { background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-bottom: 4px solid var(--blue); }
+        .stat-box.green { border-bottom-color: var(--green); }
+        .stat-box.purple { border-bottom-color: #6366f1; }
+        .stat-val { font-size: 2.5rem; font-weight: 800; color: #1e293b; display: block; }
+        .stat-lab { font-size: 0.75rem; color: #64748b; font-weight: 700; margin-top: 5px; }
 
-        /* CUERPO CENTRAL */
-        .main-grid { display: grid; grid-template-columns: 1fr 1.8fr 1fr; gap: 15px; flex-grow: 1; min-height: 0; }
-        .panel { background: var(--white); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .panel-title { font-weight: 800; font-size: 0.9rem; margin-bottom: 10px; color: var(--blue); border-bottom: 2px solid #f1f5f9; padding-bottom: 5px; }
+        /* CUERPO PRINCIPAL */
+        .main-content { display: grid; grid-template-columns: 0.8fr 1.5fr 0.8fr; gap: 15px; flex-grow: 1; min-height: 0; }
+        .card { background: white; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card-title { font-weight: 800; font-size: 0.85rem; color: #1e293b; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
 
-        /* TABLAS Y SCROLL */
-        .table-container { flex-grow: 1; overflow-y: auto; border-radius: 8px; border: 1px solid #f1f5f9; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        /* EL BUSCADOR QUE NO FALLA */
+        .search-container { margin-bottom: 10px; }
+        #buscadorGlobal { 
+            width: 100%; padding: 15px; border-radius: 8px; border: 2px solid #e2e8f0; 
+            font-weight: 800; font-size: 1rem; outline: none; background: #f1f5f9;
+        }
+        #buscadorGlobal:focus { border-color: var(--blue); background: white; }
+
+        /* TABLAS CON SCROLL INTERNO */
+        .scroll-v { flex-grow: 1; overflow-y: auto; border: 1px solid #f1f5f9; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
         th { background: #f8fafc; padding: 12px 10px; text-align: left; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #e2e8f0; cursor: pointer; }
-        td { padding: 10px; border-bottom: 1px solid #f8fafc; }
-
-        /* BUSCADOR TIPO CONTROL */
-        .search-box { width: 100%; padding: 15px; border-radius: 8px; border: 2px solid var(--blue); font-weight: 800; font-size: 1rem; margin-bottom: 10px; box-sizing: border-box; }
-
-        /* ETIQUETAS */
-        .badge { padding: 4px 8px; border-radius: 5px; font-weight: 800; font-size: 0.65rem; }
-        .c-comuna { background: #e0f2fe; color: #0369a1; }
-        .c-directo { background: #dcfce7; color: #166534; }
+        td { padding: 10px; border-bottom: 1px solid #f8fafc; font-weight: 500; }
         
-        button.btn-export { background: var(--blue); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        button.btn-export:hover { background: #1e293b; }
+        .badge { padding: 3px 8px; border-radius: 4px; font-weight: 800; font-size: 0.65rem; }
+        .b-comuna { background: #eff6ff; color: #1d4ed8; }
+        .b-directo { background: #ecfdf5; color: #059669; }
+        
+        button.btn-descarga { background: var(--blue); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 800; cursor: pointer; margin-top: 10px; width: 100%; }
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-val" id="countTotal">0</div>
-            <div class="stat-lab">POTENCIAL TOTAL (CENSO)</div>
-        </div>
-        <div class="stat-card" style="border-color: var(--green);">
-            <div class="stat-val" id="countDirecto" style="color: var(--green);">0</div>
-            <div class="stat-lab">VOTOS DIRECTOS</div>
-        </div>
-        <div class="stat-card" style="border-color: #6366f1;">
-            <div class="stat-val" id="countIndirecto" style="color: #6366f1;">0</div>
-            <div class="stat-lab">RED INDIRECTA</div>
-        </div>
+    <div class="top-stats">
+        <div class="stat-box"><span class="stat-val" id="valTotal">0</span><span class="stat-lab">POTENCIAL TOTAL (CENSO)</span></div>
+        <div class="stat-box green"><span class="stat-val" id="valDirecto" style="color:var(--green)">0</span><span class="stat-lab">VOTOS DIRECTOS</span></div>
+        <div class="stat-box purple"><span class="stat-val" id="valIndirecto" style="color:#6366f1">0</span><span class="stat-lab">RED INDIRECTA</span></div>
     </div>
 
-    <div class="main-grid">
-        <div class="panel">
-            <div class="panel-title">⭐ LIDERAZGO DIRECTO</div>
-            <div class="table-container">
+    <div class="main-content">
+        <div class="card">
+            <div class="card-title">⭐ LIDERAZGO DIRECTO</div>
+            <div class="scroll-v">
                 <table>
-                    <thead>
-                        <tr><th onclick="sortL('nombre')">LÍDER ↕</th><th onclick="sortL('votos')">VOTOS ↕</th></tr>
-                    </thead>
-                    <tbody id="listaLideres"></tbody>
+                    <thead><tr><th onclick="ordenarL('n')">LÍDER ↕</th><th onclick="ordenarL('v')">VOTOS ↕</th></tr></thead>
+                    <tbody id="tablaLideres"></tbody>
                 </table>
             </div>
         </div>
 
-        <div class="panel">
-            <input type="text" id="inputBusqueda" class="search-box" onkeyup="ejecutarFiltro()" placeholder="🔍 BUSCAR NOMBRE, CÉDULA O PUESTO...">
-            <div class="table-container">
+        <div class="card">
+            <div class="search-container">
+                <input type="text" id="buscadorGlobal" oninput="filtrarTodo()" placeholder="🔍 BUSCAR NOMBRE, CÉDULA O PUESTO...">
+            </div>
+            <div class="scroll-v">
                 <table>
                     <thead>
                         <tr>
-                            <th onclick="sortM('Nombres y apellidos')">VOTANTE ↕</th>
-                            <th onclick="sortM('cedula')">CÉDULA ↕</th>
-                            <th onclick="sortM('puesto')">PUESTO ↕</th>
-                            <th onclick="sortM('comuna')">UBIC. ↕</th>
+                            <th onclick="ordenarM('Nombres y apellidos')">VOTANTE ↕</th>
+                            <th onclick="ordenarM('cedula')">CÉDULA ↕</th>
+                            <th onclick="ordenarM('puesto')">PUESTO ↕</th>
+                            <th onclick="ordenarM('comuna')">UBIC. ↕</th>
                         </tr>
                     </thead>
-                    <tbody id="cuerpoMaestro"></tbody>
+                    <tbody id="tablaMaestra"></tbody>
                 </table>
             </div>
-            <button class="btn-export" onclick="descargarExcel()">📥 DESCARGAR BASE COMPLETA (EXCEL)</button>
+            <button class="btn-descarga" onclick="exportarExcel()">📥 DESCARGAR EXCEL COMPLETO</button>
         </div>
 
-        <div class="panel">
-            <div class="panel-title">📍 GEOPOLÍTICA POR COMUNAS</div>
+        <div class="card">
+            <div class="card-title">📍 GEOPOLÍTICA POR COMUNAS</div>
             <div style="flex-grow:1; position:relative;">
-                <canvas id="graficoComunas"></canvas>
+                <canvas id="graficoDona"></canvas>
             </div>
         </div>
     </div>
@@ -110,132 +106,101 @@
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    let dataGlobal = [];
-    let rankingLideres = [];
-    let chartInstance;
-    let sortStateM = { col: null, asc: true };
-    let sortStateL = { col: 'votos', asc: false };
+    let baseCompleta = [], ranking = [], chart;
+    let sortM = { col: 'Nombres y apellidos', asc: true }, sortL = { col: 'v', asc: false };
 
-    // MATRIZ DE PUESTOS AJUSTADA (VIENDO TUS IMÁGENES)
-    const PUESTOS_CALI = {
-        "1": ["ACEVEDO", "GOMEZ", "MUTIS", "CELESTINO", "GARCES", "TERRON", "AGUACATAL"],
+    // MATRIZ DE PUESTOS SEGÚN TUS CAPTURAS
+    const MATRIZ = {
+        "1": ["ACEVEDO", "GOMEZ", "MUTIS", "CELESTINO", "GARCES", "TERRON", "AGUACATAL", "AGUACATAL"],
         "7": ["10 DE MAYO", "DIEZ DE MAYO", "PUMAREJO", "MALLARINO", "VILLAMAGRE"],
-        "12": ["SANTA FE", "VILLA DEL SUR", "SINDICAL", "RODEO", "FLORESTA"],
-        "19": ["CIEGOS", "SORDOS", "COLISEO", "PASCUAL", "ESTADIO", "LIDO", "TEQUENDAMA"],
-        "RURAL": ["HORMIGUERO", "MONTEBELLO", "FELIDIA", "SALADITO", "BUITRERA"]
+        "12": ["SANTA FE", "VILLA DEL SUR", "SINDICAL", "RODEO", "FLORESTA", "FENALCO"],
+        "19": ["CIEGOS", "SORDOS", "COLISEO", "PASCUAL", "ESTADIO", "LIDO", "TEQUENDAMA", "SANTIAGO"],
+        "RURAL": ["HORMIGUERO", "MONTEBELLO", "FELIDIA", "SALADITO", "VILLACARMELO", "BUITRERA"]
     };
 
-    function normalizar(texto) {
-        return texto ? texto.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : "";
-    }
+    function norm(t) { return t ? t.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : ""; }
 
-    function asignarUbicacion(puesto) {
-        const p = normalizar(puesto);
-        if (!p || p.includes("NO APLICA")) return "S.D";
-        for (let [comuna, claves] of Object.entries(PUESTOS_CALI)) {
-            if (claves.some(c => p.includes(c))) return comuna === "RURAL" ? "RURAL" : "C" + comuna;
+    function getComuna(puesto) {
+        const p = norm(puesto);
+        if(!p || p.includes("NO APLICA")) return "S.D";
+        for(let [c, claves] of Object.entries(MATRIZ)) {
+            if(claves.some(k => p.includes(k))) return c === "RURAL" ? "RURAL" : "C" + c;
         }
         return "OTRA";
     }
 
-    async function validarAcceso() {
-        const { value: pass } = await Swal.fire({ 
-            title: 'SISTEMA DE CONTROL', 
-            input: 'password', 
-            confirmButtonColor: '#0f172a',
-            allowOutsideClick: false 
-        });
-        if (pass === 'ADMIN2026') {
-            document.getElementById('app').style.display = 'flex';
-            await cargarDatos();
-        }
+    async function iniciar() {
+        const { value: p } = await Swal.fire({ title: 'ACCESO', input: 'password', confirmButtonColor: '#0f172a' });
+        if(p === 'ADMIN2026') { document.getElementById('app').style.display = 'flex'; await cargar(); }
     }
 
-    async function cargarDatos() {
+    async function cargar() {
         const { data } = await _supabase.from('VOTANTES').select('*');
-        dataGlobal = data.map(v => ({
+        baseCompleta = data.map(v => ({
             ...v,
-            comuna: asignarUbicacion(v.puesto),
+            comuna: getComuna(v.puesto),
             tipo: v.lider === "Rosse Mary Cabal Franco" ? "DIRECTO" : "INDIRECTO"
         }));
-
-        const directos = dataGlobal.filter(v => v.lider === "Rosse Mary Cabal Franco");
-        rankingLideres = directos.map(d => ({
-            nombre: d["Nombres y apellidos"],
-            votos: dataGlobal.filter(v => v.lider === d["Nombres y apellidos"]).length
+        
+        const directos = baseCompleta.filter(v => v.lider === "Rosse Mary Cabal Franco");
+        ranking = directos.map(d => ({
+            n: d["Nombres y apellidos"],
+            v: baseCompleta.filter(x => x.lider === d["Nombres y apellidos"]).length
         }));
-
-        refrescarTablero();
+        
+        dibujar();
     }
 
-    function refrescarTablero() {
-        document.getElementById('countTotal').innerText = dataGlobal.length;
-        document.getElementById('countDirecto').innerText = dataGlobal.filter(v => v.tipo === "DIRECTO").length;
-        document.getElementById('countIndirecto').innerText = dataGlobal.filter(v => v.tipo === "INDIRECTO").length;
-        renderizarLideres();
-        renderizarMaestro();
-        renderizarGrafico();
+    function dibujar() {
+        document.getElementById('valTotal').innerText = baseCompleta.length;
+        document.getElementById('valDirecto').innerText = baseCompleta.filter(v => v.tipo === "DIRECTO").length;
+        document.getElementById('valIndirecto').innerText = baseCompleta.filter(v => v.tipo === "INDIRECTO").length;
+        renderL(); renderM(); renderC();
     }
 
-    function ejecutarFiltro() {
-        const busqueda = normalizar(document.getElementById('inputBusqueda').value);
-        const filas = document.getElementById('cuerpoMaestro').getElementsByTagName('tr');
-        for (let f of filas) {
-            f.style.display = normalizar(f.innerText).includes(busqueda) ? "" : "none";
+    // EL FILTRO CORREGIDO: BUSCA EN TODA LA FILA
+    function filtrarTodo() {
+        const f = norm(document.getElementById('buscadorGlobal').value);
+        const filas = document.getElementById('tablaMaestra').getElementsByTagName('tr');
+        for (let r of filas) {
+            r.style.display = norm(r.innerText).includes(f) ? "" : "none";
         }
     }
 
-    function renderizarLideres() {
-        rankingLideres.sort((a,b) => sortStateL.asc ? (a[sortStateL.col] > b[sortStateL.col] ? 1 : -1) : (a[sortStateL.col] < b[sortStateL.col] ? 1 : -1));
-        document.getElementById('listaLideres').innerHTML = rankingLideres.map(l => `
-            <tr><td><b>${l.nombre}</b></td><td><span class="badge c-directo">${l.votos}</span></td></tr>
-        `).join('');
+    function renderL() {
+        ranking.sort((a,b) => sortL.asc ? (a[sortL.col] > b[sortL.col] ? 1:-1) : (a[sortL.col] < b[sortL.col] ? 1:-1));
+        document.getElementById('tablaLideres').innerHTML = ranking.map(l => `<tr><td><b>${l.n}</b></td><td><span class="badge b-directo">${l.v}</span></td></tr>`).join('');
     }
 
-    function renderizarMaestro() {
-        if(sortStateM.col) {
-            dataGlobal.sort((a,b) => {
-                let v1 = normalizar(a[sortStateM.col]);
-                let v2 = normalizar(b[sortStateM.col]);
-                return sortStateM.asc ? v1.localeCompare(v2) : v2.localeCompare(v1);
-            });
-        }
-        document.getElementById('cuerpoMaestro').innerHTML = dataGlobal.map(v => `
-            <tr>
-                <td><b>${v["Nombres y apellidos"]}</b></td>
-                <td>${v.cedula}</td>
-                <td>${v.puesto || '---'}</td>
-                <td><span class="badge c-comuna">${v.comuna}</span></td>
-            </tr>
-        `).join('');
-        ejecutarFiltro();
-    }
-
-    function sortM(col) { sortStateM.asc = sortStateM.col === col ? !sortStateM.asc : true; sortStateM.col = col; renderizarMaestro(); }
-    function sortL(col) { sortStateL.asc = sortStateL.col === col ? !sortStateL.asc : true; sortStateL.col = col; renderizarLideres(); }
-
-    function renderizarGrafico() {
-        const ctx = document.getElementById('graficoComunas');
-        const resumen = {}; dataGlobal.forEach(v => resumen[v.comuna] = (resumen[v.comuna] || 0) + 1);
-        if (chartInstance) chartInstance.destroy();
-        chartInstance = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(resumen),
-                datasets: [{ data: Object.values(resumen), backgroundColor: ['#0f172a','#10b981','#6366f1','#f59e0b','#ec4899','#ef4444'] }]
-            },
-            options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
+    function renderM() {
+        baseCompleta.sort((a,b) => {
+            let v1 = norm(a[sortM.col]), v2 = norm(b[sortM.col]);
+            return sortM.asc ? v1.localeCompare(v2) : v2.localeCompare(v1);
         });
+        document.getElementById('tablaMaestra').innerHTML = baseCompleta.map(v => `
+            <tr><td><b>${v["Nombres y apellidos"]}</b></td><td>${v.cedula}</td><td>${v.puesto||'---'}</td><td><span class="badge b-comuna">${v.comuna}</span></td></tr>
+        `).join('');
+        filtrarTodo(); // Para que el filtro se mantenga al ordenar
     }
 
-    function descargarExcel() {
-        const ws = XLSX.utils.json_to_sheet(dataGlobal);
+    function renderC() {
+        const ctx = document.getElementById('graficoDona');
+        const res = {}; baseCompleta.forEach(v => res[v.comuna] = (res[res.comuna]||0)+1);
+        if(chart) chart.destroy();
+        chart = new Chart(ctx, { type:'doughnut', data:{ labels:Object.keys(res), datasets:[{data:Object.values(res), backgroundColor:['#0f172a','#10b981','#6366f1','#f59e0b','#ec4899','#ef4444']}]}, options:{maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:9}}}}}});
+    }
+
+    function ordenarM(c) { sortM.asc = sortM.col === c ? !sortM.asc : true; sortM.col = c; renderM(); }
+    function ordenarL(c) { sortL.asc = sortL.col === c ? !sortL.asc : true; sortL.col = c; renderL(); }
+
+    function exportarExcel() {
+        const ws = XLSX.utils.json_to_sheet(baseCompleta);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "CENSO_2026");
-        XLSX.writeFile(wb, "REPORTE_ESTRUCTURA.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "CENSO");
+        XLSX.writeFile(wb, "BASE_2026.xlsx");
     }
 
-    validarAcceso();
+    iniciar();
 </script>
 </body>
 </html>
