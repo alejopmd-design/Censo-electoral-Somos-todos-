@@ -38,4 +38,170 @@
         .search-input { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 15px; font-size: 1rem; box-sizing: border-box; }
         .btn-download { background: #0f172a; color: white; width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
         
-        .comuna-summary { display: grid; grid-template-columns
+        .comuna-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-top: 20px; }
+        .comuna-tag { border: 1px solid #e2e8f0; padding: 10px; border-radius: 10px; text-align: center; background: #fff; }
+        .comuna-tag b { color: #ef4444; font-size: 1.4rem; display: block; }
+    </style>
+</head>
+<body>
+
+<div id="app" class="container">
+    <div class="header-stats">
+        <div class="stat-card" style="background: #1e293b;"><h2>VOTOS TOTALES</h2><span class="value" id="valTotal">0</span></div>
+        <div class="stat-card" style="background: #10b981;"><h2>DIRECTOS</h2><span class="value" id="valDirectos">0</span></div>
+        <div class="stat-card" style="background: #6366f1;"><h2>INDIRECTOS</h2><span class="value" id="valIndirectos">0</span></div>
+    </div>
+
+    <div class="main-content">
+        <div class="white-card">
+            <strong>🗺️ MAPA DE CALOR POR BURBUJAS</strong>
+            <div id="map" style="margin-top:15px"></div>
+            <div style="margin-top:25px"><strong>📝 DETALLE POR COMUNA</strong></div>
+            <div id="resumenComunas" class="comuna-summary"></div>
+        </div>
+
+        <div>
+            <div class="white-card">
+                <strong>📊 GEOPOLÍTICA (%)</strong>
+                <div style="height: 300px;"><canvas id="chartDona"></canvas></div>
+            </div>
+            <div class="white-card">
+                <strong>⭐ TOP 5 LÍDERES</strong>
+                <div id="listaLideres" style="margin-top:15px"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="white-card">
+        <strong>📋 BASE MAESTRA</strong>
+        <input type="text" id="buscador" onkeyup="filtrar()" class="search-input" placeholder="🔍 BUSCAR NOMBRE, CÉDULA O PUESTO...">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>VOTANTE</th><th>CÉDULA</th><th>TELÉFONO</th><th>PUESTO</th><th>LÍDER</th></tr>
+                </thead>
+                <tbody id="cuerpoMaestra"></tbody>
+            </table>
+        </div>
+        <button onclick="exportarExcel()" class="btn-download" style="margin-top:15px">DESCARGAR CENSO COMPLETO (EXCEL)</button>
+    </div>
+</div>
+
+<script>
+    const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
+    const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
+    const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+    let baseGlobal = [], map, layerGroup, myChart;
+
+    const COORDENADAS = {
+        "1": [3.450, -76.550], "2": [3.475, -76.525], "3": [3.452, -76.533], "4": [3.468, -76.508],
+        "7": [3.458, -76.488], "10": [3.428, -76.520], "12": [3.428, -76.495], "19": [3.425, -76.545], "22": [3.355, -76.535]
+    };
+
+    function limpiarTexto(t) { return t ? t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "") : ""; }
+
+    async function iniciar() {
+        const { value: pass } = await Swal.fire({ 
+            title: 'SISTEMA DE CONTROL', 
+            input: 'password', 
+            confirmButtonColor: '#1e293b',
+            inputPlaceholder: 'Ingrese la clave de administrador'
+        });
+        
+        if(pass === 'ADMIN2026') { 
+            document.getElementById('app').style.display = 'block'; 
+            initMap();
+            await cargarDatos(); 
+        } else if(pass !== undefined) {
+            Swal.fire('Error', 'Clave incorrecta', 'error').then(() => location.reload());
+        }
+    }
+
+    function initMap() {
+        map = L.map('map').setView([3.42, -76.52], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        layerGroup = L.layerGroup().addTo(map);
+    }
+
+    async function cargarDatos() {
+        const { data, error } = await _supabase.from('VOTANTES').select('*');
+        if(error) return console.error(error);
+        
+        baseGlobal = data;
+        actualizarTodo();
+    }
+
+    function actualizarTodo() {
+        const conteoComunas = {};
+        const conteoLideres = {};
+
+        baseGlobal.forEach(v => {
+            // Conteo por comuna (asumiendo que viene de Supabase)
+            if(v.comuna) conteoComunas[v.comuna] = (conteoComunas[v.comuna] || 0) + 1;
+            // Conteo por líder
+            if(v.lider) conteoLideres[v.lider] = (conteoLideres[v.lider] || 0) + 1;
+        });
+
+        // Totales superiores
+        document.getElementById('valTotal').innerText = baseGlobal.length;
+        document.getElementById('valDirectos').innerText = baseGlobal.filter(v => v.lider === "Rosse Mary Cabal Franco").length;
+        document.getElementById('valIndirectos').innerText = baseGlobal.length - baseGlobal.filter(v => v.lider === "Rosse Mary Cabal Franco").length;
+
+        // Mapa: Burbujas Verdes
+        layerGroup.clearLayers();
+        Object.entries(conteoComunas).forEach(([com, cant]) => {
+            if(COORDENADAS[com]) {
+                L.circle(COORDENADAS[com], { color: '#22c55e', fillColor: '#22c55e', fillOpacity: 0.7, radius: 200 + (cant * 15) })
+                .addTo(layerGroup).bindPopup(`COMUNA ${com}: ${cant} VOTOS`);
+            }
+        });
+
+        // Detalle por Comuna
+        document.getElementById('resumenComunas').innerHTML = Object.entries(conteoComunas).sort((a,b)=>b[1]-a[1]).map(([com, cant]) => `
+            <div class="comuna-tag"><small>COMUNA ${com}</small><b>${cant}</b></div>
+        `).join('');
+
+        // Top Líderes
+        document.getElementById('listaLideres').innerHTML = Object.entries(conteoLideres)
+            .sort((a,b) => b[1] - a[1]).slice(0, 5)
+            .map(([nom, cant]) => `<div class="lider-row"><span>${nom}</span><span style="color:#6366f1">${cant} VOTOS</span></div>`).join('');
+
+        // Tabla
+        document.getElementById('cuerpoMaestra').innerHTML = baseGlobal.map(v => `
+            <tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.telefono||''}</td><td>${v.puesto||''}</td><td>${v.lider||''}</td></tr>
+        `).join('');
+
+        renderGrafico(conteoComunas);
+    }
+
+    function renderGrafico(datos) {
+        const ctx = document.getElementById('chartDona');
+        if(myChart) myChart.destroy();
+        myChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(datos).map(k => "C"+k),
+                datasets: [{ data: Object.values(datos), backgroundColor: ['#1e293b', '#10b981', '#6366f1', '#f59e0b', '#ef4444'] }]
+            },
+            options: { maintainAspectRatio: false }
+        });
+    }
+
+    function filtrar() {
+        const val = limpiarTexto(document.getElementById('buscador').value);
+        const filas = document.getElementById('cuerpoMaestra').getElementsByTagName('tr');
+        for(let f of filas) f.style.display = limpiarTexto(f.innerText).includes(val) ? '' : 'none';
+    }
+
+    function exportarExcel() {
+        const ws = XLSX.utils.json_to_sheet(baseGlobal);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Votantes");
+        XLSX.writeFile(wb, "Censo_Electoral_2026.xlsx");
+    }
+
+    iniciar();
+</script>
+</body>
+</html>
