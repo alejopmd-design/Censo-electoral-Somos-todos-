@@ -3,90 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Reportes Rosse Mary - Cali 2026</title>
+    <title>PANEL DE ADMINISTRACIÓN</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
         :root { --blue: #0f172a; --green: #10b981; --accent: #6366f1; --bg: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 10px; text-transform: uppercase; }
         .container { max-width: 1600px; margin: auto; display: none; }
         
-        /* Ajuste para móviles: De 2 columnas a 1 sola */
-        .main-layout { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 20px; }
-        @media (max-width: 900px) {
-            .main-layout { grid-template-columns: 1fr; }
-            .map-grid { grid-template-columns: 1fr !important; }
-            .stat-num { font-size: 2.2rem !important; }
-        }
-
         .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 20px; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat-num { font-size: 3rem; font-weight: 900; color: var(--blue); line-height: 1; margin: 10px 0; }
+        .stat-num { font-size: 2.8rem; font-weight: 900; color: var(--blue); line-height: 1; margin: 10px 0; }
         
         .meta-bg { background: #e2e8f0; border-radius: 50px; height: 12px; margin-top: 10px; overflow: hidden; }
         .meta-fill { background: linear-gradient(90deg, #10b981, #34d399); height: 100%; transition: 1s ease; }
 
-        /* Altura mínima del mapa obligatoria para móviles */
-        #map { height: 400px; width: 100%; border-radius: 12px; border: 1px solid #cbd5e1; z-index: 1; }
+        .main-layout { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
+        @media (max-width: 1000px) { .main-layout { grid-template-columns: 1fr; } }
+
+        #map { height: 450px; width: 100%; border-radius: 12px; border: 1px solid #cbd5e1; z-index: 1; }
         
-        .scroll { max-height: 400px; overflow-y: auto; border-radius: 8px; border: 1px solid #f1f5f9; }
+        .scroll { max-height: 450px; overflow-y: auto; border-radius: 8px; border: 1px solid #f1f5f9; }
         table { width: 100%; border-collapse: collapse; background: white; }
-        th { background: var(--blue); color: white; padding: 12px; text-align: left; cursor: pointer; position: sticky; top: 0; font-size: 0.7rem; }
+        th { background: var(--blue); color: white; padding: 12px; text-align: left; cursor: pointer; position: sticky; top: 0; font-size: 0.7rem; z-index: 5; }
         td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 0.75rem; font-weight: 700; }
         
-        .legend-item { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.7rem; border-bottom: 1px dashed #e2e8f0; }
+        .btn-exp { padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-size: 0.65rem; margin-right: 5px; color: white; }
+        .xlsx { background: #166534; }
+        .pdf { background: #991b1b; }
+        .search-input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #e2e8f0; margin-bottom: 10px; font-size: 1rem; }
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
+    <h2 style="text-align: center; color: var(--blue);">PANEL DE ADMINISTRACIÓN ESTRATÉGICA</h2>
+
     <div class="stats-grid">
         <div class="card">
-            <small>CENSO TOTAL</small>
+            <small>CENSO ELECTORAL</small>
             <div class="stat-num" id="tV">0</div>
             <div class="meta-bg"><div id="metaFill" class="meta-fill"></div></div>
-            <small id="metaPct">META 4,000 (0%)</small>
+            <small id="metaPct">META 7,000 (0%)</small>
         </div>
         <div class="card" style="border-top: 4px solid var(--green)">
-            <small>DIRECTOS ROSSE</small>
+            <small>DIRECTOS ROSSE MARY</small>
             <div class="stat-num" id="tD" style="color:var(--green)">0</div>
         </div>
         <div class="card" style="border-top: 4px solid var(--accent)">
-            <small>RED LÍDERES</small>
+            <small>RED DE LÍDERES</small>
             <div class="stat-num" id="tI" style="color:var(--accent)">0</div>
         </div>
     </div>
 
     <div class="main-layout">
         <div class="card">
-            <h4 style="margin:0 0 10px 0">🗺️ MAPA Y COMUNAS</h4>
-            <div class="map-grid" style="display: grid; grid-template-columns: 1fr 250px; gap: 15px;">
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:10px">
+                <h4 style="margin:0">🗺️ GEORREFERENCIACIÓN Y COMUNAS</h4>
+                <div>
+                    <button class="btn-exp xlsx" onclick="expComunas('xlsx')">EXCEL</button>
+                    <button class="btn-exp pdf" onclick="expComunas('pdf')">PDF</button>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 280px; gap: 15px;" id="mapContainer">
                 <div id="map"></div>
                 <div>
-                    <canvas id="donaComunas" style="max-height: 200px;"></canvas>
-                    <div id="donaLegend" style="margin-top: 10px; max-height: 200px; overflow-y: auto;"></div>
+                    <canvas id="donaComunas"></canvas>
+                    <div id="donaLegend" style="margin-top:10px; font-size:0.7rem; max-height:200px; overflow-y:auto"></div>
                 </div>
             </div>
         </div>
 
         <div class="card">
-            <h4 style="margin:0 0 10px 0">🏆 RANKING ROSSE (INCLUYE 0)</h4>
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:10px">
+                <h4 style="margin:0">🏆 RANKING ROSSE (INC. 0)</h4>
+                <div>
+                    <button class="btn-exp xlsx" onclick="expRanking('xlsx')">EXCEL</button>
+                    <button class="btn-exp pdf" onclick="expRanking('pdf')">PDF</button>
+                </div>
+            </div>
             <div class="scroll">
-                <table id="tablaLid">
+                <table id="tablaLid" data-dir="desc">
                     <thead>
-                        <tr>
-                            <th onclick="ordenarRank(0)">LÍDER ↕️</th>
-                            <th onclick="ordenarRank(1)" style="text-align:center">VOTOS ↕️</th>
-                        </tr>
+                        <tr><th onclick="ordenarRank(0)">LÍDER ↕️</th><th style="text-align:center" onclick="ordenarRank(1)">VOTOS ↕️</th></tr>
                     </thead>
                     <tbody id="bodyLid"></tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:10px">
+            <h4 style="margin:0">🔍 CENSO GENERAL MAESTRO</h4>
+            <div>
+                <button class="btn-exp xlsx" onclick="expBase('xlsx')">EXCEL</button>
+                <button class="btn-exp pdf" onclick="expBase('pdf')">PDF</button>
+            </div>
+        </div>
+        <input type="text" id="bus" onkeyup="filtrar()" class="search-input" placeholder="BUSCAR POR NOMBRE, CÉDULA O PUESTO...">
+        <div class="scroll">
+            <table id="tablaG">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">VOTANTE ↕️</th>
+                        <th onclick="sortTable(1)">CÉDULA ↕️</th>
+                        <th onclick="sortTable(2)">PUESTO ↕️</th>
+                        <th onclick="sortTable(3)">COMUNA ↕️</th>
+                    </tr>
+                </thead>
+                <tbody id="bodyM"></tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -97,7 +133,7 @@
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
     let votantes = [], puestosOficiales = [], map, capaBurbujas, chartDona;
-    const OBJETIVO = 4000;
+    const OBJETIVO = 7000;
     const LIDER_PRINCIPAL = "Rosse Mary Cabal Franco";
 
     const GPS = {
@@ -108,8 +144,10 @@
         "21": [3.425, -76.465], "22": [3.355, -76.535], "24": [3.350, -76.510], "25": [3.370, -76.570], "33": [3.480, -76.570]
     };
 
+    function normalizar(t) { return t ? t.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, "") : ""; }
+
     async function login() {
-        const { value: p } = await Swal.fire({ title: 'ACCESO MÓVIL', input: 'password', confirmButtonColor: '#0f172a' });
+        const { value: p } = await Swal.fire({ title: 'ACCESO ADMINISTRADOR', input: 'password', confirmButtonColor: '#0f172a' });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
             initMap();
@@ -118,32 +156,29 @@
     }
 
     function initMap() {
-        if(map) return;
-        map = L.map('map').setView([3.42, -76.52], 11);
+        map = L.map('map').setView([3.42, -76.52], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         capaBurbujas = L.layerGroup().addTo(map);
-        
-        // TRUCO PARA MÓVILES: Re-ajustar tamaño tras medio segundo
-        setTimeout(() => { map.invalidateSize(); }, 500);
+        setTimeout(() => map.invalidateSize(), 500);
     }
 
     async function cargarBase() {
         const { data: pData } = await _supabase.from('PUESTOS_VOTACION').select('*');
         puestosOficiales = pData || [];
         const { data: vData } = await _supabase.from('VOTANTES').select('*');
-        
         votantes = vData.map(v => {
-            const txt = (v.puesto || "").toLowerCase();
-            let m = puestosOficiales.find(po => po.nombre_puesto.toLowerCase().includes(txt) || txt.includes(po.nombre_puesto.toLowerCase()));
-            return { ...v, comuna: m ? m.comuna : "OTRA" };
+            const txt = normalizar(v.puesto);
+            let m = puestosOficiales.find(po => {
+                const ofi = normalizar(po.nombre_puesto);
+                return ofi.includes(txt) || txt.includes(ofi);
+            });
+            return { ...v, comuna: m ? m.comuna : "OTRA", oficial: m ? m.nombre_puesto : "PENDIENTE" };
         });
         renderUI();
     }
 
     function renderUI() {
         const cCom = {}, cLid = {}, cMap = {};
-        
-        // Ranking de Rosse
         const equipo = votantes.filter(v => v.lider === LIDER_PRINCIPAL);
         equipo.forEach(v => cLid[v["Nombres y apellidos"]] = 0);
         
@@ -151,62 +186,104 @@
             if(cLid.hasOwnProperty(v.lider)) cLid[v.lider]++;
             if(v.comuna !== "OTRA") {
                 cCom[v.comuna] = (cCom[v.comuna] || 0) + 1;
-                if(!cMap[v.comuna]) cMap[v.comuna] = 0;
-                cMap[v.comuna]++;
+                cMap[v.comuna] = (cMap[v.comuna] || 0) + 1;
             }
         });
 
-        // Totales y Meta 4000
         document.getElementById('tV').innerText = votantes.length;
         document.getElementById('tD').innerText = equipo.length;
         document.getElementById('tI').innerText = votantes.length - equipo.length;
         const p = Math.min((votantes.length/OBJETIVO)*100, 100);
         document.getElementById('metaFill').style.width = p+'%';
-        document.getElementById('metaPct').innerText = `AVANCE: ${p.toFixed(1)}% DE 4,000`;
+        document.getElementById('metaPct').innerText = `META 7,000 (${p.toFixed(1)}%)`;
 
-        // Llenar Ranking
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v])=>`
             <tr style="${v === 0 ? 'background:#fff1f2' : ''}"><td>${l}</td><td style="text-align:center; color:${v>0?'#10b981':'#e11d48'}">${v}</td></tr>
         `).join('');
 
-        // Actualizar Mapa
         capaBurbujas.clearLayers();
-        Object.entries(cMap).forEach(([c, total]) => {
-            if(GPS[c]) {
-                L.circle(GPS[c], { color: '#6366f1', radius: 400 + (total * 20), fillOpacity: 0.5 })
-                .addTo(capaBurbujas).bindPopup(`<b>COMUNA ${c}</b><br>Votos: ${total}`);
-            }
+        Object.entries(cMap).forEach(([c, t]) => {
+            if(GPS[c]) L.circle(GPS[c], { color: '#6366f1', radius: 300 + (t*20), fillOpacity: 0.6 }).addTo(capaBurbujas).bindPopup(`COMUNA ${c}: ${t} VOTOS`);
         });
 
-        // Dona y Leyenda
         if(chartDona) chartDona.destroy();
-        const etiquetas = Object.keys(cCom).sort((a,b)=>a-b);
+        const eti = Object.keys(cCom).sort((a,b)=>a-b);
         chartDona = new Chart(document.getElementById('donaComunas'), {
             type: 'doughnut',
-            data: { 
-                labels: etiquetas.map(e=>'C'+e), 
-                datasets: [{ data: etiquetas.map(e=>cCom[e]), backgroundColor: ['#0f172a','#10b981','#6366f1','#f59e0b','#ef4444','#06b6d4','#8b5cf6'] }] 
-            },
+            data: { labels: eti.map(e=>'C'+e), datasets: [{ data: eti.map(e=>cCom[e]), backgroundColor: ['#0f172a','#10b981','#6366f1','#f59e0b','#ef4444','#06b6d4','#8b5cf6'] }] },
             options: { plugins: { legend: { display: false } } }
         });
 
-        document.getElementById('donaLegend').innerHTML = etiquetas.map(e => `
-            <div class="legend-item"><span>COMUNA ${e}</span><span>${cCom[e]}</span></div>
+        document.getElementById('donaLegend').innerHTML = eti.map(e => `<div style="display:flex; justify-content:space-between"><span>COMUNA ${e}</span><span>${cCom[e]}</span></div>`).join('');
+
+        document.getElementById('bodyM').innerHTML = votantes.map(v=>`
+            <tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.puesto}<br><small>🎯 ${v.oficial}</small></td><td>C-${v.comuna}</td></tr>
         `).join('');
     }
 
+    // Funciones de Exportación
+    function expRanking(tipo) {
+        const data = Array.from(document.querySelectorAll("#bodyLid tr")).map(tr => ({ Lider: tr.cells[0].innerText, Votos: tr.cells[1].innerText }));
+        if(tipo === 'xlsx') {
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Ranking");
+            XLSX.writeFile(wb, "Ranking_Lideres.xlsx");
+        } else {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("RANKING DE LÍDERES - ROSSE MARY", 10, 10);
+            doc.autoTable({ html: '#tablaLid' });
+            doc.save("Ranking_Lideres.pdf");
+        }
+    }
+
+    function expBase(tipo) {
+        const data = votantes.map(v => ({ Nombre: v["Nombres y apellidos"], Cedula: v.cedula, Puesto: v.puesto, Comuna: v.comuna, Lider: v.lider }));
+        if(tipo === 'xlsx') {
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Base_General");
+            XLSX.writeFile(wb, "Censo_General.xlsx");
+        } else {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("CENSO GENERAL DE VOTANTES", 10, 10);
+            doc.autoTable({ head: [['Nombre', 'Cedula', 'Puesto', 'Comuna']], body: votantes.map(v => [v["Nombres y apellidos"], v.cedula, v.puesto, v.comuna]) });
+            doc.save("Censo_General.pdf");
+        }
+    }
+
+    function expComunas(tipo) {
+        const table = document.getElementById("donaLegend").innerText.split('\n').map(l => l.split(' '));
+        if(tipo === 'xlsx') {
+            const ws = XLSX.utils.json_to_sheet(table);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Comunas");
+            XLSX.writeFile(wb, "Resumen_Comunas.xlsx");
+        } else {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("RESUMEN POR COMUNAS", 10, 10);
+            doc.autoTable({ head: [['Comuna', 'Votos']], body: table });
+            doc.save("Resumen_Comunas.pdf");
+        }
+    }
+
     function ordenarRank(n) {
-        let table = document.getElementById("tablaLid");
-        let rows = Array.from(table.rows).slice(1);
-        let dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
-        rows.sort((a, b) => {
-            let x = a.cells[n].innerText.toLowerCase();
-            let y = b.cells[n].innerText.toLowerCase();
-            if(n === 1) return dir === "asc" ? parseInt(x) - parseInt(y) : parseInt(y) - parseInt(x);
-            return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
+        let table = document.getElementById("tablaLid"), rows = Array.from(table.rows).slice(1), dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
+        rows.sort((a,b) => {
+            let x = a.cells[n].innerText.toLowerCase(), y = b.cells[n].innerText.toLowerCase();
+            return n === 1 ? (dir === "asc" ? x - y : y - x) : (dir === "asc" ? x.localeCompare(y) : y.localeCompare(x));
         });
         table.setAttribute("data-dir", dir);
         rows.forEach(r => table.tBodies[0].appendChild(r));
+    }
+
+    function filtrar() {
+        const q = normalizar(document.getElementById('bus').value);
+        const filas = document.getElementById('bodyM').getElementsByTagName('tr');
+        for(let f of filas) f.style.display = normalizar(f.innerText).includes(q) ? '' : 'none';
     }
 
     login();
