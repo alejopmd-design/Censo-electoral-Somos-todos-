@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA ELECTORAL 2026</title>
+    <title>DASHBOARD ELECTORAL 2026</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -13,100 +13,75 @@
     <style>
         :root { --blue: #0f172a; --green: #10b981; --purple: #6366f1; --bg: #f8fafc; }
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: var(--bg); margin: 0; padding: 20px; 
-            text-transform: uppercase; overflow: hidden; height: 100vh; box-sizing: border-box;
+            font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; 
+            text-transform: uppercase; overflow: hidden; height: 100vh;
         }
-        .dashboard { display: none; height: 100%; flex-direction: column; gap: 20px; }
-
-        /* TARJETAS SUPERIORES EXACTAS A TU FOTO */
-        .stats-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; flex-shrink: 0; }
-        .card-stat { 
-            background: white; border-radius: 12px; padding: 20px; text-align: center; 
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-bottom: 5px solid var(--blue);
-        }
-        .stat-number { font-size: 3.5rem; font-weight: 800; color: #1e293b; display: block; line-height: 1; }
-        .stat-label { font-size: 0.75rem; color: #64748b; font-weight: 700; margin-top: 10px; }
-
-        /* CUERPO DEL DASHBOARD EN 3 COLUMNAS */
-        .main-grid { display: grid; grid-template-columns: 1fr 1.8fr 1fr; gap: 20px; flex-grow: 1; min-height: 0; }
-        .white-panel { background: white; border-radius: 15px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .panel-header { font-weight: 800; font-size: 0.9rem; color: #1e293b; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-
-        /* EL BUSCADOR AZULADO DE TU IMAGEN */
-        .search-bar-container { background: #eef2ff; border-radius: 10px; padding: 5px; margin-bottom: 15px; border: 1px solid #e0e7ff; }
-        #inputBusqueda { 
-            width: 100%; border: none; background: transparent; padding: 12px; 
-            font-weight: 800; font-size: 1.1rem; color: #1e293b; outline: none;
-        }
-
-        /* TABLAS CON ESTILO ORIGINAL */
-        .scroll-area { flex-grow: 1; overflow-y: auto; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-        th { background: #fff; padding: 12px 10px; text-align: left; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #f1f5f9; color: #64748b; cursor: pointer; }
-        td { padding: 12px 10px; border-bottom: 1px solid #f8fafc; color: #1e293b; font-weight: 600; }
-
-        /* BADGES */
-        .badge-ubi { background: #eff6ff; color: #2563eb; padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 0.65rem; border: 1px solid #dbeafe; }
-        .badge-votos { background: #ecfdf5; color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: 800; }
+        .container { display: none; height: 100%; flex-direction: column; gap: 20px; }
         
-        .btn-descargar { background: #14532d; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 800; cursor: pointer; margin-top: 15px; width: 100%; font-size: 0.9rem; }
+        /* CABECERA: DISEÑO EXACTO DE TUS FOTOS */
+        .top-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .card-stat { 
+            background: white; border-radius: 12px; padding: 25px; text-align: center; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-bottom: 5px solid #000;
+        }
+        .val { font-size: 3.5rem; font-weight: 800; color: #1e293b; display: block; line-height: 1; }
+        .lab { font-size: 0.75rem; color: #64748b; font-weight: 700; margin-top: 10px; }
+
+        /* CUERPO PRINCIPAL */
+        .main-layout { display: grid; grid-template-columns: 0.8fr 1.5fr 0.8fr; gap: 20px; flex-grow: 1; min-height: 0; }
+        .panel { background: white; border-radius: 15px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .panel-title { font-weight: 800; font-size: 0.9rem; color: #1e293b; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+
+        /* BUSCADOR AZULADO */
+        .search-box { background: #eef2ff; border-radius: 10px; padding: 5px; margin-bottom: 15px; border: 1px solid #e0e7ff; }
+        #q { width: 100%; border: none; background: transparent; padding: 12px; font-weight: 800; font-size: 1.1rem; outline: none; }
+
+        /* TABLAS */
+        .scroll { flex-grow: 1; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+        th { background: white; padding: 12px 10px; text-align: left; position: sticky; top: 0; border-bottom: 2px solid #f1f5f9; color: #64748b; }
+        td { padding: 12px 10px; border-bottom: 1px solid #f8fafc; font-weight: 600; }
+        
+        .badge-c { background: #eff6ff; color: #2563eb; padding: 4px 8px; border-radius: 6px; font-weight: 800; border: 1px solid #dbeafe; }
+        .badge-v { background: #ecfdf5; color: #10b981; padding: 2px 8px; border-radius: 4px; }
+        
+        .btn-ex { background: #14532d; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 800; cursor: pointer; margin-top: 15px; width: 100%; }
     </style>
 </head>
 <body>
 
-<div id="app" class="dashboard">
-    <div class="stats-container">
-        <div class="card-stat" style="border-color: var(--blue);">
-            <span class="stat-number" id="txtCenso">0</span>
-            <span class="stat-label">POTENCIAL TOTAL (CENSO)</span>
-        </div>
-        <div class="card-stat" style="border-color: var(--green);">
-            <span class="stat-number" id="txtDirecto" style="color:var(--green)">0</span>
-            <span class="stat-label">VOTOS DIRECTOS</span>
-        </div>
-        <div class="card-stat" style="border-color: var(--purple);">
-            <span class="stat-number" id="txtIndirecto" style="color:var(--purple)">0</span>
-            <span class="stat-label">RED INDIRECTA</span>
-        </div>
+<div id="app" class="container">
+    <div class="top-cards">
+        <div class="card-stat" style="border-color: var(--blue);"><span class="val" id="vCen">0</span><span class="lab">POTENCIAL TOTAL (CENSO)</span></div>
+        <div class="card-stat" style="border-color: var(--green);"><span class="val" id="vDir" style="color:var(--green)">0</span><span class="lab">VOTOS DIRECTOS</span></div>
+        <div class="card-stat" style="border-color: var(--purple);"><span class="val" id="vInd" style="color:var(--purple)">0</span><span class="lab">RED INDIRECTA</span></div>
     </div>
 
-    <div class="main-grid">
-        <div class="white-panel">
-            <div class="panel-header">⭐ LIDERAZGO DIRECTO</div>
-            <div class="scroll-area">
+    <div class="main-layout">
+        <div class="panel">
+            <div class="panel-title">⭐ LIDERAZGO DIRECTO</div>
+            <div class="scroll">
                 <table>
-                    <thead><tr><th onclick="ordenarL('n')">LÍDER ↕</th><th onclick="ordenarL('v')">VOTOS ↕</th></tr></thead>
-                    <tbody id="tbodyLideres"></tbody>
+                    <thead><tr><th>LÍDER</th><th>VOTOS</th></tr></thead>
+                    <tbody id="tLid"></tbody>
                 </table>
             </div>
         </div>
 
-        <div class="white-panel">
-            <div class="search-bar-container">
-                <input type="text" id="inputBusqueda" oninput="filtrarMaestro()" placeholder="BUSCAR POR NOMBRE O CÉDULA...">
-            </div>
-            <div class="scroll-area">
+        <div class="panel">
+            <div class="search-box"><input type="text" id="q" oninput="doFiltro()" placeholder="BUSCAR POR NOMBRE O CÉDULA..."></div>
+            <div class="scroll">
                 <table>
-                    <thead>
-                        <tr>
-                            <th onclick="ordenarM('Nombres y apellidos')">VOTANTE ↕</th>
-                            <th onclick="ordenarM('cedula')">CÉDULA ↕</th>
-                            <th onclick="ordenarM('puesto')">PUESTO ↕</th>
-                            <th onclick="ordenarM('u')">UBIC. ↕</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbodyMaestro"></tbody>
+                    <thead><tr><th>VOTANTE</th><th>CÉDULA</th><th>PUESTO</th><th>UBIC.</th></tr></thead>
+                    <tbody id="tMaestro"></tbody>
                 </table>
             </div>
-            <button class="btn-descargar" onclick="exportarExcel()">📥 DESCARGAR TODA LA BASE (EXCEL)</button>
+            <button class="btn-ex" onclick="descargar()">📥 DESCARGAR EXCEL COMPLETO</button>
         </div>
 
-        <div class="white-panel">
-            <div class="panel-header">📍 GEOPOLÍTICA POR COMUNAS</div>
-            <div style="flex-grow:1; position:relative;">
-                <canvas id="chartComunas"></canvas>
-            </div>
+        <div class="panel">
+            <div class="panel-title">📍 GEOPOLÍTICA POR COMUNAS</div>
+            <div style="flex-grow:1; position:relative;"><canvas id="chart"></canvas></div>
         </div>
     </div>
 </div>
@@ -116,86 +91,79 @@
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    let dataFull = [], dataRank = [], miChart;
-    let sortM = { k: 'Nombres y apellidos', a: true }, sortL = { k: 'v', a: false };
+    let base = [], ranking = [], graf;
 
-    // MATRIZ DE PUESTOS SEGÚN TUS IMÁGENES
-    const MAPA_PUESTOS = {
-        "1": ["ACEVEDO", "GOMEZ", "MUTIS", "CELESTINO", "GARCES", "AGUACATAL"],
-        "7": ["10 DE MAYO", "DIEZ DE MAYO", "PUMAREJO", "MALLARINO", "CELMIRA"],
-        "12": ["SANTA FE", "VILLA DEL SUR", "SINDICAL", "RODEO", "FENALCO"],
-        "19": ["CIEGOS", "SORDOS", "COLISEO", "PASCUAL", "ESTADIO", "LIDO"],
+    // MATRIZ DE COMUNAS ACTUALIZADA
+    const COMUNAS = {
+        "C1": ["ACEVEDO", "GOMEZ", "MUTIS", "CELESTINO", "GARCES", "AGUACATAL"],
+        "C7": ["10 DE MAYO", "PUMAREJO", "MALLARINO", "CELMIRA"],
+        "C12": ["SANTA FE", "VILLA DEL SUR", "SINDICAL", "RODEO", "FENALCO"],
+        "C19": ["CIEGOS", "SORDOS", "COLISEO", "PASCUAL", "ESTADIO", "LIDO"],
         "RURAL": ["HORMIGUERO", "MONTEBELLO", "FELIDIA", "SALADITO", "BUITRERA"]
     };
 
-    function norm(t) { return t ? t.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : ""; }
+    function limpiar(t) { return t ? t.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : ""; }
 
-    function getUbicacion(puesto) {
-        const p = norm(puesto); if(!p || p.includes("NO APLICA")) return "S.D";
-        for(let [c, k] of Object.entries(MAPA_PUESTOS)) { if(k.some(x => p.includes(x))) return c === "RURAL" ? "RURAL" : "C" + c; }
+    function getUbi(p) {
+        const s = limpiar(p); if(!s || s.includes("NO APLICA")) return "S.D";
+        for(let [c, k] of Object.entries(COMUNAS)) { if(k.some(x => s.includes(x))) return c; }
         return "OTRA";
     }
 
-    async function acceso() {
+    async function inicio() {
         const { value: p } = await Swal.fire({ title: 'ACCESO', input: 'password', confirmButtonColor: '#0f172a' });
-        if(p === 'ADMIN2026') { document.getElementById('app').style.display = 'flex'; await cargarTodo(); }
+        if(p === 'ADMIN2026') { document.getElementById('app').style.display = 'flex'; await datos(); }
     }
 
-    async function cargarTodo() {
+    async function datos() {
         const { data } = await _supabase.from('VOTANTES').select('*');
-        dataFull = data.map(v => ({ ...v, u: getUbicacion(v.puesto), t: v.lider === "Rosse Mary Cabal Franco" ? "D" : "I" }));
+        // Identificar tipo basado en la columna 'lider'
+        base = data.map(v => ({
+            ...v,
+            ubi: getUbi(v.puesto),
+            tipo: v.lider === "Rosse Mary Cabal Franco" ? "DIRECTO" : "INDIRECTO"
+        }));
         
-        const directos = dataFull.filter(v => v.lider === "Rosse Mary Cabal Franco");
-        dataRank = directos.map(l => ({ n: l["Nombres y apellidos"], v: dataFull.filter(x => x.lider === l["Nombres y apellidos"]).length }));
+        // Crear ranking de líderes basado en cuántas veces aparecen en la columna 'lider'
+        const conteo = {};
+        base.forEach(v => { if(v.lider && v.lider !== "Rosse Mary Cabal Franco") conteo[v.lider] = (conteo[v.lider] || 0) + 1; });
+        ranking = Object.entries(conteo).map(([n, v]) => ({ n, v })).sort((a,b) => b.v - a.v);
         
-        renderUI();
+        dibujar();
     }
 
-    function renderUI() {
-        document.getElementById('txtCenso').innerText = dataFull.length;
-        document.getElementById('txtDirecto').innerText = dataFull.filter(v => v.t === "D").length;
-        document.getElementById('txtIndirecto').innerText = dataFull.filter(v => v.t === "I").length;
-        renderLideres(); renderMaestro(); renderGrafico();
+    function dibujar() {
+        document.getElementById('vCen').innerText = base.length;
+        document.getElementById('vDir').innerText = base.filter(v => v.tipo === "DIRECTO").length;
+        document.getElementById('vInd').innerText = base.filter(v => v.tipo === "INDIRECTO").length;
+
+        document.getElementById('tLid').innerHTML = ranking.map(l => `<tr><td><b>${l.n}</b></td><td><span class="badge-v">${l.v}</span></td></tr>`).join('');
+        document.getElementById('tMaestro').innerHTML = base.map(v => `<tr><td><b>${v["Nombres y apellidos"]}</b></td><td>${v.cedula}</td><td>${v.puesto || '---'}</td><td><span class="badge-c">${v.ubi}</span></td></tr>`).join('');
+        
+        renderChart();
     }
 
-    function filtrarMaestro() {
-        const b = norm(document.getElementById('inputBusqueda').value);
-        const f = document.getElementById('tbodyMaestro').getElementsByTagName('tr');
-        for (let r of f) { r.style.display = norm(r.innerText).includes(b) ? "" : "none"; }
+    function doFiltro() {
+        const b = limpiar(document.getElementById('q').value);
+        const filas = document.getElementById('tMaestro').getElementsByTagName('tr');
+        for (let r of filas) { r.style.display = limpiar(r.innerText).includes(b) ? "" : "none"; }
     }
 
-    function renderLideres() {
-        dataRank.sort((a,b) => sortL.a ? (a[sortL.k] > b[sortL.k] ? 1:-1) : (a[sortL.k] < b[sortL.k] ? 1:-1));
-        document.getElementById('tbodyLideres').innerHTML = dataRank.map(l => `<tr><td><b>${l.n}</b></td><td><span class="badge badge-votos">${l.v}</span></td></tr>`).join('');
+    function renderChart() {
+        const ctx = document.getElementById('chart');
+        const res = {}; base.forEach(v => res[v.ubi] = (res[v.ubi]||0)+1);
+        if(graf) graf.destroy();
+        graf = new Chart(ctx, { type:'doughnut', data:{ labels:Object.keys(res), datasets:[{data:Object.values(res), backgroundColor:['#0f172a','#10b981','#6366f1','#f59e0b','#ef4444']}]}, options:{maintainAspectRatio:false}});
     }
 
-    function renderMaestro() {
-        dataFull.sort((a,b) => {
-            let v1 = norm(a[sortM.k]), v2 = norm(b[sortM.k]);
-            return sortM.a ? v1.localeCompare(v2) : v2.localeCompare(v1);
-        });
-        document.getElementById('tbodyMaestro').innerHTML = dataFull.map(v => `<tr><td><b>${v["Nombres y apellidos"]}</b></td><td>${v.cedula}</td><td>${v.puesto||'---'}</td><td><span class="badge-ubi">${v.u}</span></td></tr>`).join('');
-        filtrarMaestro();
-    }
-
-    function renderGrafico() {
-        const ctx = document.getElementById('chartComunas');
-        const res = {}; dataFull.forEach(v => res[v.u] = (res[v.u]||0)+1);
-        if(miChart) miChart.destroy();
-        miChart = new Chart(ctx, { type:'doughnut', data:{ labels:Object.keys(res), datasets:[{data:Object.values(res), backgroundColor:['#0f172a','#10b981','#6366f1','#f59e0b','#ec4899','#ef4444']}]}, options:{maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:9}}}}}});
-    }
-
-    function ordenarM(c) { sortM.a = sortM.k === c ? !sortM.a : true; sortM.k = c; renderMaestro(); }
-    function ordenarL(c) { sortL.a = sortL.k === c ? !sortL.a : true; sortL.k = c; renderLideres(); }
-
-    function exportarExcel() {
-        const ws = XLSX.utils.json_to_sheet(dataFull);
+    function descargar() {
+        const ws = XLSX.utils.json_to_sheet(base);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "CENSO");
-        XLSX.writeFile(wb, "BASE_DATOS_2026.xlsx");
+        XLSX.writeFile(wb, "REPORTE_2026.xlsx");
     }
 
-    acceso();
+    inicio();
 </script>
 </body>
 </html>
