@@ -47,11 +47,11 @@
         .scroll { max-height: 380px; overflow-y: auto; }
         
         table { width: 100%; border-collapse: collapse; }
-        th { background: var(--blue); color: white; padding: 10px; font-size: 0.65rem; position: sticky; top: 0; z-index: 10; cursor: pointer; }
+        th { background: var(--blue); color: white; padding: 10px; font-size: 0.65rem; position: sticky; top: 0; z-index: 10; cursor: pointer; user-select: none; }
+        th:hover { background: #1e293b; }
         td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; font-size: 0.7rem; font-weight: 700; }
         
         .btn-exp { padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 800; font-size: 0.6rem; color: white; margin-left: 4px; transition: 0.2s; }
-        .btn-exp:hover { opacity: 0.8; transform: scale(1.05); }
         .xlsx { background: #166534; } .pdf { background: #991b1b; }
         
         .search-input { width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #e2e8f0; font-size: 0.8rem; }
@@ -115,9 +115,14 @@
                     </div>
                 </div>
                 <div class="scroll">
-                    <table id="tablaG">
+                    <table id="tablaG" data-dir="asc">
                         <thead>
-                            <tr><th>VOTANTE</th><th>CEDULA</th><th>PUESTO</th><th>COM</th></tr>
+                            <tr>
+                                <th onclick="sortTable('tablaG', 0)">VOTANTE ↕️</th>
+                                <th onclick="sortTable('tablaG', 1)">CEDULA ↕️</th>
+                                <th onclick="sortTable('tablaG', 2)">PUESTO ↕️</th>
+                                <th onclick="sortTable('tablaG', 3)">COM ↕️</th>
+                            </tr>
                         </thead>
                         <tbody id="bodyM"></tbody>
                     </table>
@@ -135,9 +140,12 @@
                     </div>
                 </div>
                 <div class="scroll">
-                    <table id="tablaLid">
+                    <table id="tablaLid" data-dir="desc">
                         <thead>
-                            <tr><th>LÍDER</th><th style="text-align:center">VOTOS</th></tr>
+                            <tr>
+                                <th onclick="sortTable('tablaLid', 0)">LÍDER ↕️</th>
+                                <th onclick="sortTable('tablaLid', 1, true)" style="text-align:center">VOTOS ↕️</th>
+                            </tr>
                         </thead>
                         <tbody id="bodyLid"></tbody>
                     </table>
@@ -172,6 +180,26 @@
 
     function norm(t) { return t ? t.toString().toUpperCase().trim() : ""; }
     
+    // FUNCIÓN DE ORDENAMIENTO REUTILIZABLE
+    function sortTable(tableId, n, isNumeric = false) {
+        let table = document.getElementById(tableId);
+        let rows = Array.from(table.rows).slice(1);
+        let dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
+        
+        rows.sort((a, b) => {
+            let x = a.cells[n].innerText.toUpperCase();
+            let y = b.cells[n].innerText.toUpperCase();
+            
+            if (isNumeric) {
+                return dir === "asc" ? parseInt(x) - parseInt(y) : parseInt(y) - parseInt(x);
+            }
+            return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
+        });
+        
+        table.setAttribute("data-dir", dir);
+        rows.forEach(r => table.tBodies[0].appendChild(r));
+    }
+
     async function login() {
         const { value: p } = await Swal.fire({ title: 'LOGIN ADMIN', input: 'password', confirmButtonColor: '#0f172a' });
         if(p === 'ADMIN2026') { 
@@ -273,6 +301,7 @@
         Array.from(document.getElementById('bodyM').rows).forEach(r => r.style.display = r.innerText.toUpperCase().includes(q) ? '' : 'none');
     }
 
+    // Funciones de exportación
     function expRanking(t) {
         const rows = Array.from(document.querySelectorAll("#bodyLid tr")).map(r => [r.cells[0].innerText, r.cells[1].innerText]);
         if(t==='xlsx'){
