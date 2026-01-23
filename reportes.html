@@ -3,38 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa de Calor Electoral Cali 2026</title>
+    <title>Dashboard Electoral Cali 2026 - Mapa de Calor</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
-        :root { --blue: #0f172a; --white: #ffffff; }
-        body { font-family: 'Inter', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; text-transform: uppercase; }
+        :root { --blue: #0f172a; --green: #10b981; --bg: #f8fafc; --white: #ffffff; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; text-transform: uppercase; }
         .container { max-width: 1400px; margin: auto; display: none; }
-        .card { background: var(--white); border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        #map { height: 600px; border-radius: 12px; background: #e2e8f0; border: 2px solid var(--blue); }
-        .legend { background: white; padding: 10px; line-height: 18px; color: #555; border-radius: 5px; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
-        .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; }
-        .info-panel { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .stat { background: var(--blue); color: white; padding: 20px; border-radius: 12px; text-align: center; }
-        .stat h2 { margin: 0; font-size: 2.5rem; }
+        .card { background: var(--white); border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 24px; border: 1px solid #e2e8f0; }
+        .top-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 24px; }
+        .map-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; }
+        .stat-num { font-size: 2.8rem; font-weight: 800; color: var(--blue); text-align: center; }
+        .stat-label { text-align: center; color: #64748b; font-size: 0.75rem; font-weight: 700; }
+        #map { height: 500px; border-radius: 12px; border: 2px solid var(--blue); }
+        .progress-bg { background: #f1f5f9; height: 14px; border-radius: 7px; overflow: hidden; margin: 12px 0; }
+        .progress-fill { background: linear-gradient(90deg, #10b981, #059669); height: 100%; width: 0%; transition: 1.5s; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8fafc; padding: 14px; text-align: left; font-size: 0.75rem; cursor: pointer; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 600; }
+        .scroll-area { max-height: 450px; overflow-y: auto; border-radius: 12px; }
+        .badge { padding: 4px 10px; border-radius: 8px; font-weight: 700; font-size: 0.7rem; }
+        .bg-blue { background: #dbeafe; color: #1e40af; }
+        .bg-green { background: #d1fae5; color: #065f46; }
+        input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; margin-bottom: 15px; }
+        .btn-excel { background: #1D6F42; color: white; width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
-    <div class="info-panel">
-        <div class="stat"><strong>TOTAL CENSO</strong><h2 id="tVotos">0</h2></div>
-        <div class="stat" style="background: #10b981;"><strong>ZONA LÍDER</strong><h2 id="topComuna">-</h2></div>
-        <div class="stat" style="background: #f59e0b;"><strong>META 5.000</strong><h2 id="pMeta">0%</h2></div>
+    <div class="top-grid">
+        <div class="card">
+            <strong>📊 AVANCE ESTRATÉGICO 2026</strong>
+            <div class="stat-num" id="totalCenso">0</div>
+            <div class="progress-bg"><div id="barraMeta" class="progress-fill"></div></div>
+            <span id="porcLabel" style="font-size:0.8rem; color:#64748b">META 5.000 VOTOS</span>
+        </div>
+        <div class="card"><div class="stat-label">VOTOS DIRECTOS</div><div class="stat-num" id="totalD" style="color:#10b981">0</div></div>
+        <div class="card"><div class="stat-label">RED INDIRECTA</div><div class="stat-num" id="totalI" style="color:#6366f1">0</div></div>
+    </div>
+
+    <div class="map-grid">
+        <div class="card">
+            <h4 style="margin-top:0">🗺️ MAPA DE CALOR REAL (INTENSIDAD POR VOTOS)</h4>
+            <div id="map"></div>
+        </div>
+        <div class="card">
+            <h4 style="margin-top:0">⭐ RANKING LIDERAZGO</h4>
+            <div class="scroll-area">
+                <table>
+                    <thead><tr><th onclick="sortR('n')">LÍDER ↕</th><th onclick="sortR('v')">VOTOS ↕</th></tr></thead>
+                    <tbody id="cuerpoLideres"></tbody>
+                </table>
+            </div>
+            <button onclick="exportarLideres()" class="btn-excel" style="margin-top:15px">DESCARGAR RANKING</button>
+        </div>
     </div>
 
     <div class="card">
-        <h3 style="margin-top:0">🗺️ MAPA DE CALOR: CONCENTRACIÓN DE VOTOS POR COMUNA</h3>
-        <div id="map"></div>
+        <h4 style="margin-top:0">📋 BASE MAESTRA</h4>
+        <input type="text" id="buscador" onkeyup="filtrar()" placeholder="🔍 BUSCAR POR NOMBRE, CÉDULA, TELÉFONO O PUESTO...">
+        <div class="scroll-area" style="max-height:500px">
+            <table id="tablaMaestra">
+                <thead>
+                    <tr>
+                        <th onclick="sortM('Nombres y apellidos')">VOTANTE ↕</th>
+                        <th onclick="sortM('cedula')">CÉDULA ↕</th>
+                        <th onclick="sortM('telefono')">TELÉFONO ↕</th>
+                        <th onclick="sortM('comuna')">COMUNA ↕</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoDetalle"></tbody>
+            </table>
+        </div>
+        <button onclick="exportarTodo()" class="btn-excel" style="background:#0f172a; margin-top:20px">DESCARGAR CENSO COMPLETO</button>
     </div>
 </div>
 
@@ -43,95 +91,119 @@
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    let baseDatos = [], map, geoJsonLayer;
+    let baseDatos = [], lideresRosse = [], map, geoJsonLayer;
+    let sR = { c: 'v', a: false }, sM = { c: 'comuna', a: true };
 
-    // Matriz de resolución completa
-    const MATRIZ = {
-        "1": ["ACEVEDO", "GOMEZ", "MUTIS", "CELESTINO", "TERRON"],
-        "2": ["CAM", "FRANCIA", "LA FLORA", "VIPASA", "VERSALLES"],
-        "7": ["MALLARINO", "10 DE MAYO", "CELMIRA", "PUMAREJO"],
-        "12": ["SANTA FE", "VILLA DEL SUR", "SINDICAL", "FENALCO"],
-        "19": ["CIEGOS", "SORDOS", "COLISEO", "PASCUAL", "ESTADIO", "LIDO"],
-        "20": ["SILOE", "MULTIPROPOSITO", "LLERAS"],
-        "22": ["ICESI", "JAVERIANA", "PANCE", "BERCHMANS"]
+    // MATRIZ COMPLETA DE RESOLUCIÓN
+    const MATRIZ_CALI = {
+        "1": ["ACEVEDO", "GOMEZ", "MUTIS", "CELESTINO", "GARCES", "AGUACATAL", "TERRON"],
+        "2": ["CAM", "FRANCIA", "GONZAGA", "ALAMOS", "LA FLORA", "VIPASA", "CHIPICHAPE", "VERSALLES"],
+        "7": ["10 DE MAYO", "DIEZ DE MAYO", "PUMAREJO", "MALLARINO", "CELMIRA"],
+        "12": ["SANTA FE", "VILLA DEL SUR", "SINDICAL", "RODEO", "FENALCO"],
+        "19": ["CIEGOS", "SORDOS", "COLISEO", "PASCUAL", "ESTADIO", "LIDO", "TEQUENDAMA"],
+        "22": ["ICESI", "JAVERIANA", "PANCE", "JARDIN", "BERCHMANS"],
+        "RURAL": ["HORMIGUERO", "MONTEBELLO", "FELIDIA", "SALADITO", "BUITRERA"]
     };
 
+    function getC(p) {
+        if(!p) return "SIN ASIGNAR";
+        const t = p.toUpperCase();
+        for(let [c, k] of Object.entries(MATRIZ_CALI)) { if(k.some(x => t.includes(x))) return c; }
+        return "OTRA";
+    }
+
     async function iniciar() {
-        const { value: pass } = await Swal.fire({ title: 'ACCESO MAPA', input: 'password', confirmButtonColor: '#0f172a' });
-        if(pass === 'ADMIN2026') { 
-            document.getElementById('app').style.display = 'block'; 
-            initMap(); 
-            await cargarDatos(); 
-        }
+        const { value: pass } = await Swal.fire({ title: 'ADMINISTRACIÓN', input: 'password', confirmButtonColor: '#0f172a' });
+        if(pass === 'ADMIN2026') { document.getElementById('app').style.display = 'block'; initMap(); await cargar(); }
     }
 
     function initMap() {
         map = L.map('map').setView([3.4372, -76.5225], 12);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
     }
 
-    async function cargarDatos() {
-        const { data } = await _supabase.from('VOTANTES').select('puesto');
-        const conteo = {};
+    async function cargar() {
+        const { data } = await _supabase.from('VOTANTES').select('*');
+        baseDatos = data.map(v => ({...v, comuna: getC(v.puesto), rel: v.lider === "Rosse Mary Cabal Franco" ? "D" : "I"}));
         
-        data.forEach(v => {
-            const p = (v.puesto || "").toUpperCase();
-            for(let [c, claves] of Object.entries(MATRIZ)) {
-                if(claves.some(k => p.includes(k))) {
-                    conteo[c] = (conteo[c] || 0) + 1;
-                    break;
-                }
-            }
-        });
-
-        actualizarStats(data.length, conteo);
-        cargarPoligonos(conteo);
-    }
-
-    function actualizarStats(total, conteo) {
-        document.getElementById('tVotos').innerText = total;
-        document.getElementById('pMeta').innerText = ((total/5000)*100).toFixed(1) + "%";
+        const hijos = baseDatos.filter(v => v.lider === "Rosse Mary Cabal Franco");
+        lideresRosse = hijos.map(h => ({ n: h["Nombres y apellidos"], v: baseDatos.filter(v => v.lider === h["Nombres y apellidos"]).length }));
         
-        let maxC = "-", maxV = 0;
-        for(let c in conteo) { if(conteo[c] > maxV) { maxV = conteo[c]; maxC = "COMUNA " + c; } }
-        document.getElementById('topComuna').innerText = maxC;
+        actualizarUI();
+        pintarMapa();
     }
 
     function getColor(v, max) {
-        if (v === 0) return '#f1f5f9';
-        return v > max * 0.75 ? '#b91c1c' : // Rojo oscuro (Caliente)
-               v > max * 0.50 ? '#f97316' : // Naranja
-               v > max * 0.25 ? '#fbbf24' : // Amarillo
-                                '#fde68a';   // Amarillo claro
+        if (v === 0) return 'transparent';
+        return v > max * 0.7 ? '#ff0000' : // ROJO (MUCHO)
+               v > max * 0.4 ? '#ff8000' : // NARANJA
+               v > 0 ? '#00ff00' :         // VERDE (POCO)
+               'transparent';
     }
 
-    function cargarPoligonos(conteo) {
-        const maxV = Math.max(...Object.values(conteo), 1);
-        
-        // URL de GeoJSON oficial de Cali (Comunas)
+    function pintarMapa() {
+        const conteo = {};
+        baseDatos.forEach(v => { if(v.comuna !== "OTRA") conteo[v.comuna] = (conteo[v.comuna] || 0) + 1; });
+        const max = Math.max(...Object.values(conteo), 1);
+
+        if(geoJsonLayer) map.removeLayer(geoJsonLayer);
+
+        // Cargamos GeoJSON oficial de comunas de Cali
         fetch('https://raw.githubusercontent.com/skatpe/cali-geojson/master/comunas.json')
-        .then(res => res.json())
-        .then(geojson => {
-            geoJsonLayer = L.geoJson(geojson, {
-                style: function(feature) {
-                    const c = feature.properties.comuna || feature.properties.nombre;
-                    // Limpiamos el nombre para que coincida con nuestra matriz (ej: "Comuna 7" -> "7")
-                    const idC = c.toString().replace(/\D/g, ""); 
+        .then(r => r.json())
+        .then(data => {
+            geoJsonLayer = L.geoJson(data, {
+                style: (f) => {
+                    const cNum = f.properties.comuna.toString().replace(/\D/g, "");
+                    const vCount = conteo[cNum] || 0;
                     return {
-                        fillColor: getColor(conteo[idC] || 0, maxV),
+                        fillColor: getColor(vCount, max),
                         weight: 2,
                         opacity: 1,
                         color: 'white',
-                        fillOpacity: 0.7
+                        fillOpacity: 0.6
                     };
                 },
-                onEachFeature: function(feature, layer) {
-                    const idC = (feature.properties.comuna || "").toString().replace(/\D/g, "");
-                    layer.bindPopup(`<b>COMUNA ${idC}</b><br>Votos: ${conteo[idC] || 0}`);
+                onEachFeature: (f, l) => {
+                    const cNum = f.properties.comuna.toString().replace(/\D/g, "");
+                    l.bindPopup(`<b>COMUNA ${cNum}</b><br>Votos: ${conteo[cNum] || 0}`);
                 }
             }).addTo(map);
         });
     }
+
+    function actualizarUI() {
+        document.getElementById('totalCenso').innerText = baseDatos.length;
+        document.getElementById('totalD').innerText = baseDatos.filter(v => v.rel === "D").length;
+        document.getElementById('totalI').innerText = baseDatos.filter(v => v.rel === "I").length;
+        const p = (baseDatos.length / 5000) * 100;
+        document.getElementById('barraMeta').style.width = Math.min(p, 100) + '%';
+        document.getElementById('porcLabel').innerText = `${p.toFixed(1)}% DE LA META`;
+        renderLideres();
+        renderMaestra();
+    }
+
+    function renderLideres() {
+        lideresRosse.sort((a,b) => (a[sR.c] > b[sR.c] ? 1 : -1) * (sR.a ? 1 : -1));
+        document.getElementById('cuerpoLideres').innerHTML = lideresRosse.map(l => `<tr><td><b>${l.n}</b></td><td style="text-align:center"><span class="badge bg-green">${l.v}</span></td></tr>`).join('');
+    }
+
+    function renderMaestra() {
+        baseDatos.sort((a,b) => (a[sM.c] > b[sM.c] ? 1 : -1) * (sM.a ? 1 : -1));
+        document.getElementById('cuerpoDetalle').innerHTML = baseDatos.map(v => `<tr><td><b>${v["Nombres y apellidos"]}</b></td><td>${v.cedula}</td><td>${v.telefono||'--'}</td><td><span class="badge bg-blue">COMUNA ${v.comuna}</span></td></tr>`).join('');
+    }
+
+    function sortR(c){ sR.c=c; sR.a=!sR.a; renderLideres(); }
+    function sortM(c){ sM.c=c; sM.a=!sM.a; renderMaestra(); }
+
+    function filtrar() {
+        const val = document.getElementById('buscador').value.toUpperCase();
+        const filas = document.getElementById('cuerpoDetalle').getElementsByTagName('tr');
+        for(let f of filas) f.style.display = f.innerText.toUpperCase().includes(val) ? '' : 'none';
+    }
+
+    function exportarLideres() { const ws = XLSX.utils.json_to_sheet(lideresRosse); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Ranking"); XLSX.writeFile(wb, "Ranking.xlsx"); }
+    function exportarTodo() { const ws = XLSX.utils.json_to_sheet(baseDatos); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Censo"); XLSX.writeFile(wb, "Censo_Completo.xlsx"); }
 
     iniciar();
 </script>
