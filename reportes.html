@@ -19,24 +19,18 @@
         :root { --blue: #0f172a; --green: #10b981; --accent: #6366f1; --bg: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 10px; text-transform: uppercase; }
         .container { max-width: 1600px; margin: auto; display: none; }
-        
         .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 20px; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .stat-num { font-size: 2.8rem; font-weight: 900; color: var(--blue); line-height: 1; margin: 10px 0; }
-        
         .meta-bg { background: #e2e8f0; border-radius: 50px; height: 12px; margin-top: 10px; overflow: hidden; }
         .meta-fill { background: linear-gradient(90deg, #10b981, #34d399); height: 100%; transition: 1s ease; }
-
         .main-layout { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
         @media (max-width: 1000px) { .main-layout { grid-template-columns: 1fr; } }
-
         #map { height: 450px; width: 100%; border-radius: 12px; border: 1px solid #cbd5e1; z-index: 1; }
-        
         .scroll { max-height: 450px; overflow-y: auto; border-radius: 8px; border: 1px solid #f1f5f9; }
         table { width: 100%; border-collapse: collapse; background: white; }
         th { background: var(--blue); color: white; padding: 12px; text-align: left; cursor: pointer; position: sticky; top: 0; font-size: 0.7rem; z-index: 5; }
         td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 0.75rem; font-weight: 700; }
-        
         .btn-exp { padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-size: 0.65rem; margin-right: 5px; color: white; }
         .xlsx { background: #166534; }
         .pdf { background: #991b1b; }
@@ -46,7 +40,7 @@
 <body>
 
 <div id="app" class="container">
-    <h2 style="text-align: center; color: var(--blue);">PANEL DE ADMINISTRACIÓN ESTRATÉGICA</h2>
+    <h2 style="text-align: center; color: var(--blue); margin-top: 0;">PANEL DE ADMINISTRACIÓN</h2>
 
     <div class="stats-grid">
         <div class="card">
@@ -74,7 +68,7 @@
                     <button class="btn-exp pdf" onclick="expComunas('pdf')">PDF</button>
                 </div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 280px; gap: 15px;" id="mapContainer">
+            <div style="display: grid; grid-template-columns: 1fr 280px; gap: 15px;" id="mapWrapper">
                 <div id="map"></div>
                 <div>
                     <canvas id="donaComunas"></canvas>
@@ -85,7 +79,7 @@
 
         <div class="card">
             <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:10px">
-                <h4 style="margin:0">🏆 RANKING ROSSE (INC. 0)</h4>
+                <h4 style="margin:0">🏆 RANKING LÍDERES</h4>
                 <div>
                     <button class="btn-exp xlsx" onclick="expRanking('xlsx')">EXCEL</button>
                     <button class="btn-exp pdf" onclick="expRanking('pdf')">PDF</button>
@@ -112,7 +106,7 @@
         </div>
         <input type="text" id="bus" onkeyup="filtrar()" class="search-input" placeholder="BUSCAR POR NOMBRE, CÉDULA O PUESTO...">
         <div class="scroll">
-            <table id="tablaG">
+            <table id="tablaG" data-dir="asc">
                 <thead>
                     <tr>
                         <th onclick="sortTable(0)">VOTANTE ↕️</th>
@@ -147,7 +141,7 @@
     function normalizar(t) { return t ? t.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, "") : ""; }
 
     async function login() {
-        const { value: p } = await Swal.fire({ title: 'ACCESO ADMINISTRADOR', input: 'password', confirmButtonColor: '#0f172a' });
+        const { value: p } = await Swal.fire({ title: 'PANEL DE CONTROL', input: 'password', confirmButtonColor: '#0f172a' });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
             initMap();
@@ -156,10 +150,11 @@
     }
 
     function initMap() {
+        if(map) return;
         map = L.map('map').setView([3.42, -76.52], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         capaBurbujas = L.layerGroup().addTo(map);
-        setTimeout(() => map.invalidateSize(), 500);
+        setTimeout(() => map.invalidateSize(), 600);
     }
 
     async function cargarBase() {
@@ -168,10 +163,7 @@
         const { data: vData } = await _supabase.from('VOTANTES').select('*');
         votantes = vData.map(v => {
             const txt = normalizar(v.puesto);
-            let m = puestosOficiales.find(po => {
-                const ofi = normalizar(po.nombre_puesto);
-                return ofi.includes(txt) || txt.includes(ofi);
-            });
+            let m = puestosOficiales.find(po => normalizar(po.nombre_puesto).includes(txt) || txt.includes(normalizar(po.nombre_puesto)));
             return { ...v, comuna: m ? m.comuna : "OTRA", oficial: m ? m.nombre_puesto : "PENDIENTE" };
         });
         renderUI();
@@ -203,7 +195,7 @@
 
         capaBurbujas.clearLayers();
         Object.entries(cMap).forEach(([c, t]) => {
-            if(GPS[c]) L.circle(GPS[c], { color: '#6366f1', radius: 300 + (t*20), fillOpacity: 0.6 }).addTo(capaBurbujas).bindPopup(`COMUNA ${c}: ${t} VOTOS`);
+            if(GPS[c]) L.circle(GPS[c], { color: '#6366f1', radius: 300 + (t*15), fillOpacity: 0.6 }).addTo(capaBurbujas).bindPopup(`COMUNA ${c}: ${t} REGISTROS`);
         });
 
         if(chartDona) chartDona.destroy();
@@ -214,67 +206,29 @@
             options: { plugins: { legend: { display: false } } }
         });
 
-        document.getElementById('donaLegend').innerHTML = eti.map(e => `<div style="display:flex; justify-content:space-between"><span>COMUNA ${e}</span><span>${cCom[e]}</span></div>`).join('');
+        document.getElementById('donaLegend').innerHTML = eti.map(e => `<div style="display:flex; justify-content:space-between; border-bottom:1px dashed #eee; margin-bottom:2px"><span>COMUNA ${e}</span><span>${cCom[e]}</span></div>`).join('');
 
         document.getElementById('bodyM').innerHTML = votantes.map(v=>`
-            <tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.puesto}<br><small>🎯 ${v.oficial}</small></td><td>C-${v.comuna}</td></tr>
+            <tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.puesto}<br><small style="color:var(--accent)">🎯 ${v.oficial}</small></td><td>C-${v.comuna}</td></tr>
         `).join('');
     }
 
-    // Funciones de Exportación
-    function expRanking(tipo) {
-        const data = Array.from(document.querySelectorAll("#bodyLid tr")).map(tr => ({ Lider: tr.cells[0].innerText, Votos: tr.cells[1].innerText }));
-        if(tipo === 'xlsx') {
-            const ws = XLSX.utils.json_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Ranking");
-            XLSX.writeFile(wb, "Ranking_Lideres.xlsx");
-        } else {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text("RANKING DE LÍDERES - ROSSE MARY", 10, 10);
-            doc.autoTable({ html: '#tablaLid' });
-            doc.save("Ranking_Lideres.pdf");
-        }
-    }
-
-    function expBase(tipo) {
-        const data = votantes.map(v => ({ Nombre: v["Nombres y apellidos"], Cedula: v.cedula, Puesto: v.puesto, Comuna: v.comuna, Lider: v.lider }));
-        if(tipo === 'xlsx') {
-            const ws = XLSX.utils.json_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Base_General");
-            XLSX.writeFile(wb, "Censo_General.xlsx");
-        } else {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text("CENSO GENERAL DE VOTANTES", 10, 10);
-            doc.autoTable({ head: [['Nombre', 'Cedula', 'Puesto', 'Comuna']], body: votantes.map(v => [v["Nombres y apellidos"], v.cedula, v.puesto, v.comuna]) });
-            doc.save("Censo_General.pdf");
-        }
-    }
-
-    function expComunas(tipo) {
-        const table = document.getElementById("donaLegend").innerText.split('\n').map(l => l.split(' '));
-        if(tipo === 'xlsx') {
-            const ws = XLSX.utils.json_to_sheet(table);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Comunas");
-            XLSX.writeFile(wb, "Resumen_Comunas.xlsx");
-        } else {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text("RESUMEN POR COMUNAS", 10, 10);
-            doc.autoTable({ head: [['Comuna', 'Votos']], body: table });
-            doc.save("Resumen_Comunas.pdf");
-        }
+    function sortTable(n) {
+        let table = document.getElementById("tablaG"), rows = Array.from(table.rows).slice(1), dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
+        rows.sort((a, b) => {
+            let x = a.cells[n].innerText.toLowerCase(), y = b.cells[n].innerText.toLowerCase();
+            return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
+        });
+        table.setAttribute("data-dir", dir);
+        rows.forEach(r => table.tBodies[0].appendChild(r));
     }
 
     function ordenarRank(n) {
         let table = document.getElementById("tablaLid"), rows = Array.from(table.rows).slice(1), dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
         rows.sort((a,b) => {
             let x = a.cells[n].innerText.toLowerCase(), y = b.cells[n].innerText.toLowerCase();
-            return n === 1 ? (dir === "asc" ? x - y : y - x) : (dir === "asc" ? x.localeCompare(y) : y.localeCompare(x));
+            if(n === 1) return dir === "asc" ? parseInt(x) - parseInt(y) : parseInt(y) - parseInt(x);
+            return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
         });
         table.setAttribute("data-dir", dir);
         rows.forEach(r => table.tBodies[0].appendChild(r));
@@ -284,6 +238,45 @@
         const q = normalizar(document.getElementById('bus').value);
         const filas = document.getElementById('bodyM').getElementsByTagName('tr');
         for(let f of filas) f.style.display = normalizar(f.innerText).includes(q) ? '' : 'none';
+    }
+
+    // Exportación
+    function expRanking(tipo) {
+        if(tipo==='xlsx'){
+            const ws = XLSX.utils.table_to_sheet(document.getElementById('tablaLid'));
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Ranking");
+            XLSX.writeFile(wb, "Ranking_Lideres.xlsx");
+        } else {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.text("RANKING DE LÍDERES", 10, 10); doc.autoTable({ html: '#tablaLid' });
+            doc.save("Ranking.pdf");
+        }
+    }
+
+    function expBase(tipo) {
+        if(tipo==='xlsx'){
+            const ws = XLSX.utils.json_to_sheet(votantes.map(v=>({Nombre: v["Nombres y apellidos"], Cedula:v.cedula, Puesto:v.puesto, Comuna:v.comuna, Lider:v.lider})));
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Base");
+            XLSX.writeFile(wb, "Censo_General.xlsx");
+        } else {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.text("CENSO GENERAL MAESTRO", 10, 10);
+            doc.autoTable({ head:[['Nombre','Cedula','Puesto','Comuna','Lider']], body: votantes.map(v=>[v["Nombres y apellidos"], v.cedula, v.puesto, v.comuna, v.lider]) });
+            doc.save("Censo_General.pdf");
+        }
+    }
+
+    function expComunas(tipo) {
+        const resumen = document.getElementById('donaLegend').innerText;
+        if(tipo==='xlsx'){
+            const blob = new Blob([resumen], {type: "text/plain"});
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'Resumen_Comunas.txt'; a.click();
+        } else {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.text("RESUMEN DE COMUNAS", 10, 10);
+            doc.text(resumen, 10, 20); doc.save("Comunas.pdf");
+        }
     }
 
     login();
