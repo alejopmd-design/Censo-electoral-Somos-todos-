@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Electoral Cali 2026 - Master Organizado</title>
+    <title>Dashboard Electoral Cali 2026 - Resolución Puestos</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -25,9 +25,7 @@
         .progress-bg { background: #f1f5f9; height: 14px; border-radius: 7px; overflow: hidden; margin: 12px 0; }
         .progress-fill { background: linear-gradient(90deg, #10b981, #059669); height: 100%; width: 0%; transition: 1.5s; }
 
-        /* Transformación de todas las letras de la tabla a MAYÚSCULAS */
         table { width: 100%; border-collapse: collapse; text-transform: uppercase; }
-        
         th { background: #f8fafc; padding: 14px; text-align: left; font-size: 0.75rem; color: #64748b; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; cursor: pointer; user-select: none; }
         th:hover { background: #f1f5f9; color: var(--blue); }
         td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
@@ -58,12 +56,12 @@
     </div>
 
     <div class="card">
-        <input type="text" id="buscador" onkeyup="filtrar()" placeholder="🔍 FILTRO RÁPIDO: NOMBRE, CÉDULA, PUESTO O COMUNA...">
+        <input type="text" id="buscador" onkeyup="filtrar()" placeholder="🔍 BUSCAR POR NOMBRE, CÉDULA, PUESTO O COMUNA...">
     </div>
 
     <div class="mid-grid">
         <div class="card">
-            <h4 style="margin-top:0">⭐ RANKING DE LÍDERES (ORDEN: MAYOR A MENOR)</h4>
+            <h4 style="margin-top:0">⭐ RANKING DE LÍDERES</h4>
             <div class="scroll-area">
                 <table>
                     <thead>
@@ -84,7 +82,7 @@
     </div>
 
     <div class="card">
-        <h4 style="margin-top:0">📋 BASE MAESTRA (ORDEN: COMUNA 1 A 22)</h4>
+        <h4 style="margin-top:0">📋 BASE MAESTRA (POR COMUNAS)</h4>
         <div class="scroll-area" style="max-height:600px">
             <table id="tablaMaestra">
                 <thead>
@@ -113,36 +111,22 @@
     let myChart;
     let sortConfig = { tableL: { col: 'cantidad', asc: false }, tableM: { col: 'comuna', asc: true } };
 
+    // MATRIZ ACTUALIZADA SEGÚN RESOLUCIÓN DE AYER
     const MATRIZ_CALI = {
-        "1": ["CABAL", "SALADITO", "TERRON", "VISTA HERMOSA", "AMANDA", "MONTAÑUELAS", "BAJO AGUACATAL", "ESTRELLA"],
-        "2": ["CAM", "FRANCIA", "GONZAGA", "ALAMOS", "LA FLORA", "VIPASA", "GRANADA", "CENTENARIO", "ATENAS", "SANTA TERESITA", "NORMANDIA", "JUANAMBU", "MENA", "CHIPICHAPE", "VERSALLES", "LICEO BENALCAZAR"],
-        "3": ["LIBRADA", "SAN ANTONIO", "PEÑON", "JUSTICIA", "MERCED", "SANTA ROSA", "SAN PASCUAL", "SAN NICOLAS", "ELOY", "PILOTO", "FRAY DAMIAN", "CORAJE"],
-        "4": ["SANTANDER", "ISAACS", "OLAYA", "PORVENIR", "POPULAR", "GUILLERMO VALENCIA", "METROPOLITANO SEDE", "JORGE ISAACS"],
-        "5": ["INEM", "ZAMORANO", "METROPOLITANO", "RIVERA", "VILLAS DE VERACRUZ", "CONFENALCO", "MANUEL BELTRAN SEDE 2", "CHIMINANGOS 1", "SALOMIA SEDE"],
-        "6": ["SALOMIA", "GUAYACANES", "CHIMINANGOS", "FLORALIA", "ALCAZARES", "PETECUY", "CALIMA", "COMFANDI CALIMA", "SENIOR", "PUEBLO NUEVO"],
-        "7": ["CAICEDO", "ALFONSO LOPEZ", "SIETE DE AGOSTO", "MALLARINO", "PUERTO MALLARINO", "FUENMAYOR", "VILLAMAGRE", "BELISARIO"],
-        "8": ["MARIANO RAMOS SEDE", "CAMACHO", "AMERICAS", "INDUSTRIAL", "MUNICIPAL", "PRIMAVERAS", "SANTA MONICA", "URIBE", "BENJAMIN HERRERA"],
-        "9": ["TAFUR", "ARANJUEZ", "GUAYAQUIL", "BRETAÑA", "JUNIN", "ALAMEDA", "CHAMPAGNAT", "MANUELA CANIZARES", "SAN FANDILA"],
-        "10": ["LLOREDA", "GUABAL", "SAN CRISTOBAL", "DEPARTAMENTAL", "PASOANCHO", "COLSEGUROS", "SELVA", "PANAMERICANO", "SANTA HELENA"],
-        "11": ["SAN CARLOS", "HOLGUIN", "ESPERANZA", "CIUDAD DE CALI", "INDEPENDENCIA", "LA CASCADA", "REPUBLICA DE ISRAEL SEDE", "PRADOS DE ORIENTE"],
-        "12": ["VILLA DEL SUR", "SINDICAL", "VILLANUEVA", "RODEO", "FLORESTA", "ASTURIAS", "FENALCO", "EDUARDO SANTOS", "PROVIVIENDA"],
-        "13": ["DIAMANTE", "TRIANA", "POBLADO", "CHARCO AZUL", "PONDAJE", "VILLACOLOMBIA", "CALIPSO", "RICARDO NIETO", "AMAZONAS"],
-        "14": ["MARROQUIN", "ALIRIO MORA", "PUERTA DEL SOL", "LAS ORQUIDEAS", "MANUELA BELTRAN SEDE 1", "PROSPERO", "TALANGA SEDE"],
-        "15": ["CORDOBA", "LLANO VERDE", "RETIRO", "MOJICA", "VALLADO", "LAUREANO", "MORICHAL"],
-        "16": ["SUCRE", "ISRAEL", "UNION DE VIVIENDA", "MARIANO RAMOS PRINCIPAL", "GRAN COLOMBIA", "CRISTOBAL COLON"],
-        "17": ["UNIVALLE", "INGENIO", "CANEY", "LIMONAR", "CAPRI", "MAYOTTE", "NUEVO LATIR", "LACORDAIRE", "LILI", "COLEGIO NUEVO LATIR", "VALLE DEL LILI", "CIUDADELA EDUCATIVA"],
-        "18": ["POLITECNICO", "MELENDEZ", "CARVAJAL", "JORDAN", "ALTOS", "CUARTA BRIGADA", "BRIGADA", "SANTA ANITA"],
-        "22": ["ICESI", "JAVERIANA", "PANCE", "JARDIN", "SAN BUENAVENTURA", "ALEMAN", "LUMEN", "BERCHMANS", "BENNETT", "CANDELARIA"],
-        "19": ["COLISEO EL PUEBLO", "PASCUAL GUERRERO", "ESTADIO", "EUSTAQUIO", "LIDO", "TEQUENDAMA", "SANTIAGO", "CUARTO DE LEGUA", "CAÑAVERALEJO", "SAN FERNANDO"],
-        "20": ["MULTIPROPOSITO", "SILOE", "LLERAS", "BELISARIO", "BRISAS DE MAYO"],
-        "21": ["DESEPAZ", "COMPARTIR", "TALANGA", "VALLE GRANDE", "POTRERO GRANDE", "REMIGIO", "CIUDADELA DESEPAZ"]
+        "1": ["ACEVEDO", "GOMEZ", "MUTIS", "CELESTINO", "GARCES", "AGUACATAL"],
+        "7": ["10 DE MAYO", "DIEZ DE MAYO", "PUMAREJO", "MALLARINO", "CELMIRA"],
+        "12": ["SANTA FE", "VILLA DEL SUR", "SINDICAL", "RODEO", "FENALCO"],
+        "19": ["CIEGOS", "SORDOS", "COLISEO", "PASCUAL", "ESTADIO", "LIDO"],
+        "RURAL": ["HORMIGUERO", "MONTEBELLO", "FELIDIA", "SALADITO", "BUITRERA"]
     };
 
     function obtenerComuna(puesto) {
         if(!puesto) return "SIN ASIGNAR";
         const t = puesto.toUpperCase();
-        for(let [c, claves] of Object.entries(MATRIZ_CALI)) { if(claves.some(k => t.includes(k))) return "COMUNA " + c; }
-        return "OTRA / RURAL";
+        for(let [c, claves] of Object.entries(MATRIZ_CALI)) { 
+            if(claves.some(k => t.includes(k))) return c === "RURAL" ? "RURAL" : "COMUNA " + c; 
+        }
+        return "OTRA / REVISAR";
     }
 
     async function iniciar() {
@@ -152,20 +136,22 @@
 
     async function cargar() {
         const { data } = await _supabase.from('VOTANTES').select('*');
-        // Procesar datos y asignar comuna
-        baseDatos = data.map(v => ({...v, comuna: obtenerComuna(v.puesto), relacion: v.lider === "Rosse Mary Cabal Franco" ? "DIRECTO" : "INDIRECTO"}));
-        
-        // Orden Inicial Maestro: Comuna 1, 2, 3...
+        baseDatos = data.map(v => ({
+            ...v, 
+            comuna: obtenerComuna(v.puesto), 
+            relacion: v.lider === "Rosse Mary Cabal Franco" ? "DIRECTO" : "INDIRECTO"
+        }));
         baseDatos.sort((a,b) => (a.comuna > b.comuna ? 1 : -1));
-
         procesarRosse();
         actualizar();
     }
 
     function procesarRosse() {
         const hijos = baseDatos.filter(v => v.lider === "Rosse Mary Cabal Franco");
-        lideresRosse = hijos.map(h => ({ nombre: h["Nombres y apellidos"], cantidad: baseDatos.filter(v => v.lider === h["Nombres y apellidos"]).length }));
-        // Orden Inicial Líderes: Mayor a Menor cantidad
+        lideresRosse = hijos.map(h => ({ 
+            nombre: h["Nombres y apellidos"], 
+            cantidad: baseDatos.filter(v => v.lider === h["Nombres y apellidos"]).length 
+        }));
         lideresRosse.sort((a,b) => b.cantidad - a.cantidad);
     }
 
@@ -181,54 +167,12 @@
         renderDetalle();
     }
 
-    function ordenarLideres(col) {
-        sortConfig.tableL.asc = (sortConfig.tableL.col === col) ? !sortConfig.tableL.asc : true;
-        sortConfig.tableL.col = col;
-        lideresRosse.sort((a,b) => {
-            let valA = a[col], valB = b[col];
-            return (valA > valB ? 1 : -1) * (sortConfig.tableL.asc ? 1 : -1);
-        });
-        document.getElementById('sortL1').innerText = sortConfig.tableL.col === 'nombre' ? (sortConfig.tableL.asc ? '↑' : '↓') : '↕';
-        document.getElementById('sortL2').innerText = sortConfig.tableL.col === 'cantidad' ? (sortConfig.tableL.asc ? '↑' : '↓') : '↕';
-        renderLideres();
-    }
-
-    function ordenarMaestra(col) {
-        sortConfig.tableM.asc = (sortConfig.tableM.col === col) ? !sortConfig.tableM.asc : true;
-        sortConfig.tableM.col = col;
-        baseDatos.sort((a,b) => {
-            let valA = (a[col]||'').toString().toUpperCase();
-            let valB = (b[col]||'').toString().toUpperCase();
-            // Lógica especial para ordenar comunas numéricamente dentro del texto
-            if(col === 'comuna'){
-                let numA = parseInt(valA.replace(/\D/g,'')) || 999;
-                let numB = parseInt(valB.replace(/\D/g,'')) || 999;
-                return (numA - numB) * (sortConfig.tableM.asc ? 1 : -1);
-            }
-            return (valA > valB ? 1 : -1) * (sortConfig.tableM.asc ? 1 : -1);
-        });
-        for(let i=1; i<=5; i++) document.getElementById('sortM'+i).innerText = '↕';
-        const idxMap = { 'Nombres y apellidos': 1, 'cedula': 2, 'puesto': 3, 'comuna': 4, 'relacion': 5 };
-        document.getElementById('sortM'+idxMap[col]).innerText = sortConfig.tableM.asc ? '↑' : '↓';
-        renderDetalle();
-    }
-
     function renderLideres() {
-        const tbody = document.getElementById('cuerpoLideres');
-        tbody.innerHTML = lideresRosse.map(l => `<tr><td><b>${l.nombre}</b></td><td style="text-align:center"><span class="badge bg-green">${l.cantidad}</span></td></tr>`).join('');
+        document.getElementById('cuerpoLideres').innerHTML = lideresRosse.map(l => `<tr><td><b>${l.nombre}</b></td><td style="text-align:center"><span class="badge bg-green">${l.cantidad}</span></td></tr>`).join('');
     }
 
     function renderDetalle() {
-        const tbody = document.getElementById('cuerpoDetalle');
-        tbody.innerHTML = baseDatos.map(v => `<tr><td><b>${v["Nombres y apellidos"]}</b></td><td>${v.cedula}</td><td>${v.puesto||''}</td><td><span class="badge bg-blue">${v.comuna}</span></td><td><span class="badge ${v.relacion==='DIRECTO'?'bg-green':''}">${v.relacion}</span></td></tr>`).join('');
-    }
-
-    function renderDona() {
-        const ctx = document.getElementById('chartDona');
-        const cont = {};
-        baseDatos.forEach(v => cont[v.comuna] = (cont[v.comuna] || 0) + 1);
-        if(myChart) myChart.destroy();
-        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(cont), datasets: [{ data: Object.values(cont), backgroundColor: ['#0f172a', '#10b981', '#6366f1', '#f59e0b', '#ec4899', '#ef4444', '#8b5cf6', '#06b6d4', '#94a3b8'], borderWidth: 0 }] }, options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, weight: 'bold' }, padding: 15 } } } } });
+        document.getElementById('cuerpoDetalle').innerHTML = baseDatos.map(v => `<tr><td><b>${v["Nombres y apellidos"]}</b></td><td>${v.cedula}</td><td>${v.puesto||''}</td><td><span class="badge bg-blue">${v.comuna}</span></td><td><span class="badge ${v.relacion==='DIRECTO'?'bg-green':''}">${v.relacion}</span></td></tr>`).join('');
     }
 
     function filtrar() {
@@ -237,8 +181,16 @@
         for(let f of filas) f.style.display = f.innerText.toUpperCase().includes(val) ? '' : 'none';
     }
 
-    function exportarLideres() { const ws = XLSX.utils.json_to_sheet(lideresRosse); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "RANKING"); XLSX.writeFile(wb, "RANKING_VOTOS_2026.xlsx"); }
-    function exportarTodo() { const ws = XLSX.utils.json_to_sheet(baseDatos); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "CENSO"); XLSX.writeFile(wb, "CENSO_MAESTRO_2026.xlsx"); }
+    function renderDona() {
+        const ctx = document.getElementById('chartDona');
+        const cont = {};
+        baseDatos.forEach(v => cont[v.comuna] = (cont[v.comuna] || 0) + 1);
+        if(myChart) myChart.destroy();
+        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(cont), datasets: [{ data: Object.values(cont), backgroundColor: ['#0f172a', '#10b981', '#6366f1', '#f59e0b', '#ec4899', '#ef4444'], borderWidth: 0 }] }, options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, weight: 'bold' } } } } } });
+    }
+
+    function exportarLideres() { const ws = XLSX.utils.json_to_sheet(lideresRosse); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "RANKING"); XLSX.writeFile(wb, "RANKING_2026.xlsx"); }
+    function exportarTodo() { const ws = XLSX.utils.json_to_sheet(baseDatos); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "CENSO"); XLSX.writeFile(wb, "CENSO_2026.xlsx"); }
 
     iniciar();
 </script>
