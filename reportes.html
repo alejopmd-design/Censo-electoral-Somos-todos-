@@ -29,6 +29,7 @@
         .scroll { max-height: 500px; overflow-y: auto; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; }
         th { background: var(--blue); color: white; padding: 14px; text-align: left; cursor: pointer; position: sticky; top: 0; font-size: 0.7rem; }
+        th:hover { background: #1e293b; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 700; }
         
         .badge-zero { color: #94a3b8; font-weight: 400; font-style: italic; }
@@ -58,7 +59,7 @@
 
     <div class="main-layout">
         <div class="card">
-            <h4 style="margin:0 0 15px 0">🗺️ GEORREFERENCIACIÓN POR COMUNAS (CON DESCRIPCIONES)</h4>
+            <h4 style="margin:0 0 15px 0">🗺️ GEORREFERENCIACIÓN Y DESCRIPCIONES</h4>
             <div style="display: grid; grid-template-columns: 1fr 280px; gap: 20px;">
                 <div id="map"></div>
                 <div>
@@ -69,11 +70,14 @@
         </div>
 
         <div class="card">
-            <h4 style="margin:0 0 15px 0">🏆 RANKING COMPLETO DE LIDERAZGO</h4>
+            <h4 style="margin:0 0 15px 0">🏆 RANKING COMPLETO (INCLUYE 0)</h4>
             <div class="scroll">
-                <table>
+                <table id="tablaLideres">
                     <thead>
-                        <tr><th onclick="sortLid(0)">LÍDER ↕️</th><th onclick="sortLid(1)" style="text-align:center">VOTOS ↕️</th></tr>
+                        <tr>
+                            <th onclick="ordenarLideres(0)">LÍDER ↕️</th>
+                            <th onclick="ordenarLideres(1)" style="text-align:center">VOTOS ↕️</th>
+                        </tr>
                     </thead>
                     <tbody id="bodyLid"></tbody>
                 </table>
@@ -83,14 +87,14 @@
 
     <div class="card">
         <h4 style="margin:0 0 15px 0">🔍 DETALLE MAESTRO DE COINCIDENCIAS</h4>
-        <input type="text" id="bus" onkeyup="filtrar()" class="search-input" placeholder="BUSCAR POR NOMBRE O PUESTO (EJ: 10 DE MAYO)...">
+        <input type="text" id="bus" onkeyup="filtrar()" class="search-input" placeholder="BUSCAR POR NOMBRE O PUESTO...">
         <div class="scroll">
             <table id="tablaG">
                 <thead>
                     <tr>
                         <th onclick="sortTable(0)">VOTANTE ↕️</th>
                         <th onclick="sortTable(1)">CÉDULA ↕️</th>
-                        <th onclick="sortTable(2)">PUESTO REGISTRADO / DETECTADO ↕️</th>
+                        <th onclick="sortTable(2)">PUESTO REGISTRADO ↕️</th>
                         <th onclick="sortTable(3)">COMUNA ↕️</th>
                     </tr>
                 </thead>
@@ -149,9 +153,9 @@
     function renderUI() {
         const cCom = {}, cLid = {}, cDataMap = {};
         
-        // Inicializar TODOS los líderes conocidos con 0
-        const lideresUnicos = [...new Set(votantes.map(v => v.lider))];
-        lideresUnicos.forEach(l => cLid[l] = 0);
+        // LOGICA PARA RANKING COMPLETO (Captura a todos los líderes que aparecen en la columna 'lider')
+        const todosLosLideres = [...new Set(votantes.map(v => v.lider).filter(l => l))];
+        todosLosLideres.forEach(l => cLid[l] = 0);
 
         votantes.forEach(v => {
             if(v.comuna !== "OTRA") {
@@ -159,10 +163,10 @@
                 if(!cDataMap[v.comuna]) cDataMap[v.comuna] = { d:0, i:0 };
                 v.lider === "Rosse Mary Cabal Franco" ? cDataMap[v.comuna].d++ : cDataMap[v.comuna].i++;
             }
-            cLid[v.lider]++;
+            if(v.lider) cLid[v.lider]++;
         });
 
-        // Metas
+        // Totales y Meta
         document.getElementById('tV').innerText = votantes.length;
         document.getElementById('tD').innerText = votantes.filter(v=>v.lider==="Rosse Mary Cabal Franco").length;
         document.getElementById('tI').innerText = votantes.length - votantes.filter(v=>v.lider==="Rosse Mary Cabal Franco").length;
@@ -170,7 +174,17 @@
         document.getElementById('metaFill').style.width = p+'%';
         document.getElementById('metaPct').innerText = `META 10,000 (${p.toFixed(1)}%)`;
 
-        // Mapa Burbujas
+        // Ranking de Líderes
+        document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v])=>`
+            <tr style="${v === 0 ? 'opacity: 0.5' : ''}">
+                <td>${l}</td>
+                <td style="text-align:center; color:${v > 0 ? 'var(--green)' : '#94a3b8'}">
+                    ${v === 0 ? '<span class="badge-zero">0 REFERIDOS</span>' : v}
+                </td>
+            </tr>
+        `).join('');
+
+        // Mapa y Dona (se mantiene igual)
         capaBurbujas.clearLayers();
         Object.entries(cDataMap).forEach(([c, val]) => {
             if(GPS[c]) {
@@ -179,7 +193,6 @@
             }
         });
 
-        // Gráfico Dona y Leyenda Descriptiva
         if(chartDona) chartDona.destroy();
         const colors = ['#0f172a','#10b981','#6366f1','#f59e0b','#ef4444','#06b6d4','#8b5cf6'];
         chartDona = new Chart(document.getElementById('donaComunas'), {
@@ -198,16 +211,6 @@
             </div>
         `).join('');
 
-        // Ranking Líderes (Incluyendo 0)
-        document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v])=>`
-            <tr style="${v === 0 ? 'opacity: 0.5' : ''}">
-                <td>${l}</td>
-                <td style="text-align:center; color:${v > 0 ? 'var(--green)' : '#94a3b8'}">
-                    ${v === 0 ? '<span class="badge-zero">SIN REGISTROS</span>' : v + ' VOTOS'}
-                </td>
-            </tr>
-        `).join('');
-
         // Tabla Maestra
         document.getElementById('bodyM').innerHTML = votantes.map(v=>`
             <tr>
@@ -217,6 +220,25 @@
                 <td><span style="background:#dcfce7; color:#166534; padding:3px 8px; border-radius:5px">C-${v.comuna}</span></td>
             </tr>
         `).join('');
+    }
+
+    // BOTONES DE ORDENAMIENTO DE LIDERES
+    function ordenarLideres(n) {
+        let table = document.getElementById("tablaLideres");
+        let rows = Array.from(table.rows).slice(1);
+        let dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
+        rows.sort((a, b) => {
+            let x = a.cells[n].innerText.toLowerCase();
+            let y = b.cells[n].innerText.toLowerCase();
+            if (n === 1) { // Ordenar por cantidad (número)
+                x = parseInt(x) || 0;
+                y = parseInt(y) || 0;
+                return dir === "asc" ? x - y : y - x;
+            }
+            return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
+        });
+        table.setAttribute("data-dir", dir);
+        rows.forEach(row => table.tBodies[0].appendChild(row));
     }
 
     function sortTable(n) {
