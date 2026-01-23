@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEMA ESTRATÉGICO ELECTORAL 2026</title>
+    <title>SISTEMA ESTRATÉGICO TOTAL 2026</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,8 +17,8 @@
 
     <style>
         :root { 
-            --blue: #0f172a; --green: #10b981; --accent: #6366f1; --bg: #f1f5f9; 
-            --red: #ef4444; --orange: #f59e0b; --gray: #64748b;
+            --blue: #0f172a; --green: #10b981; --accent: #6366f1; --bg: #f8fafc; 
+            --red: #ef4444; --orange: #f59e0b;
         }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 10px; text-transform: uppercase; color: var(--blue); }
         .container { max-width: 1600px; margin: auto; display: none; padding-bottom: 30px; }
@@ -32,20 +32,20 @@
 
         @media (max-width: 1100px) { .main-layout, .map-wrapper { grid-template-columns: 1fr; } }
 
-        #map { height: 420px; width: 100%; border-radius: 10px; border: 1px solid #cbd5e1; }
+        #map { height: 420px; width: 100%; border-radius: 10px; border: 1px solid #cbd5e1; z-index: 1; }
         .scroll { max-height: 380px; overflow-y: auto; }
         
         table { width: 100%; border-collapse: collapse; }
-        th { background: var(--blue); color: white; padding: 10px; font-size: 0.6rem; position: sticky; top: 0; cursor: pointer; }
-        td { padding: 8px; border-bottom: 1px solid #f1f5f9; font-size: 0.7rem; font-weight: 700; }
+        th { background: var(--blue); color: white; padding: 10px; font-size: 0.65rem; position: sticky; top: 0; z-index: 10; cursor: pointer; user-select: none; }
+        th:hover { background: #1e293b; }
+        td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; font-size: 0.7rem; font-weight: 700; }
         
-        .btn-exp { padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 800; font-size: 0.6rem; color: white; margin-left: 4px; }
+        .btn-exp { padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 800; font-size: 0.6rem; color: white; margin-left: 4px; transition: 0.2s; }
         .xlsx { background: #166534; } .pdf { background: #991b1b; }
-        .search-input, .select-input { padding: 10px; border-radius: 8px; border: 2px solid #e2e8f0; font-size: 0.8rem; margin-bottom: 10px; }
+        .search-input, .select-input { padding: 10px; border-radius: 8px; border: 2px solid #e2e8f0; font-size: 0.8rem; }
 
         .row-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #f8fafc; font-size: 0.65rem; }
-        
-        /* Estilos de Alerta */
+        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .alert-zone { padding: 8px; border-radius: 6px; margin-bottom: 5px; font-weight: 800; font-size: 0.65rem; border-left: 4px solid; }
         .alert-red { background: #fee2e2; color: #991b1b; border-color: var(--red); }
         .alert-orange { background: #ffedd5; color: #9a3412; border-color: var(--orange); }
@@ -55,27 +55,30 @@
 
 <div id="app" class="container">
     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h3 style="margin:0"><i class="fas fa-shield-alt"></i> MASTER DASHBOARD ESTRATÉGICO</h3>
-        <select id="filtroFecha" class="select-input" onchange="renderUI()">
-            <option value="all">TIEMPO TOTAL</option>
-            <option value="hoy">GESTIÓN HOY</option>
-            <option value="semana">ESTA SEMANA</option>
-        </select>
+        <h3 style="margin:0"><i class="fas fa-crown"></i> COMMAND CENTER ELECTORAL 2026</h3>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <label style="font-size:0.7rem; font-weight:900">FILTRAR VISTA:</label>
+            <select id="filtroFecha" class="select-input" onchange="renderUI()">
+                <option value="all">TIEMPO TOTAL</option>
+                <option value="hoy">GESTIÓN HOY</option>
+                <option value="semana">ESTA SEMANA</option>
+            </select>
+        </div>
     </div>
 
     <div class="stats-grid">
         <div class="card">
-            <small><i class="fas fa-users"></i> REGISTROS</small>
+            <small><i class="fas fa-users"></i> CENSO TOTAL</small>
             <div class="stat-num" id="tV">0</div>
-            <div style="font-size: 0.6rem; color: var(--gray)">BASE FILTRADA</div>
+            <small id="metaPct" style="font-size: 0.6rem">OBJETIVO: 7,000</small>
         </div>
         <div class="card" style="border-top: 4px solid var(--red)">
-            <small><i class="fas fa-temperature-low"></i> ZONAS CRÍTICAS</small>
+            <small><i class="fas fa-exclamation-triangle"></i> ZONAS CRÍTICAS</small>
             <div class="stat-num" id="tZonasCriticas" style="color:var(--red)">0</div>
-            <div style="font-size: 0.6rem; color: var(--gray)">EN 0 O BAJO RENDIMIENTO</div>
+            <small style="font-size: 0.6rem">EN 0 O BAJO RENDIMIENTO</small>
         </div>
         <div class="card" style="border-top: 4px solid var(--orange)">
-            <small><i class="fas fa-history"></i> ÚLTIMA CARGA</small>
+            <small><i class="fas fa-history"></i> ÚLTIMOS INGRESOS</small>
             <div id="recentList" style="margin-top: 5px;"></div>
         </div>
     </div>
@@ -84,9 +87,9 @@
         <div style="display: flex; flex-direction: column; gap: 15px;">
             <div class="card">
                 <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:10px">
-                    <h4 style="margin:0"><i class="fas fa-map-marked-alt"></i> MAPA DINÁMICO</h4>
+                    <h4 style="margin:0"><i class="fas fa-map-marked-alt"></i> GEORREFERENCIACIÓN</h4>
                     <div>
-                        <button class="btn-exp xlsx" onclick="expComunas('xlsx')">XLS</button>
+                        <button class="btn-exp xlsx" onclick="expComunas('xlsx')">EXCEL</button>
                     </div>
                 </div>
                 <div class="map-wrapper">
@@ -100,13 +103,22 @@
 
             <div class="card">
                 <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:10px">
-                    <h4 style="margin:0"><i class="fas fa-table"></i> REGISTROS MAESTROS</h4>
-                    <input type="text" id="bus" onkeyup="filtrar()" class="search-input" placeholder="BUSCAR...">
+                    <h4 style="margin:0"><i class="fas fa-table"></i> CENSO MAESTRO</h4>
+                    <div style="display:flex; gap:5px">
+                        <input type="text" id="bus" onkeyup="filtrar()" class="search-input" placeholder="BUSCAR...">
+                        <button class="btn-exp xlsx" onclick="expBase('xlsx')">XLS</button>
+                        <button class="btn-exp pdf" onclick="expBase('pdf')">PDF</button>
+                    </div>
                 </div>
                 <div class="scroll">
-                    <table id="tablaG">
+                    <table id="tablaG" data-dir="asc">
                         <thead>
-                            <tr><th>NOMBRE</th><th>CEDULA</th><th>PUESTO</th><th>COM</th></tr>
+                            <tr>
+                                <th onclick="sortTable('tablaG', 0)">VOTANTE ↕️</th>
+                                <th onclick="sortTable('tablaG', 1)">CEDULA ↕️</th>
+                                <th onclick="sortTable('tablaG', 2)">PUESTO ↕️</th>
+                                <th onclick="sortTable('tablaG', 3)">COM ↕️</th>
+                            </tr>
                         </thead>
                         <tbody id="bodyM"></tbody>
                     </table>
@@ -115,24 +127,35 @@
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 15px;">
-            <div class="card" style="border-top: 4px solid var(--red)">
-                <h4 style="margin:0 0 10px 0"><i class="fas fa-bolt"></i> ALERTAS DE INTERVENCIÓN</h4>
-                <div id="alertasContainer" class="scroll" style="max-height: 400px;">
-                    </div>
+            <div class="card" style="border-left: 5px solid var(--red)">
+                <h4 style="margin:0 0 10px 0; color:var(--red)"><i class="fas fa-bolt"></i> ALERTAS DE INTERVENCIÓN</h4>
+                <div id="alertasContainer" class="scroll" style="max-height: 200px;"></div>
             </div>
 
             <div class="card">
                 <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:10px">
                     <h4 style="margin:0"><i class="fas fa-medal"></i> RANKING LÍDERES</h4>
+                    <div>
+                        <button class="btn-exp xlsx" onclick="expRanking('xlsx')">XLS</button>
+                        <button class="btn-exp pdf" onclick="expRanking('pdf')">PDF</button>
+                    </div>
                 </div>
                 <div class="scroll">
-                    <table id="tablaLid">
+                    <table id="tablaLid" data-dir="desc">
                         <thead>
-                            <tr><th>LÍDER</th><th style="text-align:center">VOTOS</th></tr>
+                            <tr>
+                                <th onclick="sortTable('tablaLid', 0)">LÍDER ↕️</th>
+                                <th onclick="sortTable('tablaLid', 1, true)" style="text-align:center">VOTOS ↕️</th>
+                            </tr>
                         </thead>
                         <tbody id="bodyLid"></tbody>
                     </table>
                 </div>
+            </div>
+
+            <div class="card">
+                <h4 style="margin:0 0 10px 0"><i class="fas fa-traffic-light"></i> SEMÁFORO DE GESTIÓN</h4>
+                <div id="semaforoLid" class="scroll" style="max-height: 250px;"></div>
             </div>
         </div>
     </div>
@@ -145,9 +168,23 @@
 
     let votantes = [], puestosOficiales = [], map, capaBurbujas, chartDona;
     const GPS = { "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],"6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],"11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],"16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],"21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510],"25":[3.370,-76.570],"33":[3.480,-76.570] };
-    const COLORES = ['#0f172a','#10b981','#6366f1','#f59e0b','#ef4444','#06b6d4','#8b5cf6','#d946ef','#f97316','#a3e635'];
+    const COLORES = ['#0f172a','#10b981','#6366f1','#f59e0b','#ef4444','#06b6d4','#8b5cf6','#d946ef','#f97316','#a3e635','#2dd4bf','#fb7185','#be185d','#8b5cf6','#c084fc','#e879f9','#f472b6','#a16207','#65a30d','#0891b2'];
 
     function norm(t) { return t ? t.toString().toUpperCase().trim() : ""; }
+
+    function sortTable(tableId, n, isNumeric = false) {
+        let table = document.getElementById(tableId);
+        let rows = Array.from(table.rows).slice(1);
+        let dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
+        rows.sort((a, b) => {
+            let x = a.cells[n].innerText.toUpperCase();
+            let y = b.cells[n].innerText.toUpperCase();
+            if (isNumeric) return dir === "asc" ? parseInt(x) - parseInt(y) : parseInt(y) - parseInt(x);
+            return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
+        });
+        table.setAttribute("data-dir", dir);
+        rows.forEach(r => table.tBodies[0].appendChild(r));
+    }
 
     async function login() {
         const { value: p } = await Swal.fire({ title: 'ACCESO MASTER', input: 'password', confirmButtonColor: '#0f172a' });
@@ -171,7 +208,6 @@
     function renderUI() {
         const fType = document.getElementById('filtroFecha').value;
         const ahora = new Date();
-        
         const filtered = votantes.filter(v => {
             if(fType === 'all') return true;
             const fv = new Date(v.created_at);
@@ -188,53 +224,42 @@
             return { ...v, comuna: com, oficial: m ? m.nombre_puesto : "PENDIENTE" };
         });
 
-        // LÓGICA DE ALERTAS (Zonas 0 y Top 5 más bajos)
+        // ALERTAS
         let htmlAlertas = "";
-        const comunasConfiguradas = Object.keys(GPS);
-        
-        // 1. Identificar en 0
-        const enCero = comunasConfiguradas.filter(c => !cCom[c]);
-        enCero.forEach(c => {
-            htmlAlertas += `<div class="alert-zone alert-red"><i class="fas fa-radiation"></i> COMUNA ${c}: SIN REGISTROS (0)</div>`;
-        });
+        const enCero = Object.keys(GPS).filter(c => !cCom[c]);
+        enCero.forEach(c => htmlAlertas += `<div class="alert-zone alert-red">COMUNA ${c}: SIN REGISTROS (0)</div>`);
+        const bajos = Object.entries(cCom).sort((a,b)=>a[1]-b[1]).slice(0, 5);
+        bajos.forEach(([c,t]) => htmlAlertas += `<div class="alert-zone alert-orange">COMUNA ${c}: BAJO RENDIMIENTO (${t})</div>`);
+        document.getElementById('alertasContainer').innerHTML = htmlAlertas;
+        document.getElementById('tZonasCriticas').innerText = enCero.length + bajos.length;
 
-        // 2. Identificar las 5 más bajas (que tengan al menos 1 voto pero sean pocas)
-        const rankingBajo = Object.entries(cCom)
-            .sort((a,b) => a[1] - b[1]) // De menor a mayor
-            .slice(0, 5); // Las 5 más flojas
-
-        rankingBajo.forEach(([c, t]) => {
-            htmlAlertas += `<div class="alert-zone alert-orange"><i class="fas fa-exclamation-triangle"></i> COMUNA ${c}: BAJO RENDIMIENTO (${t} VOTOS)</div>`;
-        });
-
-        document.getElementById('alertasContainer').innerHTML = htmlAlertas || "TODAS LAS ZONAS ACTIVAS";
-        document.getElementById('tZonasCriticas').innerText = enCero.length + rankingBajo.length;
-
-        // EL RESTO DE LA UI
+        // RANKING Y SEMAFORO
         procesados.forEach(v => { if(v.lider) cLid[v.lider] = (cLid[v.lider] || 0) + 1; });
         const sortedLid = Object.entries(cLid).sort((a,b)=>b[1]-a[1]);
+        document.getElementById('bodyLid').innerHTML = sortedLid.map(([l,v])=>`<tr><td>${norm(l)}</td><td align="center">${v}</td></tr>`).join('');
+        document.getElementById('semaforoLid').innerHTML = sortedLid.map(([l,v])=>`<div class="row-item"><span><span class="dot" style="background:${v>0?'var(--green)':'var(--red)'}"></span>${norm(l)}</span><span>${v}</span></div>`).join('');
         
         document.getElementById('tV').innerText = procesados.length;
-        document.getElementById('bodyLid').innerHTML = sortedLid.map(([l,v])=>`<tr><td>${norm(l)}</td><td align="center">${v}</td></tr>`).join('');
-        
         const ultimos = [...procesados].reverse().slice(0, 3);
-        document.getElementById('recentList').innerHTML = ultimos.map(u => `<div style="font-size:0.6rem"><b>${new Date(u.created_at).getDate()}/${new Date(u.created_at).getMonth()+1}</b> - ${norm(u["Nombres y apellidos"])}</div>`).join('');
+        document.getElementById('recentList').innerHTML = ultimos.map(u => `<div style="font-size:0.6rem"><b>${norm(u["Nombres y apellidos"])}</b></div>`).join('');
 
+        // MAPA Y DONA
         capaBurbujas.clearLayers();
-        Object.entries(cCom).forEach(([c,t], i) => {
+        const eti = Object.keys(cCom).sort((a,b)=>a-b);
+        eti.forEach((c, i) => {
             if(GPS[c]) {
-                const radio = t < 5 ? 300 : 300 + (t*10);
-                L.circle(GPS[c], { color: COLORES[i%10], fillColor: COLORES[i%10], fillOpacity: 0.6, radius: radio })
-                .addTo(capaBurbujas).bindPopup(`COMUNA ${c}: ${t} VOTOS`);
+                const col = COLORES[i % COLORES.length];
+                L.circle(GPS[c], { color: col, fillColor: col, fillOpacity: 0.5, radius: 300+(cCom[c]*10) }).addTo(capaBurbujas).bindPopup(`C${c}: ${cCom[c]}`);
             }
         });
 
         if(chartDona) chartDona.destroy();
         chartDona = new Chart(document.getElementById('donaComunas'), {
             type: 'doughnut',
-            data: { labels: Object.keys(cCom), datasets: [{ data: Object.values(cCom), backgroundColor: COLORES }] },
+            data: { labels: eti.map(e=>'C'+e), datasets: [{ data: eti.map(e=>cCom[e]), backgroundColor: COLORES }] },
             options: { plugins: { legend: { display: false } } }
         });
+        document.getElementById('donaLegend').innerHTML = eti.map((e, i) => `<div class="row-item"><span><span class="dot" style="background:${COLORES[i % COLORES.length]}"></span>C${e}</span><span>${cCom[e]}</span></div>`).join('');
 
         document.getElementById('bodyM').innerHTML = procesados.map(v => `<tr><td>${norm(v["Nombres y apellidos"])}</td><td>${v.cedula}</td><td>${norm(v.oficial)}</td><td>${v.comuna}</td></tr>`).join('');
     }
@@ -242,6 +267,33 @@
     function filtrar() {
         const q = document.getElementById('bus').value.toUpperCase();
         Array.from(document.getElementById('bodyM').rows).forEach(r => r.style.display = r.innerText.toUpperCase().includes(q) ? '' : 'none');
+    }
+
+    // Funciones Export
+    function expRanking(t) {
+        const rows = Array.from(document.querySelectorAll("#bodyLid tr")).map(r => [r.cells[0].innerText, r.cells[1].innerText]);
+        if(t==='xlsx'){
+            const ws = XLSX.utils.aoa_to_sheet([["LIDER", "VOTOS"], ...rows]);
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Rank");
+            XLSX.writeFile(wb, "RANKING.xlsx");
+        } else {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.autoTable({ head:[["LIDER", "VOTOS"]], body: rows });
+            doc.save("RANKING.pdf");
+        }
+    }
+
+    function expBase(t) {
+        const rows = Array.from(document.getElementById('bodyM').rows).filter(r=>r.style.display!=='none').map(r => [r.cells[0].innerText, r.cells[1].innerText, r.cells[2].innerText, r.cells[3].innerText]);
+        if(t==='xlsx'){
+            const ws = XLSX.utils.aoa_to_sheet([["NOMBRE", "CEDULA", "PUESTO", "COMUNA"], ...rows]);
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Censo");
+            XLSX.writeFile(wb, "CENSO.xlsx");
+        } else {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.autoTable({ head:[["NOMBRE", "CEDULA", "PUESTO", "COMUNA"]], body: rows });
+            doc.save("CENSO.pdf");
+        }
     }
 
     login();
