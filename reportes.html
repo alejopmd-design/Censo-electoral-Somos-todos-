@@ -22,7 +22,8 @@
         .progress-bg { background: #f1f5f9; height: 16px; border-radius: 8px; overflow: hidden; margin: 15px 0; }
         .progress-fill { background: linear-gradient(90deg, #10b981, #34d399); height: 100%; width: 0%; transition: 1.5s; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f1f5f9; padding: 14px; text-align: left; font-size: 0.75rem; color: #475569; border-bottom: 2px solid #e2e8f0; cursor: pointer; }
+        th { background: #f1f5f9; padding: 14px; text-align: left; font-size: 0.75rem; color: #475569; border-bottom: 2px solid #e2e8f0; cursor: pointer; position: sticky; top: 0; }
+        th:hover { background: #e2e8f0; }
         td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 500; }
         .scroll-area { max-height: 550px; overflow-y: auto; border-radius: 12px; border: 1px solid #e2e8f0; background: white; }
         .badge { padding: 5px 10px; border-radius: 8px; font-weight: 800; font-size: 0.7rem; display: inline-block; }
@@ -48,7 +49,7 @@
     </div>
 
     <div class="card">
-        <input type="text" id="buscador" onkeyup="filtrar()" placeholder="🔍 BUSCADOR MAESTRO: NOMBRE, CÉDULA O PUESTO (URBANO Y RURAL)...">
+        <input type="text" id="buscador" onkeyup="filtrar()" placeholder="🔍 BUSCADOR: NOMBRE, CÉDULA O PUESTO (URBANO Y RURAL)...">
     </div>
 
     <div class="mid-grid">
@@ -56,11 +57,15 @@
             <h4 style="margin-top:0">⭐ RANKING DE LÍDERES</h4>
             <div class="scroll-area" style="max-height:450px">
                 <table>
-                    <thead><tr><th onclick="ordenarLideres('nombre')">LÍDER ↕</th><th style="text-align:center" onclick="ordenarLideres('cantidad')">VOTOS ↕</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th onclick="ordenarLideres('nombre')">LÍDER ↕</th>
+                            <th style="text-align:center" onclick="ordenarLideres('cantidad')">VOTOS ↕</th>
+                        </tr>
+                    </thead>
                     <tbody id="cuerpoLideres"></tbody>
                 </table>
             </div>
-            <button onclick="exportarLideres()" class="btn-excel">DESCARGAR EXCEL RANKING</button>
         </div>
         <div class="card">
             <h4 style="margin-top:0">📍 DISTRIBUCIÓN GEOGRÁFICA</h4>
@@ -96,8 +101,10 @@
     let baseDatos = [];
     let lideresRosse = [];
     let myChart;
-    let sortConfig = { tableL: { col: 'cantidad', asc: false }, tableM: { col: 'comuna', asc: true } };
+    let sortStateM = { col: null, asc: true };
+    let sortStateL = { col: 'cantidad', asc: false };
 
+    // MATRIZ COMPLETA (URBANO + RURAL)
     const MATRIZ_CALI = {
         "1": ["ACEVEDO", "GOMEZ", "MUTIS", "CELESTINO", "HOLGUIN", "GARCES", "DELFINA", "TERRON", "VISTA HERMOSA", "AGUACATAL", "ESTRELLA"],
         "2": ["NAVIA VARON", "FRANCIA", "LA MERCED", "VIPASA", "LA FLORA", "ALAMOS", "GONZAGA", "GRANADA", "VERSALLES", "JUANAMBU", "CHIPICHAPE", "MENA", "ATENAS", "CENTENARIO", "NORMANDIA", "BENALCAZAR", "SAGRADA FAMILIA", "LANS"],
@@ -157,7 +164,6 @@
             nombre: h["Nombres y apellidos"], 
             cantidad: baseDatos.filter(v => v.lider === h["Nombres y apellidos"]).length 
         }));
-        lideresRosse.sort((a,b) => b.cantidad - a.cantidad);
     }
 
     function actualizar() {
@@ -168,6 +174,28 @@
         document.getElementById('barraMeta').style.width = Math.min(p, 100) + '%';
         document.getElementById('porcLabel').innerText = `${p.toFixed(1)}%`;
         renderLideres(); renderDona(); renderDetalle();
+    }
+
+    // --- FUNCIONES DE ORDENAMIENTO (ACTIVADAS) ---
+    function ordenarMaestra(col) {
+        sortStateM.asc = sortStateM.col === col ? !sortStateM.asc : true;
+        sortStateM.col = col;
+        baseDatos.sort((a, b) => {
+            let v1 = a[col] || "", v2 = b[col] || "";
+            return sortStateM.asc ? v1.toString().localeCompare(v2) : v2.toString().localeCompare(v1);
+        });
+        renderDetalle();
+    }
+
+    function ordenarLideres(col) {
+        sortStateL.asc = sortStateL.col === col ? !sortStateL.asc : true;
+        sortStateL.col = col;
+        lideresRosse.sort((a, b) => {
+            let v1 = a[col], v2 = b[col];
+            if(typeof v1 === 'number') return sortStateL.asc ? v1 - v2 : v2 - v1;
+            return sortStateL.asc ? v1.localeCompare(v2) : v2.localeCompare(v1);
+        });
+        renderLideres();
     }
 
     function renderLideres() {
@@ -197,7 +225,12 @@
         for(let f of filas) f.style.display = normalizar(f.innerText).includes(val) ? '' : 'none';
     }
 
-    function exportarTodo() { const ws = XLSX.utils.json_to_sheet(baseDatos); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "CENSO"); XLSX.writeFile(wb, "DASHBOARD_TOTAL_2026.xlsx"); }
+    function exportarTodo() { 
+        const ws = XLSX.utils.json_to_sheet(baseDatos); 
+        const wb = XLSX.utils.book_new(); 
+        XLSX.utils.book_append_sheet(wb, ws, "CENSO"); 
+        XLSX.writeFile(wb, "DASHBOARD_TOTAL_2026.xlsx"); 
+    }
     
     iniciar();
 </script>
