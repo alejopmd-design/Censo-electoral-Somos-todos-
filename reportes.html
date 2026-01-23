@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Informes Rosse Mary - Cali 2026</title>
+    <title>Control Rosse Mary - Cali 2026</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -28,11 +28,11 @@
         
         .scroll { max-height: 500px; overflow-y: auto; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: var(--blue); color: white; padding: 14px; text-align: left; cursor: pointer; position: sticky; top: 0; font-size: 0.7rem; }
+        th { background: var(--blue); color: white; padding: 14px; text-align: left; cursor: pointer; position: sticky; top: 0; font-size: 0.7rem; z-index: 10; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 700; }
         
         .search-input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #e2e8f0; margin-bottom: 20px; font-size: 1rem; }
-        .badge-puesto { background: #f0f9ff; color: #0369a1; padding: 4px 8px; border-radius: 6px; font-size: 0.65rem; border: 1px solid #bae6fd; display: inline-block; }
+        .legend-item { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.75rem; border-bottom: 1px dashed #e2e8f0; padding-bottom: 2px; }
     </style>
 </head>
 <body>
@@ -57,24 +57,24 @@
 
     <div class="main-layout">
         <div class="card">
-            <h4 style="margin:0 0 15px 0">🗺️ GEORREFERENCIACIÓN POR COMUNA</h4>
-            <div style="display: grid; grid-template-columns: 1fr 280px; gap: 20px;">
+            <h4 style="margin:0 0 15px 0">🗺️ GEORREFERENCIACIÓN Y DETALLE COMUNAS</h4>
+            <div style="display: grid; grid-template-columns: 1fr 300px; gap: 20px;">
                 <div id="map"></div>
                 <div>
                     <canvas id="donaComunas"></canvas>
-                    <div id="donaLegend" style="margin-top: 15px; font-size: 0.7rem;"></div>
+                    <div id="donaLegend" style="margin-top: 15px; max-height: 300px; overflow-y: auto; padding-right: 5px;"></div>
                 </div>
             </div>
         </div>
 
         <div class="card">
-            <h4 style="margin:0 0 15px 0">🏆 EQUIPO DIRECTO DE ROSSE MARY</h4>
+            <h4 style="margin:0 0 15px 0">🏆 EQUIPO DIRECTO (ORDENABLE)</h4>
             <div class="scroll">
                 <table id="tablaLid" data-dir="desc">
                     <thead>
                         <tr>
-                            <th onclick="ordenarRank(0)">NOMBRE DEL LÍDER ↕️</th>
-                            <th onclick="ordenarRank(1)" style="text-align:center">VOTOS TRAÍDOS ↕️</th>
+                            <th onclick="ordenarRank(0)">LÍDER ↕️</th>
+                            <th onclick="ordenarRank(1)" style="text-align:center">VOTOS ↕️</th>
                         </tr>
                     </thead>
                     <tbody id="bodyLid"></tbody>
@@ -85,7 +85,7 @@
 
     <div class="card">
         <h4 style="margin:0 0 15px 0">🔍 CENSO COMPLETO</h4>
-        <input type="text" id="bus" onkeyup="filtrar()" class="search-input" placeholder="BUSCAR VOTANTE O PUESTO...">
+        <input type="text" id="bus" onkeyup="filtrar()" class="search-input" placeholder="BUSCAR POR NOMBRE, CÉDULA O PUESTO...">
         <div class="scroll">
             <table id="tablaG">
                 <thead>
@@ -122,7 +122,7 @@
     function normalizar(t) { return t ? t.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, "") : ""; }
 
     async function login() {
-        const { value: p } = await Swal.fire({ title: 'CONTROL ROSSE MARY 2026', input: 'password', confirmButtonColor: '#0f172a' });
+        const { value: p } = await Swal.fire({ title: 'PANEL ESTRATÉGICO', input: 'password', confirmButtonColor: '#0f172a' });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
             map = L.map('map').setView([3.42, -76.52], 12);
@@ -136,13 +136,11 @@
         const { data: pData } = await _supabase.from('PUESTOS_VOTACION').select('*');
         puestosOficiales = pData || [];
         const { data: vData } = await _supabase.from('VOTANTES').select('*');
-        
         votantes = vData.map(v => {
             const txt = normalizar(v.puesto);
             let m = puestosOficiales.find(po => {
                 const oficial = normalizar(po.nombre_puesto);
-                return oficial.includes(txt) || txt.includes(oficial) || 
-                       (txt.split(' ').filter(w => w.length > 3 && oficial.includes(w)).length >= 1);
+                return oficial.includes(txt) || txt.includes(oficial);
             });
             return { ...v, comuna: m ? m.comuna : "OTRA", oficial: m ? m.nombre_puesto : "PENDIENTE" };
         });
@@ -152,72 +150,62 @@
     function renderUI() {
         const cCom = {}, cLid = {}, cDataMap = {};
         
-        // --- FILTRO OJO: SOLO LOS LIDERES INSCRITOS POR ROSSE MARY ---
-        // Buscamos a todas las personas cuyo líder es Rosse Mary (estos son sus líderes directos)
         const equipoRosse = votantes.filter(v => v.lider === LIDER_PRINCIPAL);
-        const nombresEquipo = equipoRosse.map(v => v["Nombres y apellidos"]);
-        
-        // Inicializamos a cada miembro del equipo con 0 referidos
-        nombresEquipo.forEach(nom => cLid[nom] = 0);
+        equipoRosse.forEach(v => cLid[v["Nombres y apellidos"]] = 0);
 
-        // Contamos cuántas personas han traído estos miembros del equipo
         votantes.forEach(v => {
-            if(cLid.hasOwnProperty(v.lider)) {
-                cLid[v.lider]++;
-            }
-            // Datos para mapa y dona (Basado en toda la base)
+            if(cLid.hasOwnProperty(v.lider)) cLid[v.lider]++;
             if(v.comuna !== "OTRA") {
                 cCom[v.comuna] = (cCom[v.comuna] || 0) + 1;
-                if(!cDataMap[v.comuna]) cDataMap[v.comuna] = { d:0, i:0 };
-                v.lider === LIDER_PRINCIPAL ? cDataMap[v.comuna].d++ : cDataMap[v.comuna].i++;
+                if(!cDataMap[v.comuna]) cDataMap[v.comuna] = { total: 0 };
+                cDataMap[v.comuna].total++;
             }
         });
 
-        // Totales y Meta de 4000
-        const total = votantes.length;
-        document.getElementById('tV').innerText = total;
+        // Totales
+        document.getElementById('tV').innerText = votantes.length;
         document.getElementById('tD').innerText = equipoRosse.length;
-        document.getElementById('tI').innerText = total - equipoRosse.length;
-        
-        const p = Math.min((total/OBJETIVO)*100, 100);
+        document.getElementById('tI').innerText = votantes.length - equipoRosse.length;
+        const p = Math.min((votantes.length/OBJETIVO)*100, 100);
         document.getElementById('metaFill').style.width = p+'%';
         document.getElementById('metaPct').innerText = `AVANCE: ${p.toFixed(1)}% DE 4,000`;
 
-        // Ranking: Solo equipo de Rosse (Incluso los de 0)
-        document.getElementById('bodyLid').innerHTML = Object.entries(cLid)
-            .sort((a,b) => b[1] - a[1])
-            .map(([l,v]) => `
-                <tr style="${v === 0 ? 'background-color: #fff1f2;' : ''}">
-                    <td>${l}</td>
-                    <td style="text-align:center; color:${v > 0 ? 'var(--green)' : '#e11d48'}">${v}</td>
-                </tr>
-            `).join('');
+        // Ranking
+        document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v])=>`
+            <tr style="${v === 0 ? 'background:#fff1f2' : ''}"><td>${l}</td><td style="text-align:center; color:${v>0?'var(--green)':'#e11d48'}">${v}</td></tr>
+        `).join('');
 
-        // Mapa y Dona
+        // Mapa con Popups (Información al pararse/clic)
         capaBurbujas.clearLayers();
         Object.entries(cDataMap).forEach(([c, val]) => {
             if(GPS[c]) {
-                L.circle(GPS[c], { color: '#10b981', radius: 250 + (val.d+val.i)*30, fillOpacity: 0.5 }).addTo(capaBurbujas);
+                L.circle(GPS[c], { color: '#6366f1', radius: 300 + (val.total * 20), fillOpacity: 0.6 })
+                .addTo(capaBurbujas)
+                .bindPopup(`<b>COMUNA ${c}</b><br>Total Registrados: ${val.total}`);
             }
         });
 
+        // Dona y Leyenda descriptiva
         if(chartDona) chartDona.destroy();
+        const colors = ['#0f172a','#10b981','#6366f1','#f59e0b','#ef4444','#06b6d4','#8b5cf6','#ec4899'];
+        const etiquetas = Object.keys(cCom).sort((a,b)=>a-b);
+        const valores = etiquetas.map(e => cCom[e]);
+
         chartDona = new Chart(document.getElementById('donaComunas'), {
             type: 'doughnut',
-            data: {
-                labels: Object.keys(cCom).map(c => 'C-'+c),
-                datasets: [{ data: Object.values(cCom), backgroundColor: ['#0f172a','#10b981','#6366f1','#f59e0b','#ef4444','#06b6d4','#8b5cf6'] }]
-            },
+            data: { labels: etiquetas.map(e=>'Comuna '+e), datasets: [{ data: valores, backgroundColor: colors }] },
             options: { cutout: '65%', plugins: { legend: { display: false } } }
         });
 
+        document.getElementById('donaLegend').innerHTML = etiquetas.map((e, i) => `
+            <div class="legend-item">
+                <span><b style="color:${colors[i%colors.length]}">●</b> COMUNA ${e}</span>
+                <span>${cCom[e]} VOTANTES</span>
+            </div>
+        `).join('');
+
         document.getElementById('bodyM').innerHTML = votantes.map(v=>`
-            <tr>
-                <td>${v["Nombres y apellidos"]}</td>
-                <td>${v.cedula}</td>
-                <td>${v.puesto}<br><span class="badge-puesto">🎯 ${v.oficial}</span></td>
-                <td>C-${v.comuna}</td>
-            </tr>
+            <tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.puesto}<br><small style="color:var(--accent)">🎯 ${v.oficial}</small></td><td>C-${v.comuna}</td></tr>
         `).join('');
     }
 
