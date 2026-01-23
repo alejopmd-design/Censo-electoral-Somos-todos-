@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DASHBOARD ELECTORAL CALI 2026</title>
+    <title>DASHBOARD ELECTORAL CALI 2026 - FULL RESOLUCIÓN</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -49,7 +49,7 @@
     </div>
 
     <div class="card">
-        <input type="text" id="buscador" onkeyup="filtrar()" placeholder="🔍 BUSCADOR: NOMBRE, CÉDULA O PUESTO (URBANO Y RURAL)...">
+        <input type="text" id="buscador" onkeyup="filtrar()" placeholder="🔍 BUSCADOR TOTAL: NOMBRE, CÉDULA O PUESTO (SISTEMA INTEGRAL)...">
     </div>
 
     <div class="mid-grid">
@@ -68,18 +68,18 @@
             </div>
         </div>
         <div class="card">
-            <h4 style="margin-top:0">📍 DISTRIBUCIÓN GEOGRÁFICA</h4>
+            <h4 style="margin-top:0">📍 DISTRIBUCIÓN TERRITORIAL</h4>
             <div style="height:380px"><canvas id="chartDona"></canvas></div>
         </div>
     </div>
 
     <div class="card">
-        <h4 style="margin-top:0">📋 BASE DE DATOS MAESTRA (100% RESOLUCIÓN 2026)</h4>
+        <h4 style="margin-top:0">📋 BASE MAESTRA (100% PUESTOS RESOLUCIÓN 2026)</h4>
         <div class="scroll-area">
-            <table>
+            <table id="tablaMaestra">
                 <thead>
                     <tr>
-                        <th onclick="ordenarMaestra('Nombres y apellidos')">NOMBRE COMPLETO ↕</th>
+                        <th onclick="ordenarMaestra('Nombres y apellidos')">VOTANTE ↕</th>
                         <th onclick="ordenarMaestra('cedula')">CÉDULA ↕</th>
                         <th onclick="ordenarMaestra('puesto')">PUESTO ↕</th>
                         <th onclick="ordenarMaestra('comuna')">UBICACIÓN ↕</th>
@@ -89,7 +89,7 @@
                 <tbody id="cuerpoDetalle"></tbody>
             </table>
         </div>
-        <button onclick="exportarTodo()" class="btn-excel" style="background:#0f172a; margin-top:20px">DESCARGAR BASE COMPLETA EXCEL</button>
+        <button onclick="exportarTodo()" class="btn-excel" style="background:#0f172a; margin-top:20px">📥 DESCARGAR TODA LA BASE (EXCEL)</button>
     </div>
 </div>
 
@@ -101,34 +101,34 @@
     let baseDatos = [];
     let lideresRosse = [];
     let myChart;
-    let sortStateM = { col: null, asc: true };
-    let sortStateL = { col: 'cantidad', asc: false };
+    let sortMaestra = { col: null, asc: true };
+    let sortLideres = { col: 'cantidad', asc: false };
 
-    // MATRIZ COMPLETA (URBANO + RURAL)
+    // MATRIZ EXHAUSTIVA DE PALABRAS CLAVE SEGÚN RESOLUCIÓN 2026
     const MATRIZ_CALI = {
-        "1": ["ACEVEDO", "GOMEZ", "MUTIS", "CELESTINO", "HOLGUIN", "GARCES", "DELFINA", "TERRON", "VISTA HERMOSA", "AGUACATAL", "ESTRELLA"],
-        "2": ["NAVIA VARON", "FRANCIA", "LA MERCED", "VIPASA", "LA FLORA", "ALAMOS", "GONZAGA", "GRANADA", "VERSALLES", "JUANAMBU", "CHIPICHAPE", "MENA", "ATENAS", "CENTENARIO", "NORMANDIA", "BENALCAZAR", "SAGRADA FAMILIA", "LANS"],
-        "3": ["SANTA LIBRADA", "LIBRADA", "SAN ANTONIO", "SAN PASCUAL", "SAN NICOLAS", "ELOY", "PILOTO", "FRAY DAMIAN", "PEÑON", "MERCED", "SANTA ROSA", "CORAJE", "JUSTICIA"],
-        "4": ["JORGE ISAACS", "SANTANDER", "PAULA SANTANDER", "OLAYA", "PORVENIR", "POPULAR", "VALENCIA", "GUILLERMO VALENCIA", "METROPOLITANO SEDE"],
-        "5": ["INEM", "CAYZEDO", "CAICEDO Y CUERO", "VIVAS BALCAZAR", "ZAMORANO", "RIVERA", "VILLAS DE VERACRUZ", "CONFENALCO", "CHIMINANGOS 1", "SALOMIA SEDE"],
-        "6": ["FLORALIA", "CALIMA", "GUAYACANES", "CHIMINANGOS", "ALCAZARES", "PETECUY", "COMFANDI CALIMA", "PUEBLO NUEVO", "GAITAN"],
-        "7": ["ALFONSO LOPEZ", "PUMAREJO", "10 DE MAYO", "MALLARINO", "PUERTO MALLARINO", "FUENMAYOR", "VILLAMAGRE", "BELISARIO", "SIETE DE AGOSTO"],
-        "8": ["MARIANO RAMOS", "CAMACHO", "AMERICAS", "INDUSTRIAL", "MUNICIPAL", "PRIMAVERAS", "SANTA MONICA", "URIBE", "BENJAMIN HERRERA", "LUIS LOPEZ DE MESA"],
-        "9": ["CALDAS", "FRANCISCO JOSE", "AMPUDIA", "TAFUR", "ARANJUEZ", "GUAYAQUIL", "BRETAÑA", "JUNIN", "ALAMEDA", "CHAMPAGNAT", "MANUELA CAÑIZARES"],
-        "10": ["DEPARTAMENTAL", "GUABAL", "SAN CRISTOBAL", "LLOREDA", "PASOANCHO", "COLSEGUROS", "SELVA", "PANAMERICANO", "SANTA HELENA"],
-        "11": ["ISRAEL", "REPUBLICA DE ISRAEL", "CIUDAD DE CALI", "SAN CARLOS", "HOLGUIN", "ESPERANZA", "INDEPENDENCIA", "CASCADA", "PRADOS DE ORIENTE"],
-        "12": ["VILLA DEL SUR", "SANTA FE", "SINDICAL", "VILLANUEVA", "RODEO", "FLORESTA", "ASTURIAS", "FENALCO", "EDUARDO SANTOS", "PROVIVIENDA"],
-        "13": ["EL DIAMANTE", "RICARDO NIETO", "TRIANA", "POBLADO", "CHARCO AZUL", "PONDAJE", "VILLACOLOMBIA", "CALIPSO", "AMAZONAS", "VILLA DEL LAGO"],
-        "14": ["CALIXTO", "ALVAREZ", "CALISTO", "TALANGA", "ALIRIO MORA", "PUERTA DEL SOL", "ORQUIDEAS", "MANUELA BELTRAN", "PROSPERO", "MARROQUIN"],
-        "15": ["LLANO VERDE", "LLANOVERDE", "ISAURA", "RODRIGUEZ", "RETIRO", "MOJICA", "VALLADO", "LAUREANO", "MORICHAL", "CORDOBA", "CDI LLANO"],
+        "1": ["ACEVEDO", "GOMEZ", "MUTIS", "CELESTINO", "HOLGUIN", "GARCES", "DELFINA", "TERRON", "VISTA HERMOSA", "AGUACATAL", "ESTRELLA", "SANTUARIO", "BAJO AGUACATAL", "CD 12"],
+        "2": ["NAVIA VARON", "FRANCIA", "LA MERCED", "VIPASA", "LA FLORA", "ALAMOS", "GONZAGA", "GRANADA", "VERSALLES", "JUANAMBU", "CHIPICHAPE", "MENA", "ATENAS", "CENTENARIO", "NORMANDIA", "BENALCAZAR", "SAGRADA FAMILIA", "LANS", "SENA SALOMIA", "VALLE DEL LILI 2", "ESTACION", "PRADOS DEL NORTE"],
+        "3": ["SANTA LIBRADA", "LIBRADA", "SAN ANTONIO", "SAN PASCUAL", "SAN NICOLAS", "ELOY", "PILOTO", "FRAY DAMIAN", "PEÑON", "MERCED", "SANTA ROSA", "CORAJE", "JUSTICIA", "SENA SEDE"],
+        "4": ["JORGE ISAACS", "SANTANDER", "PAULA SANTANDER", "OLAYA", "PORVENIR", "POPULAR", "VALENCIA", "GUILLERMO VALENCIA", "METROPOLITANO SEDE", "MANUELA BELTRAN 2", "FLORENCIA", "BERLIN"],
+        "5": ["INEM", "CAYZEDO", "CAICEDO Y CUERO", "VIVAS BALCAZAR", "ZAMORANO", "RIVERA", "VILLAS DE VERACRUZ", "CONFENALCO", "CHIMINANGOS 1", "SALOMIA SEDE", "BARRANQUILLA"],
+        "6": ["FLORALIA", "CALIMA", "GUAYACANES", "CHIMINANGOS", "ALCAZARES", "PETECUY", "COMFANDI CALIMA", "PUEBLO NUEVO", "GAITAN", "JORGE ELIECER"],
+        "7": ["ALFONSO LOPEZ", "PUMAREJO", "10 DE MAYO", "MALLARINO", "PUERTO MALLARINO", "FUENMAYOR", "VILLAMAGRE", "BELISARIO", "SIETE DE AGOSTO", "LUIS CARLOS GALAN", "FE Y ALEGRIA"],
+        "8": ["MARIANO RAMOS", "CAMACHO", "AMERICAS", "INDUSTRIAL", "MUNICIPAL", "PRIMAVERAS", "SANTA MONICA", "URIBE", "BENJAMIN HERRERA", "LUIS LOPEZ DE MESA", "LAS ACACIAS"],
+        "9": ["CALDAS", "FRANCISCO JOSE", "AMPUDIA", "TAFUR", "ARANJUEZ", "GUAYAQUIL", "BRETAÑA", "JUNIN", "ALAMEDA", "CHAMPAGNAT", "MANUELA CAÑIZARES", "CENTRO"],
+        "10": ["DEPARTAMENTAL", "GUABAL", "SAN CRISTOBAL", "LLOREDA", "PASOANCHO", "COLSEGUROS", "SELVA", "PANAMERICANO", "SANTA HELENA", "SANTO DOMINGO"],
+        "11": ["ISRAEL", "REPUBLICA DE ISRAEL", "CIUDAD DE CALI", "SAN CARLOS", "HOLGUIN", "ESPERANZA", "INDEPENDENCIA", "CASCADA", "PRADOS DE ORIENTE", "LA LUISA", "MARIANO MOLINA"],
+        "12": ["VILLA DEL SUR", "SANTA FE", "SINDICAL", "VILLANUEVA", "RODEO", "FLORESTA", "ASTURIAS", "FENALCO", "EDUARDO SANTOS", "PROVIVIENDA", "DOCE DE OCTUBRE"],
+        "13": ["EL DIAMANTE", "RICARDO NIETO", "TRIANA", "POBLADO", "CHARCO AZUL", "PONDAJE", "VILLACOLOMBIA", "CALIPSO", "AMAZONAS", "VILLA DEL LAGO", "RODRIGO LLOREDA"],
+        "14": ["CALIXTO", "ALVAREZ", "CALISTO", "TALANGA", "ALIRIO MORA", "PUERTA DEL SOL", "ORQUIDEAS", "MANUELA BELTRAN", "PROSPERO", "MARROQUIN", "RETIRO"],
+        "15": ["LLANO VERDE", "LLANOVERDE", "ISAURA", "RODRIGUEZ", "RETIRO", "MOJICA", "VALLADO", "LAUREANO", "MORICHAL", "CORDOBA", "CDI LLANO", "EL DIAMANTE 2"],
         "16": ["ESTEBAN ROJAS", "HERNANDO NAVIA", "CRISTOBAL COLON", "UNION DE VIVIENDA", "GRAN COLOMBIA", "MARIANO RAMOS PRINCIPAL"],
-        "17": ["UNIVALLE", "NUEVO LATIR", "INGENIO", "CANEY", "LIMONAR", "CAPRI", "MAYOTTE", "LACORDAIRE", "LILI", "VALLE DEL LILI", "CIUDADELA"],
-        "18": ["POLITECNICO", "CARVAJAL", "MELENDEZ", "JORDAN", "ALTOS", "CUARTA BRIGADA", "SANTA ANITA", "CHORROS"],
-        "19": ["CIEGOS", "SORDOS", "COLISEO", "PASCUAL GUERRERO", "ESTADIO", "EUSTAQUIO", "LIDO", "TEQUENDAMA", "SANTIAGO", "CUARTO DE LEGUA", "CAÑAVERALEJO", "SAN FERNANDO"],
-        "20": ["MULTIPROPOSITO", "SILOE", "LLERAS", "BELISARIO", "BRISAS DE MAYO"],
-        "21": ["DESEPAZ", "CALIMIO", "SANTA ISABEL", "HUNGRIA", "COMPARTIR", "VALLE GRANDE", "POTRERO GRANDE", "REMIGIO", "CIUDADELA DESEPAZ"],
-        "22": ["ICESI", "JAVERIANA", "PANCE", "JARDIN", "SAN BUENAVENTURA", "ALEMAN", "LUMEN", "BERCHMANS", "BENNETT", "CANDELARIA", "CAÑASGORDAS"],
-        "RURAL": ["MONTEBELLO", "FELIDIA", "SALADITO", "KM 18", "ELVIRA", "LEONERA", "PICHINDE", "LOS ANDES", "VILLACARMELO", "BUITRERA", "NAVARRO", "HORMIGUERO", "CASCAJAL", "GOLONDRINAS", "LA PAZ", "CASEY"]
+        "17": ["UNIVALLE", "NUEVO LATIR", "INGENIO", "CANEY", "LIMONAR", "CAPRI", "MAYOTTE", "LACORDAIRE", "LILI", "VALLE DEL LILI", "CIUDADELA", "LA HACIENDA", "QUINTAS", "BOCHALEMA"],
+        "18": ["POLITECNICO", "CARVAJAL", "MELENDEZ", "JORDAN", "ALTOS", "CUARTA BRIGADA", "SANTA ANITA", "CHORROS", "MAMPUESTO"],
+        "19": ["CIEGOS", "SORDOS", "COLISEO", "PASCUAL GUERRERO", "ESTADIO", "EUSTAQUIO", "LIDO", "TEQUENDAMA", "SANTIAGO", "CUARTO DE LEGUA", "CAÑAVERALEJO", "SAN FERNANDO", "PUEBLO", "NUEVA TEQUENDAMA"],
+        "20": ["MULTIPROPOSITO", "SILOE", "LLERAS", "BELISARIO", "BRISAS DE MAYO", "LA SULTANA"],
+        "21": ["DESEPAZ", "CALIMIO", "SANTA ISABEL", "HUNGRIA", "COMPARTIR", "VALLE GRANDE", "POTRERO GRANDE", "REMIGIO", "CIUDADELA DESEPAZ", "TALANGA 2"],
+        "22": ["ICESI", "JAVERIANA", "PANCE", "JARDIN", "SAN BUENAVENTURA", "ALEMAN", "LUMEN", "BERCHMANS", "BENNETT", "CANDELARIA", "CAÑASGORDAS", "ALFEREZ REAL"],
+        "RURAL": ["MONTEBELLO", "FELIDIA", "SALADITO", "KM 18", "ELVIRA", "LEONERA", "PICHINDE", "LOS ANDES", "VILLACARMELO", "BUITRERA", "NAVARRO", "HORMIGUERO", "CASCAJAL", "GOLONDRINAS", "LA PAZ", "CASEY", "KM 30", "LA VORAGINE", "PANCE RURAL"]
     };
 
     function normalizar(t) { return t ? t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : ""; }
@@ -143,7 +143,7 @@
     }
 
     async function iniciar() {
-        const { value: pass } = await Swal.fire({ title: 'SISTEMA 2026', input: 'password', confirmButtonColor: '#0f172a' });
+        const { value: pass } = await Swal.fire({ title: 'ACCESO ADMINISTRATIVO', input: 'password', confirmButtonColor: '#0f172a' });
         if(pass === 'ADMIN2026') { document.getElementById('app').style.display = 'block'; await cargar(); }
     }
 
@@ -176,24 +176,24 @@
         renderLideres(); renderDona(); renderDetalle();
     }
 
-    // --- FUNCIONES DE ORDENAMIENTO (ACTIVADAS) ---
+    // ORDENAMIENTO DE COLUMNAS ACTIVADO
     function ordenarMaestra(col) {
-        sortStateM.asc = sortStateM.col === col ? !sortStateM.asc : true;
-        sortStateM.col = col;
+        sortMaestra.asc = sortMaestra.col === col ? !sortMaestra.asc : true;
+        sortMaestra.col = col;
         baseDatos.sort((a, b) => {
-            let v1 = a[col] || "", v2 = b[col] || "";
-            return sortStateM.asc ? v1.toString().localeCompare(v2) : v2.toString().localeCompare(v1);
+            let v1 = a[col] || "";
+            let v2 = b[col] || "";
+            return sortMaestra.asc ? v1.toString().localeCompare(v2) : v2.toString().localeCompare(v1);
         });
         renderDetalle();
     }
 
     function ordenarLideres(col) {
-        sortStateL.asc = sortStateL.col === col ? !sortStateL.asc : true;
-        sortStateL.col = col;
+        sortLideres.asc = sortLideres.col === col ? !sortLideres.asc : true;
+        sortLideres.col = col;
         lideresRosse.sort((a, b) => {
-            let v1 = a[col], v2 = b[col];
-            if(typeof v1 === 'number') return sortStateL.asc ? v1 - v2 : v2 - v1;
-            return sortStateL.asc ? v1.localeCompare(v2) : v2.localeCompare(v1);
+            if (col === 'cantidad') return sortLideres.asc ? a.cantidad - b.cantidad : b.cantidad - a.cantidad;
+            return sortLideres.asc ? a.nombre.localeCompare(b.nombre) : b.nombre.localeCompare(a.nombre);
         });
         renderLideres();
     }
@@ -229,7 +229,7 @@
         const ws = XLSX.utils.json_to_sheet(baseDatos); 
         const wb = XLSX.utils.book_new(); 
         XLSX.utils.book_append_sheet(wb, ws, "CENSO"); 
-        XLSX.writeFile(wb, "DASHBOARD_TOTAL_2026.xlsx"); 
+        XLSX.writeFile(wb, "CENSO_MAESTRO_2026.xlsx"); 
     }
     
     iniciar();
