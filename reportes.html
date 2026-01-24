@@ -48,11 +48,6 @@
 
         .main-layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; }
         
-        @media (max-width: 1024px) {
-            .main-layout { grid-template-columns: 1fr; }
-            .visual-container { grid-template-columns: 1fr !important; }
-        }
-
         .panel { background: var(--panel); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         h3 { font-size: 0.85rem; margin: 0 0 15px 0; display: flex; align-items: center; gap: 10px; font-weight: 800; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
 
@@ -62,14 +57,12 @@
         .scroll { max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #f8fafc; padding: 12px; text-align: left; font-size: 0.7rem; position: sticky; top: 0; z-index: 10; cursor: pointer; border-bottom: 3px solid #cbd5e1; }
-        th:hover { background: var(--accent); color: white; }
         td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 700; }
         
         .alert-box { padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.75rem; font-weight: 900; border-left: 6px solid; display: flex; justify-content: space-between; align-items: center; }
         .alert-red { background: #fee2e2; color: #991b1b; border-color: var(--danger); }
         .alert-orange { background: #ffedd5; color: #9a3412; border-color: var(--warning); }
 
-        .txt-mini { font-size: 0.65rem; color: #64748b; display: block; }
         .row-recent { border-left: 4px solid var(--accent); margin-bottom: 5px; background: #f8fafc; padding: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;}
     </style>
 </head>
@@ -103,7 +96,7 @@
                 </div>
             </div>
         </div>
-        <div class="stat-card" style="border-left-color: var(--danger)"><span class="stat-label">ZONAS CRÍTICAS (0 O MÍNIMOS)</span><span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span></div>
+        <div class="stat-card" style="border-left-color: var(--danger)"><span class="stat-label">ZONAS CRÍTICAS</span><span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span></div>
         <div class="stat-card" style="border-left-color: var(--success)"><span class="stat-label">LÍDERES EN OPERACIÓN</span><span class="stat-val" id="tLidActivos" style="color:var(--success)">0</span></div>
     </div>
 
@@ -157,10 +150,7 @@
             </div>
 
             <div class="panel">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-                    <h3><i class="fas fa-medal"></i> RANKING RENDIMIENTO</h3>
-                    <button class="btn-exp btn-excel" onclick="exportTable('tablaLid', 'excel')">XLS</button>
-                </div>
+                <h3><i class="fas fa-medal"></i> RANKING RENDIMIENTO</h3>
                 <div class="scroll">
                     <table id="tablaLid">
                         <thead>
@@ -213,127 +203,90 @@
 
     function renderUI() {
         const fType = document.getElementById('filtroFecha').value;
-        const qBusqueda = document.getElementById('bus').value.toUpperCase();
+        const qBus = document.getElementById('bus').value.toUpperCase();
         const hoy = new Date();
         
-        // 1. Filtrado por Tiempo y Búsqueda combinados
+        // 1. Filtrar base por fecha y búsqueda
         const filtered = votantes.filter(v => {
             const fv = new Date(v.created_at);
-            const cumpleBusqueda = qBusqueda === "" || 
-                v["Nombres y apellidos"].toUpperCase().includes(qBusqueda) || 
-                (v.cedula && v.cedula.toString().includes(qBusqueda));
-
-            let cumpleFecha = true;
-            if(fType === 'hoy') cumpleFecha = fv.toDateString() === hoy.toDateString();
-            else if(fType === 'ayer') { 
-                const ayer = new Date(); ayer.setDate(ayer.getDate()-1); 
-                cumpleFecha = fv.toDateString() === ayer.toDateString(); 
-            }
-            else if(fType === '3dias') { 
-                const limite = new Date(); limite.setDate(limite.getDate()-3); 
-                cumpleFecha = fv >= limite; 
-            }
-
-            return cumpleBusqueda && cumpleFecha;
+            const matchBus = qBus === "" || (v["Nombres y apellidos"] || "").toUpperCase().includes(qBus) || (v.cedula && v.cedula.toString().includes(qBus));
+            
+            let matchF = true;
+            if(fType === 'hoy') matchF = fv.toDateString() === hoy.toDateString();
+            else if(fType === 'ayer') { const ayer = new Date(); ayer.setDate(ayer.getDate()-1); matchF = fv.toDateString() === ayer.toDateString(); }
+            else if(fType === '3dias') { const lim = new Date(); lim.setDate(lim.getDate()-3); matchF = fv >= lim; }
+            
+            return matchBus && matchF;
         });
 
-        // Metricas (siempre sobre el total absoluto de la base)
-        const totalBase = votantes.length; 
-        document.getElementById('tV').innerText = totalBase;
-        const porcentaje = Math.min((totalBase / META_TOTAL) * 100, 100).toFixed(1);
-        document.getElementById('pAvance').innerText = porcentaje + '%';
-        document.getElementById('barAvance').style.width = porcentaje + '%';
+        // 2. Cálculos de Metas y Estadísticas (Sobre el total real)
+        const totalReal = votantes.length;
+        document.getElementById('tV').innerText = totalReal;
+        const porc = Math.min((totalReal / META_TOTAL) * 100, 100).toFixed(1);
+        document.getElementById('pAvance').innerText = porc + '%';
+        document.getElementById('barAvance').style.width = porc + '%';
 
-        // Últimos 10 (Sin cambios)
-        const ultimos10 = [...votantes].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10);
-        let hUltimos = "";
-        ultimos10.forEach(v => {
-            const fechaLimpia = new Date(v.created_at).toLocaleString([], {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
-            hUltimos += `<div class="row-recent"><div><b>${v["Nombres y apellidos"]}</b><span class="txt-mini">LÍDER: ${v.lider || 'DIRECTO'}</span></div><span style="font-size:0.65rem; font-weight:900; color:var(--accent)">[${fechaLimpia}]</span></div>`;
-        });
-        document.getElementById('ultimosRegistrosContainer').innerHTML = hUltimos;
-
+        // 3. Procesar datos de la tabla y mapa
         const cCom = {}, cLid = {};
-        votantes.filter(v => (v.lider||"").toUpperCase().includes("ROSSE MARY")).forEach(v => cLid[v["Nombres y apellidos"].toUpperCase()] = 0);
-
-        // Procesamiento de datos visibles
         const procesados = filtered.map(v => {
-            const lidV = (v.lider||"").toUpperCase();
-            if(cLid.hasOwnProperty(lidV)) cLid[lidV]++;
             const m = puestosOficiales.find(po => po.nombre_puesto.toLowerCase().includes((v.puesto||"").toLowerCase()));
             const com = m ? m.comuna : "OTRA";
             if(com !== "OTRA") cCom[com] = (cCom[com] || 0) + 1;
+            
+            const lidV = (v.lider || "ROSSE MARY").toUpperCase();
+            cLid[lidV] = (cLid[lidV] || 0) + 1;
+            
             return { ...v, comuna: com, oficial: m ? m.nombre_puesto : "PENDIENTE" };
         });
 
+        // Inyectar datos
         document.getElementById('tLidActivos').innerText = Object.keys(cLid).length;
-
-        // Alertas (Basado en la vista filtrada)
-        let hAlert = "";
-        const enCero = Object.keys(GPS).filter(c => !cCom[c]);
-        enCero.forEach(c => hAlert += `<div class="alert-box alert-red"><span>COMUNA ${c}</span> <b>CERO (0)</b></div>`);
-        Object.entries(cCom).sort((a,b)=>a[1]-b[1]).slice(0, 5).forEach(([c,t]) => hAlert += `<div class="alert-box alert-orange"><span>COMUNA ${c}</span> <b>BAJA (${t})</b></div>`);
-        document.getElementById('alertasContainer').innerHTML = hAlert;
-        document.getElementById('tZonasCriticas').innerText = enCero.length;
-
-        // Inyectar tablas
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v])=>`<tr><td>${l}</td><td align="center">${v}</td></tr>`).join('');
         document.getElementById('bodyM').innerHTML = procesados.map(v => `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.oficial}</td><td>${v.comuna}</td></tr>`).join('');
 
-        // Mapa y Dona (Igual)
+        // 4. Últimos 10 registros (Globales)
+        const ultimos10 = [...votantes].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10);
+        document.getElementById('ultimosRegistrosContainer').innerHTML = ultimos10.map(v => {
+            const f = new Date(v.created_at).toLocaleString([], {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+            return `<div class="row-recent"><div><b>${v["Nombres y apellidos"]}</b><span style="font-size:0.6rem; display:block">LIDER: ${v.lider || 'ROSSE'}</span></div><span style="color:var(--accent); font-size:0.7rem">${f}</span></div>`;
+        }).join('');
+
+        // 5. Alertas de Comunas (Basado en la vista actual)
+        let hAlert = "";
+        const enCero = Object.keys(GPS).filter(c => !cCom[c]);
+        enCero.forEach(c => hAlert += `<div class="alert-box alert-red"><span>COMUNA ${c}</span> <b>CERO (0)</b></div>`);
+        Object.entries(cCom).sort((a,b)=>a[1]-b[1]).slice(0, 5).filter(x => x[1] > 0).forEach(([c,t]) => hAlert += `<div class="alert-box alert-orange"><span>COMUNA ${c}</span> <b>BAJA (${t})</b></div>`);
+        document.getElementById('alertasContainer').innerHTML = hAlert;
+        document.getElementById('tZonasCriticas').innerText = enCero.length;
+
+        // 6. Mapa y Gráfico (Igual)
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
             const t = cCom[c] || 0;
-            let col = t === 0 ? "#ef4444" : (t < 30 ? "#f59e0b" : "#10b981");
-            if(GPS[c]) {
-                const b = L.circle(GPS[c], { color: col, fillColor: col, fillOpacity: 0.7, radius: 400 + (t * 12) }).addTo(capaBurbujas);
-                b.bindTooltip(`COMUNA ${c}: ${t} REGISTROS`);
-            }
+            const col = t === 0 ? "#ef4444" : "#10b981";
+            L.circle(GPS[c], { color: col, radius: 400 + (t * 10) }).addTo(capaBurbujas).bindTooltip(`C${c}: ${t}`);
         });
 
         const eti = Object.keys(cCom).sort((a,b)=>a-b);
-        const colDona = ['#2563eb','#8b5cf6','#06b6d4','#d946ef','#f97316','#a3e635','#2dd4bf','#fbbf24','#475569','#0f172a'];
         if(chartDona) chartDona.destroy();
         chartDona = new Chart(document.getElementById('donaComunas'), {
             type: 'doughnut',
-            data: { labels: eti.map(e=>'C'+e), datasets: [{ data: eti.map(e=>cCom[e]), backgroundColor: colDona }] },
+            data: { labels: eti.map(e=>'C'+e), datasets: [{ data: eti.map(e=>cCom[e]), backgroundColor: ['#2563eb','#8b5cf6','#06b6d4','#d946ef','#f97316','#a3e635'] }] },
             options: { plugins: { legend: { display: false } } }
         });
-
-        document.getElementById('donaLegend').innerHTML = eti.map((c, i) => `
-            <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #ddd; font-size:0.75rem;">
-                <span><i class="fas fa-circle" style="color:${colDona[i%colDona.length]}"></i> COMUNA ${c}</span><b>${cCom[c]}</b>
-            </div>`).join('');
     }
 
-    function ordenarMaster(tableId, col) {
-        const table = document.getElementById(tableId);
-        const tbody = table.tBodies[0];
+    function ordenarMaster(id, col) {
+        const tbody = document.getElementById(id).tBodies[0];
         const rows = Array.from(tbody.rows);
-        const newAsc = table.getAttribute('data-asc') !== 'true';
-        rows.sort((a, b) => {
-            let valA = a.cells[col].innerText.trim();
-            let valB = b.cells[col].innerText.trim();
-            const numA = parseFloat(valA.replace(/\./g, ''));
-            const numB = parseFloat(valB.replace(/\./g, ''));
-            if (!isNaN(numA) && !isNaN(numB)) return newAsc ? numA - numB : numB - numA;
-            return newAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-        });
-        table.setAttribute('data-asc', newAsc);
+        rows.sort((a, b) => a.cells[col].innerText.localeCompare(b.cells[col].innerText));
         rows.forEach(r => tbody.appendChild(r));
     }
 
     function exportTable(id, type) {
         const table = document.getElementById(id);
-        if(type === 'excel') {
-            const wb = XLSX.utils.table_to_book(table);
-            XLSX.writeFile(wb, `REPORTE_${id}.xlsx`);
-        } else {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.autoTable({ html: `#${id}`, theme: 'grid' });
-            doc.save(`REPORTE_${id}.pdf`);
-        }
+        if(type === 'excel') { const wb = XLSX.utils.table_to_book(table); XLSX.writeFile(wb, `REPORTE.xlsx`); }
+        else { const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.autoTable({ html: `#${id}` }); doc.save(`REPORTE.pdf`); }
     }
 
     login();
