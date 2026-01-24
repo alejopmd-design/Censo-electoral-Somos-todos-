@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA ESTRATÉGICO ROSSE MARY CABAL 2026</title>
+    <title>SISTEMA MÁSTER ROSSE MARY CABAL 2026</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -15,60 +15,84 @@
     <style>
         :root { 
             --primary: #1e293b; --accent: #4f46e5; --success: #10b981; 
-            --danger: #ef4444; --warning: #f59e0b; --bg: #f8fafc;
+            --danger: #ef4444; --warning: #f59e0b; --bg: #f1f5f9;
         }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--primary); text-transform: uppercase; }
         .container { max-width: 1850px; margin: auto; display: none; }
         
-        /* Dashboard Stats */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 25px; }
-        .stat-card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-top: 5px solid var(--accent); }
-        .stat-val { font-size: 3rem; font-weight: 900; color: var(--primary); margin: 5px 0; }
-        .stat-label { font-size: 0.75rem; font-weight: 800; color: #64748b; }
+        /* Header */
+        .master-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .master-header h1 { margin: 0; font-size: 1.5rem; font-weight: 900; border-left: 6px solid var(--accent); padding-left: 15px; }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 25px; }
+        .stat-card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative; }
+        .stat-val { font-size: 2.8rem; font-weight: 900; margin: 5px 0; line-height: 1; }
+        .stat-label { font-size: 0.7rem; font-weight: 800; color: #64748b; margin-bottom: 5px; }
 
         /* Layout */
-        .main-layout { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 25px; }
-        .panel { background: white; border-radius: 15px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        h3 { font-size: 0.9rem; margin: 0 0 15px 0; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+        .main-layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 25px; }
+        .panel { background: white; border-radius: 15px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 25px; }
+        h3 { font-size: 0.85rem; margin: 0 0 15px 0; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
 
         /* Mapa y Dona */
-        .map-dona-wrapper { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        .map-wrapper { display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
         #map { height: 450px; border-radius: 12px; border: 1px solid #e2e8f0; }
 
-        /* Tablas */
-        .scroll { max-height: 450px; overflow-y: auto; }
+        /* Tablas y Listas */
+        .scroll { max-height: 400px; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 12px; text-align: left; font-size: 0.7rem; position: sticky; top: 0; border-bottom: 2px solid #e2e8f0; cursor: pointer; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 700; }
+        th { background: #f8fafc; padding: 12px; text-align: left; font-size: 0.7rem; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 700; }
         
-        .row-zero { background-color: #fff1f2; color: #991b1b; } /* Resalte para líderes con 0 */
+        .alert-item { padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.75rem; font-weight: 800; border-left: 4px solid; }
+        .alert-red { background: #fee2e2; color: #991b1b; border-color: var(--danger); }
+        .alert-orange { background: #ffedd5; color: #9a3412; border-color: var(--warning); }
 
-        .leader-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.75rem; font-weight: 800; }
+        .red-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.75rem; }
+        .row-zero { background-color: #fff1f2; color: #991b1b; }
+
+        .select-master { padding: 10px; border-radius: 8px; border: 2px solid var(--accent); font-weight: 800; background: white; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
-    <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-        <h1 style="font-weight:900; border-left:6px solid var(--accent); padding-left:15px;">CENTRO DE MANDO ROSSE MARY CABAL</h1>
-        <div id="reloj" style="font-weight:900; color:var(--accent);"></div>
+    <header class="master-header">
+        <h1>COMMAND CENTER: ROSSE MARY CABAL 2026</h1>
+        <div style="display:flex; gap:20px; align-items:center;">
+            <div style="text-align:right">
+                <label style="font-size:0.7rem; font-weight:900; display:block">RANGO TEMPORAL:</label>
+                <select id="filtroFecha" class="select-master" onchange="renderUI()">
+                    <option value="all">TIEMPO TOTAL</option>
+                    <option value="hoy">GESTIÓN HOY</option>
+                    <option value="ayer">GESTIÓN AYER</option>
+                    <option value="3dias">ÚLTIMOS 3 DÍAS</option>
+                    <option value="semana">ESTA SEMANA</option>
+                </select>
+            </div>
+            <div id="reloj" style="font-weight: 900; color: var(--accent); min-width: 150px;"></div>
+        </div>
     </header>
 
     <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-label">CENSO TOTAL (RED GLOBAL)</div>
+        <div class="stat-card" style="border-top: 5px solid var(--accent)">
+            <div class="stat-label"><i class="fas fa-users"></i> CENSO TOTAL (RED GLOBAL)</div>
             <div class="stat-val" id="tV">0</div>
-            <small id="metaPct" style="font-weight:900; color:var(--success)">OBJETIVO: 7,000</small>
+            <div style="height:8px; background:#e2e8f0; border-radius:10px; overflow:hidden; margin-top:10px">
+                <div id="metaFill" style="height:100%; background:var(--accent); width:0%; transition:1s;"></div>
+            </div>
+            <small id="metaPct" style="font-weight:800; margin-top:5px; display:block">OBJETIVO: 7,000 (0%)</small>
         </div>
-        <div class="stat-card" style="border-top-color: var(--success)">
-            <div class="stat-label">LÍDERES DIRECTOS (EQUIPO)</div>
+        <div class="stat-card" style="border-top: 5px solid var(--danger)">
+            <div class="stat-label"><i class="fas fa-exclamation-triangle"></i> ZONAS CRÍTICAS</div>
+            <div class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</div>
+            <small>EN 0 O BAJO RENDIMIENTO</small>
+        </div>
+        <div class="stat-card" style="border-top: 5px solid var(--success)">
+            <div class="stat-label"><i class="fas fa-user-tie"></i> LÍDERES DIRECTOS</div>
             <div class="stat-val" id="tLidActivos" style="color:var(--success)">0</div>
             <small>INSCRITOS POR ROSSE MARY</small>
-        </div>
-        <div class="stat-card" style="border-top-color: var(--warning)">
-            <div class="stat-label">VOTOS DIRECTOS</div>
-            <div class="stat-val" id="tDirectos" style="color:var(--warning)">0</div>
-            <small>SIN INTERMEDIARIOS</small>
         </div>
     </div>
 
@@ -76,29 +100,24 @@
         <div class="col-left">
             <div class="panel">
                 <h3><i class="fas fa-map-marked-alt"></i> GEORREFERENCIACIÓN Y COMUNAS</h3>
-                <div class="map-dona-wrapper">
+                <div class="map-wrapper">
                     <div id="map"></div>
                     <div>
-                        <canvas id="donaComunas" style="max-height: 200px;"></canvas>
-                        <div id="donaLegend" class="scroll" style="max-height: 230px; margin-top:10px"></div>
+                        <canvas id="donaComunas" style="max-height: 180px;"></canvas>
+                        <div id="donaLegend" class="scroll" style="max-height: 250px; margin-top:10px"></div>
                     </div>
                 </div>
             </div>
 
             <div class="panel">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-                    <h3><i class="fas fa-database"></i> CENSO DE VOTANTES</h3>
-                    <input type="text" id="bus" onkeyup="filtrar()" placeholder="BUSCAR..." style="padding:8px; border-radius:8px; border:1px solid #ddd">
+                    <h3><i class="fas fa-list"></i> CENSO DE VOTANTES</h3>
+                    <input type="text" id="bus" onkeyup="filtrar()" placeholder="BUSCAR..." style="padding:8px; border-radius:8px; border:1px solid #ddd; width:250px">
                 </div>
                 <div class="scroll">
                     <table id="tablaG">
                         <thead>
-                            <tr>
-                                <th>VOTANTE</th>
-                                <th>CÉDULA</th>
-                                <th>PUESTO</th>
-                                <th>COMUNA</th>
-                            </tr>
+                            <tr><th>VOTANTE</th><th>CÉDULA</th><th>PUESTO</th><th>COM</th></tr>
                         </thead>
                         <tbody id="bodyM"></tbody>
                     </table>
@@ -107,24 +126,26 @@
         </div>
 
         <div class="col-right">
-            <div class="panel" style="border-top: 5px solid gold">
-                <h3><i class="fas fa-trophy"></i> RANKING DE LÍDERES (TODO EL EQUIPO)</h3>
+            <div class="panel" style="border-left: 5px solid var(--danger)">
+                <h3><i class="fas fa-bolt"></i> ALERTAS DE INTERVENCIÓN</h3>
+                <div id="alertasContainer" class="scroll" style="max-height: 180px;"></div>
+            </div>
+
+            <div class="panel" style="border-top: 5px solid #6366f1">
+                <h3><i class="fas fa-history"></i> RED DE LÍDERES (ÚLT. 10 REGISTROS)</h3>
+                <div id="recentList" class="scroll" style="max-height: 350px;"></div>
+            </div>
+
+            <div class="panel">
+                <h3><i class="fas fa-medal"></i> RANKING DE LÍDERES (INCLUYE 0)</h3>
                 <div class="scroll">
                     <table id="tablaLid">
                         <thead>
-                            <tr>
-                                <th>LÍDER DIRECTO</th>
-                                <th style="text-align:center">REFERIDOS</th>
-                            </tr>
+                            <tr><th>LÍDER DIRECTO</th><th style="text-align:center">REFERIDOS</th></tr>
                         </thead>
                         <tbody id="bodyLid"></tbody>
                     </table>
                 </div>
-            </div>
-
-            <div class="panel">
-                <h3><i class="fas fa-project-diagram"></i> ÚLTIMAS CARGAS DE LA RED</h3>
-                <div id="recentList" class="scroll" style="max-height: 400px;"></div>
             </div>
         </div>
     </div>
@@ -136,13 +157,11 @@
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
     let votantes = [], puestosOficiales = [], map, capaBurbujas, chartDona;
-    const LIDER_MASTER = "ROSSE MARY CABAL FRANCO";
-
     const GPS = { "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],"6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],"11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],"16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],"21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510],"25":[3.370,-76.570],"33":[3.480,-76.570] };
     const COLORES = ['#4f46e5','#10b981','#f59e0b','#ef4444','#06b6d4','#8b5cf6','#d946ef','#f97316','#a3e635','#2dd4bf'];
 
     async function login() {
-        const { value: p } = await Swal.fire({ title: 'ACCESO CONTROL', input: 'password', confirmButtonColor: '#1e293b' });
+        const { value: p } = await Swal.fire({ title: 'ACCESO MÁSTER', input: 'password', confirmButtonColor: '#1e293b' });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
             initMap(); 
@@ -166,51 +185,64 @@
     }
 
     function renderUI() {
-        const cCom = {}, cLid = {}, cDataMap = {};
-        
-        // 1. IDENTIFICAR AL EQUIPO DIRECTO (Inscritos por Rosse Mary)
-        const equipoRosse = votantes.filter(v => v.lider && v.lider.toUpperCase().includes("ROSSE MARY"));
-        const nombresEquipo = equipoRosse.map(v => v["Nombres y apellidos"].toUpperCase());
-        
-        // Inicializamos a cada uno con 0 votos
-        nombresEquipo.forEach(nom => cLid[nom] = 0);
+        const fType = document.getElementById('filtroFecha').value;
+        const hoy = new Date();
+        const ayer = new Date(); ayer.setDate(hoy.getDate() - 1);
+        const tresD = new Date(); tresD.setDate(hoy.getDate() - 3);
 
-        // 2. CONTAR REFERIDOS DE CADA MIEMBRO DEL EQUIPO
-        votantes.forEach(v => {
-            const lidV = (v.lider || "").toUpperCase();
-            if(cLid.hasOwnProperty(lidV)) {
-                cLid[lidV]++;
-            }
-            
-            // Datos de Comuna
-            const m = puestosOficiales.find(po => po.nombre_puesto.toLowerCase().includes((v.puesto||"").toLowerCase()));
-            const com = m ? m.comuna : "OTRA";
-            v.comuna = com;
-            v.oficial = m ? m.nombre_puesto : "PENDIENTE";
-            if(com !== "OTRA") cCom[com] = (cCom[com] || 0) + 1;
+        const filtered = votantes.filter(v => {
+            const fv = new Date(v.created_at);
+            if(fType === 'all') return true;
+            if(fType === 'hoy') return fv.toDateString() === hoy.toDateString();
+            if(fType === 'ayer') return fv.toDateString() === ayer.toDateString();
+            if(fType === '3dias') return fv >= tresD;
+            if(fType === 'semana') return (hoy - fv) < (7 * 24 * 60 * 60 * 1000);
         });
 
-        // Dashboard
-        document.getElementById('tV').innerText = votantes.length.toLocaleString();
+        const cCom = {}, cLid = {};
+        const equipoRosse = votantes.filter(v => v.lider && v.lider.toUpperCase().includes("ROSSE MARY"));
+        const nombresEquipo = equipoRosse.map(v => v["Nombres y apellidos"].toUpperCase());
+        nombresEquipo.forEach(nom => cLid[nom] = 0);
+
+        const procesados = filtered.map(v => {
+            const lidV = (v.lider || "").toUpperCase();
+            if(cLid.hasOwnProperty(lidV)) cLid[lidV]++;
+            const m = puestosOficiales.find(po => po.nombre_puesto.toLowerCase().includes((v.puesto||"").toLowerCase()));
+            const com = m ? m.comuna : "OTRA";
+            if(com !== "OTRA") cCom[com] = (cCom[com] || 0) + 1;
+            return { ...v, comuna: com, oficial: m ? m.nombre_puesto : "PENDIENTE" };
+        });
+
+        // Stats
+        document.getElementById('tV').innerText = filtered.length.toLocaleString();
         document.getElementById('tLidActivos').innerText = nombresEquipo.length;
-        document.getElementById('tDirectos').innerText = equipoRosse.length;
+        const pct = Math.min((filtered.length / 7000) * 100, 100);
+        document.getElementById('metaFill').style.width = pct + '%';
+        document.getElementById('metaPct').innerText = `OBJETIVO: 7,000 (${pct.toFixed(1)}%)`;
 
-        // Ranking (Asegurando que salgan los de 0)
-        const sortedLid = Object.entries(cLid).sort((a,b) => b[1] - a[1]);
-        document.getElementById('bodyLid').innerHTML = sortedLid.map(([l,v]) => `
-            <tr class="${v === 0 ? 'row-zero' : ''}">
-                <td>${l}</td>
-                <td align="center">${v}</td>
-            </tr>
-        `).join('');
+        // Alertas y Zonas Críticas
+        let hAlert = "";
+        const enCero = Object.keys(GPS).filter(c => !cCom[c]);
+        enCero.forEach(c => hAlert += `<div class="alert-item alert-red">COMUNA ${c}: SIN REGISTROS (0)</div>`);
+        const bajos = Object.entries(cCom).sort((a,b)=>a[1]-b[1]).slice(0, 5);
+        bajos.forEach(([c,t]) => hAlert += `<div class="alert-item alert-orange">COMUNA ${c}: BAJA PRODUCCIÓN (${t})</div>`);
+        document.getElementById('alertasContainer').innerHTML = hAlert || "SITUACIÓN BAJO CONTROL";
+        document.getElementById('tZonasCriticas').innerText = enCero.length + bajos.length;
 
-        // Red Reciente (Últimos 15)
-        const ult15 = [...votantes].reverse().slice(0, 15);
-        document.getElementById('recentList').innerHTML = ult15.map(u => `
-            <div class="leader-row">
-                <span>${u["Nombres y apellidos"].toUpperCase()}<br><small style="color:var(--accent)">LÍDER: ${u.lider || 'DIRECTO'}</small></span>
-                <span style="color:#64748b">${u.comuna !== "OTRA" ? 'C'+u.comuna : '---'}</span>
-            </div>
+        // Red Reciente (Últimos 10 con fecha/líder)
+        const ult10 = [...procesados].reverse().slice(0, 10);
+        document.getElementById('recentList').innerHTML = ult10.map(u => {
+            const f = new Date(u.created_at);
+            return `<div class="red-item">
+                <span><b>${u["Nombres y apellidos"].toUpperCase()}</b><br><small style="color:var(--accent)">LÍDER: ${u.lider}</small></span>
+                <span style="text-align:right"><small>${f.getDate()}/${f.getMonth()+1}</small><br><small>${f.getHours()}:${f.getMinutes()}</small></span>
+            </div>`;
+        }).join('');
+
+        // Ranking Total
+        const sortedLid = Object.entries(cLid).sort((a,b)=>b[1]-a[1]);
+        document.getElementById('bodyLid').innerHTML = sortedLid.map(([l,v])=>`
+            <tr class="${v === 0 ? 'row-zero' : ''}"><td>${l}</td><td align="center">${v}</td></tr>
         `).join('');
 
         // Mapa y Dona
@@ -230,14 +262,10 @@
             options: { plugins: { legend: { display: false } } }
         });
         document.getElementById('donaLegend').innerHTML = eti.map((e, i) => `
-            <div class="leader-row">
-                <span><i class="fas fa-circle" style="color:${COLORES[i % COLORES.length]}"></i> COMUNA ${e}</span>
-                <span>${cCom[e]}</span>
-            </div>`).join('');
-
-        document.getElementById('bodyM').innerHTML = votantes.map(v => `
-            <tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.oficial}</td><td>${v.comuna}</td></tr>
+            <div class="red-item"><span><i class="fas fa-circle" style="color:${COLORES[i % COLORES.length]}"></i> C${e}</span><span>${cCom[e]}</span></div>
         `).join('');
+
+        document.getElementById('bodyM').innerHTML = procesados.map(v => `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.oficial}</td><td>${v.comuna}</td></tr>`).join('');
     }
 
     function filtrar() {
