@@ -22,8 +22,6 @@
         .btn-template { background: #6c757d; font-size: 13px; }
         #seccionFormulario, #logErrores { display: none; }
         .user-info { font-size: 14px; background: #f8f9fa; padding: 10px 20px; border-radius: 50px; display: inline-block; margin-bottom: 20px; font-weight: bold; color: var(--primary); }
-        
-        /* Estilo para la nota explicativa */
         .nota-informativa { font-size: 12px; color: #666; background: #fff9c4; padding: 10px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #fbc02d; text-align: left; }
     </style>
 </head>
@@ -115,20 +113,15 @@
             observaciones: document.getElementById('vObs').value.trim() || "",
             lider: usuarioActivo["Nombres y apellidos"]
         };
-
         if(!d.cedula || !d["Nombres y apellidos"] || !d.telefono) {
             return Swal.fire('Atención', 'Cédula, Nombre y Teléfono son obligatorios', 'warning');
         }
-
         const { data: existe } = await _supabase.from('VOTANTES').select('cedula').eq('cedula', d.cedula).maybeSingle();
         if (existe) return Swal.fire('Error', 'Esta cédula ya está registrada.', 'error');
-
         const { error } = await _supabase.from('VOTANTES').insert([d]);
         if(!error) {
             Swal.fire('Éxito', 'Guardado correctamente', 'success');
             document.querySelectorAll('#seccionFormulario input, textarea').forEach(i => i.value = "");
-        } else {
-            Swal.fire('Error', 'Verifica el formato de los datos.', 'error');
         }
     }
 
@@ -148,29 +141,49 @@
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
             const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-            Swal.fire({title: 'Cargando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-            let subidos = 0;
+            
+            Swal.fire({title: 'Procesando carga...', text: 'Al finalizar se descargará el reporte de comprobación.', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            
+            let resultados = []; // Para el Excel de comprobación
+
             for (let i = 0; i < registros.length; i++) {
-                const r = registros[i];
+                let r = registros[i];
+                let estado = "";
                 const ced = String(r.cedula || "").trim();
-                if(!ced || !r.nombre_completo || !r.telefono) continue;
-                const { data: ex } = await _supabase.from('VOTANTES').select('cedula').eq('cedula', ced).maybeSingle();
-                if(!ex) {
-                    await _supabase.from('VOTANTES').insert([{
-                        cedula: ced,
-                        "Nombres y apellidos": r.nombre_completo,
-                        direccion: r.direccion || "No aplica",
-                        telefono: String(r.telefono),
-                        puesto: r.puesto || "No aplica",
-                        observaciones: r.observaciones || "",
-                        lider: usuarioActivo["Nombres y apellidos"]
-                    }]);
-                    subidos++;
+
+                if(!ced || !r.nombre_completo || !r.telefono) {
+                    estado = "Error: Faltan datos obligatorios";
+                } else {
+                    const { data: ex } = await _supabase.from('VOTANTES').select('cedula').eq('cedula', ced).maybeSingle();
+                    if(ex) {
+                        estado = "Ya existe en la base de datos";
+                    } else {
+                        const { error } = await _supabase.from('VOTANTES').insert([{
+                            cedula: ced,
+                            "Nombres y apellidos": r.nombre_completo,
+                            direccion: r.direccion || "No aplica",
+                            telefono: String(r.telefono),
+                            puesto: r.puesto || "No aplica",
+                            observaciones: r.observaciones || "",
+                            lider: usuarioActivo["Nombres y apellidos"]
+                        }]);
+                        estado = error ? "Error de formato" : "Registrado con éxito";
+                    }
                 }
+                
+                // Guardamos el resultado para el nuevo Excel
+                resultados.push({...r, "Estado_Carga": estado});
                 document.getElementById('progresoCarga').innerText = `Procesados: ${i+1} de ${registros.length}`;
             }
+
+            // GENERAR EXCEL DE COMPROBACIÓN
+            const ws = XLSX.utils.json_to_sheet(resultados);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Resultado");
+            XLSX.writeFile(wb, "Resultado_Carga.xlsx");
+
             Swal.close();
-            Swal.fire('Éxito', `Carga terminada.`, 'success');
+            Swal.fire('Proceso Terminado', 'Se ha descargado un archivo con los resultados de la carga.', 'success');
         };
         reader.readAsArrayBuffer(file);
     }
