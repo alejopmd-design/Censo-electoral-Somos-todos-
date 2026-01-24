@@ -20,7 +20,7 @@
         .btn-login { background: var(--primary); }
         .btn-save { background: var(--success); }
         .btn-template { background: #6c757d; font-size: 13px; }
-        #seccionFormulario, #logErrores { display: none; }
+        #seccionFormulario { display: none; }
         .user-info { font-size: 14px; background: #f8f9fa; padding: 10px 20px; border-radius: 50px; display: inline-block; margin-bottom: 20px; font-weight: bold; color: var(--primary); }
         .nota-informativa { font-size: 12px; color: #666; background: #fff9c4; padding: 10px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #fbc02d; text-align: left; }
     </style>
@@ -44,17 +44,17 @@
     
     <div class="input-group">
         <label>Cédula * (Obligatorio)</label>
-        <input type="text" id="vCedula" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        <input type="text" id="vCedula" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Solo números">
     </div>
     
     <div class="input-group">
         <label>Nombre Completo * (Obligatorio)</label>
-        <input type="text" id="vNombre" oninput="this.value = this.value.replace(/[^a-zA-ZñÑáéíóúÁÉÍÓÚ ]/g, '')">
+        <input type="text" id="vNombre" oninput="this.value = this.value.replace(/[^a-zA-ZñÑáéíóúÁÉÍÓÚ ]/g, '')" placeholder="Solo letras">
     </div>
     
     <div class="input-group">
         <label>Teléfono * (Obligatorio)</label>
-        <input type="text" id="vTelefono" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        <input type="text" id="vTelefono" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Solo números">
     </div>
     
     <div class="input-group"><label>Dirección (Opcional)</label><input type="text" id="vDireccion"></div>
@@ -62,7 +62,7 @@
     <div class="input-group"><label>Observaciones (Opcional)</label><textarea id="vObs"></textarea></div>
     
     <div class="nota-informativa">
-        <strong>📌 Nota importante:</strong> Para garantizar la calidad de los datos, los campos de <strong>Cédula</strong> y <strong>Teléfono</strong> solo permiten números. El campo de <strong>Nombre</strong> solo permite letras y espacios.
+        <strong>📌 Nota:</strong> Cédula y Teléfono solo permiten números. El Nombre solo permite letras. Todo se guardará en MAYÚSCULAS automáticamente.
     </div>
 
     <button class="btn-save" onclick="procesarRegistroManual()">💾 GUARDAR REGISTRO</button>
@@ -90,7 +90,7 @@
         if (!pass) return Swal.fire('Aviso', 'Ingresa tu cédula', 'warning');
         Swal.fire({ title: 'Verificando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         try {
-            const { data, error } = await _supabase.from('VOTANTES').select('["Nombres y apellidos"]').eq('cedula', pass).maybeSingle();
+            const { data } = await _supabase.from('VOTANTES').select('["Nombres y apellidos"]').eq('cedula', pass).maybeSingle();
             Swal.close();
             if (data) {
                 usuarioActivo = data;
@@ -106,22 +106,27 @@
     async function procesarRegistroManual() {
         const d = {
             cedula: document.getElementById('vCedula').value.trim(),
-            "Nombres y apellidos": document.getElementById('vNombre').value.trim(),
-            direccion: document.getElementById('vDireccion').value.trim() || "No aplica",
+            "Nombres y apellidos": document.getElementById('vNombre').value.trim().toUpperCase(),
+            direccion: document.getElementById('vDireccion').value.trim().toUpperCase() || "NO APLICA",
             telefono: document.getElementById('vTelefono').value.trim(),
-            puesto: document.getElementById('vPuesto').value.trim() || "No aplica",
+            puesto: document.getElementById('vPuesto').value.trim().toUpperCase() || "NO APLICA",
             observaciones: document.getElementById('vObs').value.trim() || "",
-            lider: usuarioActivo["Nombres y apellidos"]
+            lider: usuarioActivo["Nombres y apellidos"].toUpperCase()
         };
+
         if(!d.cedula || !d["Nombres y apellidos"] || !d.telefono) {
             return Swal.fire('Atención', 'Cédula, Nombre y Teléfono son obligatorios', 'warning');
         }
+
         const { data: existe } = await _supabase.from('VOTANTES').select('cedula').eq('cedula', d.cedula).maybeSingle();
-        if (existe) return Swal.fire('Error', 'Esta cédula ya está registrada.', 'error');
+        if (existe) return Swal.fire('Error', 'Esta cédula ya existe.', 'error');
+
         const { error } = await _supabase.from('VOTANTES').insert([d]);
         if(!error) {
-            Swal.fire('Éxito', 'Guardado correctamente', 'success');
+            Swal.fire('Éxito', 'Guardado correctamente en mayúsculas', 'success');
             document.querySelectorAll('#seccionFormulario input, textarea').forEach(i => i.value = "");
+        } else {
+            Swal.fire('Error', 'Verifica el formato (Cédula/Teléfono solo números, Nombre solo letras)', 'error');
         }
     }
 
@@ -135,17 +140,15 @@
 
     async function cargarExcel() {
         const file = document.getElementById('inputExcel').files[0];
-        if(!file) return Swal.fire('Archivo', 'Selecciona un archivo Excel', 'info');
+        if(!file) return Swal.fire('Archivo', 'Selecciona un archivo', 'info');
         const reader = new FileReader();
         reader.onload = async (e) => {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
             const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            Swal.fire({title: 'Cargando...', text: 'Se descargará un reporte al finalizar.', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
             
-            Swal.fire({title: 'Procesando carga...', text: 'Al finalizar se descargará el reporte de comprobación.', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-            
-            let resultados = []; // Para el Excel de comprobación
-
+            let resultados = [];
             for (let i = 0; i < registros.length; i++) {
                 let r = registros[i];
                 let estado = "";
@@ -156,34 +159,29 @@
                 } else {
                     const { data: ex } = await _supabase.from('VOTANTES').select('cedula').eq('cedula', ced).maybeSingle();
                     if(ex) {
-                        estado = "Ya existe en la base de datos";
+                        estado = "Ya existe";
                     } else {
                         const { error } = await _supabase.from('VOTANTES').insert([{
                             cedula: ced,
-                            "Nombres y apellidos": r.nombre_completo,
-                            direccion: r.direccion || "No aplica",
+                            "Nombres y apellidos": String(r.nombre_completo).toUpperCase(),
+                            direccion: String(r.direccion || "NO APLICA").toUpperCase(),
                             telefono: String(r.telefono),
-                            puesto: r.puesto || "No aplica",
+                            puesto: String(r.puesto || "NO APLICA").toUpperCase(),
                             observaciones: r.observaciones || "",
-                            lider: usuarioActivo["Nombres y apellidos"]
+                            lider: usuarioActivo["Nombres y apellidos"].toUpperCase()
                         }]);
-                        estado = error ? "Error de formato" : "Registrado con éxito";
+                        estado = error ? "Error de formato SQL" : "Registrado con éxito";
                     }
                 }
-                
-                // Guardamos el resultado para el nuevo Excel
                 resultados.push({...r, "Estado_Carga": estado});
                 document.getElementById('progresoCarga').innerText = `Procesados: ${i+1} de ${registros.length}`;
             }
-
-            // GENERAR EXCEL DE COMPROBACIÓN
             const ws = XLSX.utils.json_to_sheet(resultados);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Resultado");
-            XLSX.writeFile(wb, "Resultado_Carga.xlsx");
-
+            XLSX.writeFile(wb, "Reporte_Carga_Final.xlsx");
             Swal.close();
-            Swal.fire('Proceso Terminado', 'Se ha descargado un archivo con los resultados de la carga.', 'success');
+            Swal.fire('Terminado', 'Carga finalizada. Revisa el archivo descargado.', 'success');
         };
         reader.readAsArrayBuffer(file);
     }
