@@ -128,7 +128,7 @@
                         <button class="btn-exp btn-pdf" onclick="exportTable('tablaG', 'pdf')">PDF</button>
                     </div>
                 </div>
-                <input type="text" id="bus" onkeyup="filtrar()" placeholder="BUSCAR REGISTROS..." style="width:100%; padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid #cbd5e1; font-weight:800;">
+                <input type="text" id="bus" onkeyup="renderUI()" placeholder="BUSCAR POR NOMBRE O CÉDULA..." style="width:100%; padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid #cbd5e1; font-weight:800;">
                 <div class="scroll">
                     <table id="tablaG">
                         <thead>
@@ -213,22 +213,38 @@
 
     function renderUI() {
         const fType = document.getElementById('filtroFecha').value;
+        const qBusqueda = document.getElementById('bus').value.toUpperCase();
         const hoy = new Date();
         
+        // 1. Filtrado por Tiempo y Búsqueda combinados
         const filtered = votantes.filter(v => {
             const fv = new Date(v.created_at);
-            if(fType === 'all') return true;
-            if(fType === 'hoy') return fv.toDateString() === hoy.toDateString();
-            if(fType === 'ayer') { const ayer = new Date(); ayer.setDate(ayer.getDate()-1); return fv.toDateString() === ayer.toDateString(); }
-            if(fType === '3dias') { const limite = new Date(); limite.setDate(limite.getDate()-3); return fv >= limite; }
+            const cumpleBusqueda = qBusqueda === "" || 
+                v["Nombres y apellidos"].toUpperCase().includes(qBusqueda) || 
+                (v.cedula && v.cedula.toString().includes(qBusqueda));
+
+            let cumpleFecha = true;
+            if(fType === 'hoy') cumpleFecha = fv.toDateString() === hoy.toDateString();
+            else if(fType === 'ayer') { 
+                const ayer = new Date(); ayer.setDate(ayer.getDate()-1); 
+                cumpleFecha = fv.toDateString() === ayer.toDateString(); 
+            }
+            else if(fType === '3dias') { 
+                const limite = new Date(); limite.setDate(limite.getDate()-3); 
+                cumpleFecha = fv >= limite; 
+            }
+
+            return cumpleBusqueda && cumpleFecha;
         });
 
-        const totalRegistros = votantes.length; 
-        document.getElementById('tV').innerText = totalRegistros;
-        const porcentaje = Math.min((totalRegistros / META_TOTAL) * 100, 100).toFixed(1);
+        // Metricas (siempre sobre el total absoluto de la base)
+        const totalBase = votantes.length; 
+        document.getElementById('tV').innerText = totalBase;
+        const porcentaje = Math.min((totalBase / META_TOTAL) * 100, 100).toFixed(1);
         document.getElementById('pAvance').innerText = porcentaje + '%';
         document.getElementById('barAvance').style.width = porcentaje + '%';
 
+        // Últimos 10 (Sin cambios)
         const ultimos10 = [...votantes].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10);
         let hUltimos = "";
         ultimos10.forEach(v => {
@@ -240,6 +256,7 @@
         const cCom = {}, cLid = {};
         votantes.filter(v => (v.lider||"").toUpperCase().includes("ROSSE MARY")).forEach(v => cLid[v["Nombres y apellidos"].toUpperCase()] = 0);
 
+        // Procesamiento de datos visibles
         const procesados = filtered.map(v => {
             const lidV = (v.lider||"").toUpperCase();
             if(cLid.hasOwnProperty(lidV)) cLid[lidV]++;
@@ -251,6 +268,7 @@
 
         document.getElementById('tLidActivos').innerText = Object.keys(cLid).length;
 
+        // Alertas (Basado en la vista filtrada)
         let hAlert = "";
         const enCero = Object.keys(GPS).filter(c => !cCom[c]);
         enCero.forEach(c => hAlert += `<div class="alert-box alert-red"><span>COMUNA ${c}</span> <b>CERO (0)</b></div>`);
@@ -258,9 +276,11 @@
         document.getElementById('alertasContainer').innerHTML = hAlert;
         document.getElementById('tZonasCriticas').innerText = enCero.length;
 
+        // Inyectar tablas
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v])=>`<tr><td>${l}</td><td align="center">${v}</td></tr>`).join('');
         document.getElementById('bodyM').innerHTML = procesados.map(v => `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.oficial}</td><td>${v.comuna}</td></tr>`).join('');
 
+        // Mapa y Dona (Igual)
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
             const t = cCom[c] || 0;
@@ -314,11 +334,6 @@
             doc.autoTable({ html: `#${id}`, theme: 'grid' });
             doc.save(`REPORTE_${id}.pdf`);
         }
-    }
-
-    function filtrar() {
-        const q = document.getElementById('bus').value.toUpperCase();
-        Array.from(document.getElementById('bodyM').rows).forEach(r => r.style.display = r.innerText.toUpperCase().includes(q) ? '' : 'none');
     }
 
     login();
