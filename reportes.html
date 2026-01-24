@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA ESTRATÉGICO </title>
+    <title>PANEL DE CONTROL 2026</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -14,130 +14,155 @@
 
     <style>
         :root { 
-            --primary: #0f172a; --accent: #2563eb; --success: #059669; 
-            --danger: #dc2626; --warning: #d97706; --bg: #f1f5f9; --panel-bg: #ffffff;
+            --primary: #1e293b; --accent: #3b82f6; --success: #10b981; 
+            --danger: #ef4444; --warning: #f59e0b; --bg: #f8fafc;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--primary); text-transform: uppercase; }
-        .container { max-width: 1850px; margin: auto; display: none; }
         
-        /* Header Profesional */
-        .master-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: var(--panel-bg); padding: 20px 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 8px solid var(--primary); }
-        .master-header h1 { margin: 0; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
+        body { 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            background: var(--bg); margin: 0; padding: 25px; color: var(--primary); 
+            text-transform: uppercase; overflow-x: hidden;
+        }
 
-        /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 25px; }
-        .stat-card { background: var(--panel-bg); border-radius: 12px; padding: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; position: relative; }
-        .stat-val { font-size: 2.8rem; font-weight: 800; margin: 8px 0; color: var(--primary); display: block; }
-        .stat-label { font-size: 0.75rem; font-weight: 700; color: #64748b; letter-spacing: 0.5px; }
-        .stat-card.critical { border-top: 4px solid var(--danger); }
-        .stat-card.success { border-top: 4px solid var(--success); }
+        .container { max-width: 1800px; margin: auto; display: none; animation: fadeIn 0.8s ease-out; }
 
-        /* Layout */
-        .main-layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 25px; }
-        .panel { background: var(--panel-bg); border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 25px; }
-        h3 { font-size: 0.85rem; margin: 0 0 18px 0; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; font-weight: 800; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Mapa y Dona */
-        .visual-split { display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
-        #map { height: 450px; border-radius: 8px; border: 1px solid #cbd5e1; }
+        /* Header Minimalista y Profesional */
+        .master-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 30px; background: white; padding: 20px 40px; 
+            border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        .master-header h1 { margin: 0; font-size: 1.2rem; font-weight: 800; letter-spacing: 2px; color: #0f172a; }
 
-        /* Tablas Profesionales */
-        .scroll { max-height: 420px; overflow-y: auto; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; background: white; }
-        th { background: #f8fafc; padding: 14px; text-align: left; font-size: 0.7rem; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #e2e8f0; cursor: pointer; transition: 0.2s; }
-        th:hover { background: #e2e8f0; }
-        td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 600; }
-        tr:hover { background-color: #f8fafc; }
-        .row-zero { color: var(--danger); background-color: #fff1f2; }
+        /* Stats con Efecto de Elevación Sutil */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        
+        .stat-card { 
+            background: white; border-radius: 16px; padding: 25px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative; cursor: default;
+        }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.06); }
+        .stat-val { font-size: 2.5rem; font-weight: 900; color: #0f172a; display: block; margin: 5px 0; }
+        .stat-label { font-size: 0.7rem; font-weight: 700; color: #64748b; letter-spacing: 1px; }
 
-        /* Selectores y Filtros */
-        .filter-group { display: flex; gap: 15px; align-items: center; }
-        .select-pro { padding: 10px 15px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: 700; font-size: 0.75rem; background: white; cursor: pointer; outline: none; }
-        .input-search { padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; width: 220px; font-weight: 600; }
+        /* Layout Principal */
+        .main-layout { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 30px; }
+        
+        .panel { 
+            background: white; border-radius: 16px; padding: 25px; 
+            border: 1px solid #f1f5f9; margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            transition: transform 0.3s ease;
+        }
+
+        h3 { font-size: 0.8rem; margin: 0 0 20px 0; display: flex; align-items: center; gap: 12px; color: #334155; border-bottom: 1px solid #f8fafc; padding-bottom: 12px; }
+
+        /* Mapa e Interacción */
+        .visual-container { display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+        #map { height: 480px; border-radius: 12px; z-index: 1; border: 1px solid #e2e8f0; }
+
+        /* Tablas con Ordenamiento */
+        .scroll { max-height: 450px; overflow-y: auto; scrollbar-width: thin; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        th { 
+            background: #f8fafc; padding: 15px; text-align: left; font-size: 0.65rem; 
+            position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #edf2f7;
+            cursor: pointer; transition: background 0.2s;
+        }
+        th:hover { background: #f1f5f9; color: var(--accent); }
+        td { padding: 14px 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 600; }
+        tr:hover td { background-color: #fbfcfd; color: var(--accent); }
+
+        .row-zero { background-color: #fff5f5 !important; color: var(--danger); }
+
+        /* Filtros */
+        .select-pro { 
+            padding: 10px 20px; border-radius: 10px; border: 1px solid #e2e8f0; 
+            font-weight: 800; font-size: 0.75rem; background: #fff; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .select-pro:hover { border-color: var(--accent); }
 
         /* Alertas */
-        .alert-box { padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 12px; }
-        .alert-danger { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; }
-        .alert-warning { background: #ffedd5; color: #9a3412; border: 1px solid #fb923c; }
-
-        .time-badge { font-size: 0.65rem; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #475569; }
+        .alert-item { 
+            padding: 12px 15px; border-radius: 10px; margin-bottom: 10px; 
+            font-size: 0.7rem; font-weight: 800; display: flex; align-items: center; gap: 10px;
+            animation: slideIn 0.4s ease-out;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        .alert-red { background: #fef2f2; color: #991b1b; border-left: 4px solid var(--danger); }
+        .alert-orange { background: #fffbeb; color: #92400e; border-left: 4px solid var(--warning); }
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
     <header class="master-header">
-        <div>
-            <h1>COMMAND CENTER: ROSSE MARY CABAL 2026</h1>
-            <div id="reloj" style="font-size: 0.75rem; font-weight: 700; color: var(--accent); margin-top: 5px;"></div>
-        </div>
-        <div class="filter-group">
-            <span style="font-size: 0.7rem; font-weight: 800;">FILTRAR VISTA:</span>
+        <h1>PANEL DE CONTROL</h1>
+        <div style="display:flex; gap:25px; align-items:center;">
             <select id="filtroFecha" class="select-pro" onchange="renderUI()">
-                <option value="all">TIEMPO TOTAL</option>
-                <option value="hoy">GESTIÓN HOY</option>
-                <option value="ayer">GESTIÓN AYER</option>
-                <option value="3dias">ÚLTIMOS 3 DÍAS</option>
-                <option value="semana">ESTA SEMANA</option>
+                <option value="all">📊 HISTÓRICO GLOBAL</option>
+                <option value="hoy">📅 GESTIÓN HOY</option>
+                <option value="ayer">📅 GESTIÓN AYER</option>
+                <option value="3dias">🕒 ÚLTIMOS 3 DÍAS</option>
+                <option value="semana">📅 ESTA SEMANA</option>
             </select>
+            <div id="reloj" style="font-weight: 900; color: #64748b; font-size: 0.8rem;"></div>
         </div>
     </header>
 
     <div class="stats-grid">
         <div class="stat-card">
-            <span class="stat-label">CENSO INTEGRAL</span>
+            <span class="stat-label">CENSO TOTAL</span>
             <span class="stat-val" id="tV">0</span>
-            <div style="height:6px; background:#e2e8f0; border-radius:10px; overflow:hidden;">
-                <div id="metaFill" style="height:100%; background:var(--accent); width:0%;"></div>
-            </div>
-            <div style="display:flex; justify-content:space-between; margin-top:8px">
-                <small style="font-weight:800; color:#64748b">META 7,000</small>
-                <small id="metaPct" style="font-weight:800; color:var(--accent)">0%</small>
+            <div style="height:4px; background:#f1f5f9; border-radius:10px; margin-top:10px">
+                <div id="metaFill" style="height:100%; background:var(--accent); width:0%; transition: 1s ease-out;"></div>
             </div>
         </div>
-        <div class="stat-card critical">
-            <span class="stat-label">ZONAS CRÍTICAS (EN 0 O BAJAS)</span>
+        <div class="stat-card" style="border-bottom: 4px solid var(--danger)">
+            <span class="stat-label">ZONAS CRÍTICAS</span>
             <span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span>
-            <small style="font-weight:800; color:var(--danger)">REVISAR ALERTAS DE INTERVENCIÓN</small>
         </div>
-        <div class="stat-card success">
-            <span class="stat-label">LÍDERES DIRECTOS (EQUIPO)</span>
+        <div class="stat-card" style="border-bottom: 4px solid var(--success)">
+            <span class="stat-label">LÍDERES EN EQUIPO</span>
             <span class="stat-val" id="tLidActivos" style="color:var(--success)">0</span>
-            <small style="font-weight:800; color:var(--success)">INSCRITOS POR ROSSE MARY</small>
         </div>
-        <div class="stat-card" style="border-top: 4px solid var(--warning)">
-            <span class="stat-label">VOTOS DIRECTOS</span>
+        <div class="stat-card" style="border-bottom: 4px solid var(--warning)">
+            <span class="stat-label">GESTIÓN DIRECTA</span>
             <span class="stat-val" id="tDirectos" style="color:var(--warning)">0</span>
-            <small style="font-weight:800; color:var(--warning)">GESTIÓN SIN INTERMEDIARIOS</small>
         </div>
     </div>
 
     <div class="main-layout">
         <div class="col-left">
             <div class="panel">
-                <h3><i class="fas fa-map-marked-alt"></i> GEORREFERENCIACIÓN ELECTORAL</h3>
-                <div class="visual-split">
+                <h3><i class="fas fa-map-marked-alt"></i> ANÁLISIS DE GEOPRESCENCIA</h3>
+                <div class="visual-container">
                     <div id="map"></div>
                     <div>
                         <canvas id="donaComunas" style="max-height: 180px;"></canvas>
-                        <div id="donaLegend" class="scroll" style="max-height: 250px; margin-top:15px"></div>
+                        <div id="donaLegend" class="scroll" style="max-height: 260px; margin-top:20px"></div>
                     </div>
                 </div>
             </div>
 
             <div class="panel">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-                    <h3><i class="fas fa-table"></i> BASE MAESTRA DE VOTANTES</h3>
-                    <input type="text" id="bus" onkeyup="filtrar()" class="input-search" placeholder="BUSCAR POR NOMBRE O CC...">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+                    <h3><i class="fas fa-database"></i> REGISTROS MAESTROS</h3>
+                    <input type="text" id="bus" onkeyup="filtrar()" placeholder="BUSCAR REGISTRO..." style="padding:10px; border-radius:8px; border:1px solid #e2e8f0; width:220px;">
                 </div>
                 <div class="scroll">
                     <table id="tablaG">
                         <thead>
                             <tr>
-                                <th onclick="sortTable('tablaG', 0)">VOTANTE <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('tablaG', 1)">CÉDULA <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('tablaG', 2)">PUESTO <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('tablaG', 3)">COMUNA <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable('tablaG', 0)">VOTANTE <i class="fas fa-sort-alpha-down"></i></th>
+                                <th onclick="sortTable('tablaG', 1)">CÉDULA</th>
+                                <th onclick="sortTable('tablaG', 2)">PUESTO</th>
+                                <th onclick="sortTable('tablaG', 3)">COMUNA</th>
                             </tr>
                         </thead>
                         <tbody id="bodyM"></tbody>
@@ -148,23 +173,18 @@
 
         <div class="col-right">
             <div class="panel">
-                <h3><i class="fas fa-exclamation-circle"></i> ALERTAS DE INTERVENCIÓN</h3>
-                <div id="alertasContainer" class="scroll" style="max-height: 180px;"></div>
+                <h3><i class="fas fa-bolt"></i> ALERTAS ESTRATÉGICAS</h3>
+                <div id="alertasContainer" class="scroll" style="max-height: 200px;"></div>
             </div>
 
             <div class="panel">
-                <h3><i class="fas fa-network-wired"></i> RED DE LÍDERES (ÚLT. 10 REGISTROS)</h3>
-                <div id="recentList" class="scroll" style="max-height: 380px;"></div>
-            </div>
-
-            <div class="panel">
-                <h3><i class="fas fa-medal"></i> RANKING DE EFECTIVIDAD (INCLUYE 0)</h3>
+                <h3><i class="fas fa-medal"></i> RANKING DE LÍDERES (INCLUYE 0)</h3>
                 <div class="scroll">
                     <table id="tablaLid">
                         <thead>
                             <tr>
-                                <th onclick="sortTable('tablaLid', 0)">LÍDER DIRECTO <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('tablaLid', 1)" style="text-align:center">REFERIDOS <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable('tablaLid', 0)">LÍDER DIRECTO</th>
+                                <th onclick="sortTable('tablaLid', 1)" style="text-align:center">PRODUCCIÓN</th>
                             </tr>
                         </thead>
                         <tbody id="bodyLid"></tbody>
@@ -182,15 +202,9 @@
 
     let votantes = [], puestosOficiales = [], map, capaBurbujas, chartDona;
     const GPS = { "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],"6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],"11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],"16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],"21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510],"25":[3.370,-76.570],"33":[3.480,-76.570] };
-    const COLORES = ['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#0891b2','#db2777','#4b5563','#ea580c','#65a30d'];
 
     async function login() {
-        const { value: p } = await Swal.fire({ 
-            title: 'AUTENTICACIÓN DE MANDO', 
-            input: 'password', 
-            confirmButtonColor: '#0f172a',
-            background: '#ffffff'
-        });
+        const { value: p } = await Swal.fire({ title: 'CONTROL DE ACCESO', input: 'password', confirmButtonColor: '#1e293b' });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
             initMap(); 
@@ -229,8 +243,8 @@
         });
 
         const cCom = {}, cLid = {};
-        const equipoRosse = votantes.filter(v => (v.lider || "").toUpperCase().includes("ROSSE MARY"));
-        equipoRosse.forEach(v => cLid[v["Nombres y apellidos"].toUpperCase()] = 0);
+        const equipoDirecto = votantes.filter(v => (v.lider || "").toUpperCase().includes("ROSSE MARY"));
+        equipoDirecto.forEach(v => cLid[v["Nombres y apellidos"].toUpperCase()] = 0);
 
         const procesados = filtered.map(v => {
             const lidV = (v.lider || "").toUpperCase();
@@ -241,76 +255,51 @@
             return { ...v, comuna: com, oficial: m ? m.nombre_puesto : "PENDIENTE" };
         });
 
-        // Stats
         document.getElementById('tV').innerText = filtered.length;
-        document.getElementById('tLidActivos').innerText = equipoRosse.length;
-        document.getElementById('tDirectos').innerText = equipoRosse.length; // En el contexto de la imagen
-        const pct = (filtered.length / 7000 * 100).toFixed(1);
-        document.getElementById('metaFill').style.width = pct + '%';
-        document.getElementById('metaPct').innerText = pct + '%';
+        document.getElementById('tLidActivos').innerText = equipoDirecto.length;
+        document.getElementById('tDirectos').innerText = equipoDirecto.length;
+        document.getElementById('metaFill').style.width = Math.min((filtered.length/7000)*100, 100) + '%';
 
-        // Alertas
         let hAlert = "";
         const enCero = Object.keys(GPS).filter(c => !cCom[c]);
-        enCero.forEach(c => hAlert += `<div class="alert-box alert-danger"><i class="fas fa-ban"></i> COMUNA ${c}: SIN REGISTROS (0)</div>`);
-        const bajos = Object.entries(cCom).sort((a,b)=>a[1]-b[1]).slice(0, 5);
-        bajos.forEach(([c,t]) => hAlert += `<div class="alert-box alert-warning"><i class="fas fa-exclamation-triangle"></i> COMUNA ${c}: BAJA PRODUCCIÓN (${t})</div>`);
-        document.getElementById('alertasContainer').innerHTML = hAlert || "RED ESTABLE";
-        document.getElementById('tZonasCriticas').innerText = enCero.length + bajos.length;
+        enCero.forEach(c => hAlert += `<div class="alert-item alert-red"><i class="fas fa-times-circle"></i> COMUNA ${c}: SIN PRODUCCIÓN</div>`);
+        document.getElementById('alertasContainer').innerHTML = hAlert || "SITUACIÓN ESTABLE";
+        document.getElementById('tZonasCriticas').innerText = enCero.length;
 
-        // Ranking
         const sortedLid = Object.entries(cLid).sort((a,b)=>b[1]-a[1]);
-        document.getElementById('bodyLid').innerHTML = sortedLid.map(([l,v])=>`
-            <tr class="${v === 0 ? 'row-zero' : ''}"><td>${l}</td><td align="center">${v}</td></tr>
-        `).join('');
+        document.getElementById('bodyLid').innerHTML = sortedLid.map(([l,v])=>`<tr class="${v===0?'row-zero':''}"><td>${l}</td><td align="center">${v}</td></tr>`).join('');
 
-        // Red Reciente
-        const ult10 = [...procesados].reverse().slice(0, 10);
-        document.getElementById('recentList').innerHTML = ult10.map(u => {
-            const f = new Date(u.created_at);
-            return `<div style="padding:10px 0; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between;">
-                <span><b>${u["Nombres y apellidos"]}</b><br><small style="color:var(--accent)">LÍDER: ${u.lider}</small></span>
-                <span class="time-badge">${f.getHours()}:${f.getMinutes()}</span>
-            </div>`;
-        }).join('');
-
-        // Mapa y Dona
         capaBurbujas.clearLayers();
         const eti = Object.keys(cCom).sort((a,b)=>a-b);
-        eti.forEach((c, i) => {
+        eti.forEach((c) => {
             if(GPS[c]) {
-                const col = COLORES[i % COLORES.length];
-                L.circle(GPS[c], { color: col, fillColor: col, fillOpacity: 0.5, radius: 300+(cCom[c]*15) }).addTo(capaBurbujas);
+                L.circle(GPS[c], { color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.4, radius: 350+(cCom[c]*15) })
+                 .addTo(capaBurbujas)
+                 .bindPopup(`<b>COMUNA ${c}</b><br>TOTAL REGISTROS: ${cCom[c]}`);
             }
         });
 
         if(chartDona) chartDona.destroy();
         chartDona = new Chart(document.getElementById('donaComunas'), {
             type: 'doughnut',
-            data: { labels: eti.map(e=>'C'+e), datasets: [{ data: eti.map(e=>cCom[e]), backgroundColor: COLORES }] },
+            data: { labels: eti.map(e=>'C'+e), datasets: [{ data: eti.map(e=>cCom[e]), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'] }] },
             options: { plugins: { legend: { display: false } } }
         });
-        document.getElementById('donaLegend').innerHTML = eti.map((e, i) => `
-            <div style="display:flex; justify-content:space-between; font-size:0.7rem; padding:4px 0; border-bottom:1px solid #f1f5f9;">
-                <span><i class="fas fa-circle" style="color:${COLORES[i % COLORES.length]}"></i> C${e}</span><span>${cCom[e]}</span>
-            </div>`).join('');
 
-        document.getElementById('bodyM').innerHTML = procesados.map(v => `
-            <tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.oficial}</td><td>${v.comuna}</td></tr>
-        `).join('');
+        document.getElementById('bodyM').innerHTML = procesados.map(v => `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.oficial}</td><td>${v.comuna}</td></tr>`).join('');
     }
 
     function sortTable(id, n) {
         const table = document.getElementById(id);
         const rows = Array.from(table.rows).slice(1);
-        let asc = table.getAttribute('data-asc') === 'true';
+        const asc = table.getAttribute('data-asc') !== 'true';
         rows.sort((a,b) => {
             const valA = a.cells[n].innerText, valB = b.cells[n].innerText;
             return isNaN(valA) ? valA.localeCompare(valB) : valA - valB;
         });
-        if(asc) rows.reverse();
+        if(!asc) rows.reverse();
+        table.setAttribute('data-asc', asc);
         rows.forEach(r => table.tBodies[0].appendChild(r));
-        table.setAttribute('data-asc', !asc);
     }
 
     function filtrar() {
