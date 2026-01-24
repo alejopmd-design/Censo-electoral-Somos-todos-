@@ -215,6 +215,7 @@
         const fType = document.getElementById('filtroFecha').value;
         const hoy = new Date();
         
+        // 1. Datos filtrados para Mapas, Alertas y Ranking
         const filtered = votantes.filter(v => {
             const fv = new Date(v.created_at);
             if(fType === 'all') return true;
@@ -229,6 +230,7 @@
         document.getElementById('pAvance').innerText = porcentaje + '%';
         document.getElementById('barAvance').style.width = porcentaje + '%';
 
+        // 2. Feed lateral (Siempre global o últimos 10)
         const ultimos10 = [...votantes].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10);
         let hUltimos = "";
         ultimos10.forEach(v => {
@@ -238,15 +240,22 @@
         document.getElementById('ultimosRegistrosContainer').innerHTML = hUltimos;
 
         const cCom = {}, cLid = {};
+        // Inicializar líderes
         votantes.filter(v => (v.lider||"").toUpperCase().includes("ROSSE MARY")).forEach(v => cLid[v["Nombres y apellidos"].toUpperCase()] = 0);
 
-        const procesados = filtered.map(v => {
+        // 3. Procesar datos para la UI de alertas y mapas (usa 'filtered')
+        filtered.forEach(v => {
             const lidV = (v.lider||"").toUpperCase();
             if(cLid.hasOwnProperty(lidV)) cLid[lidV]++;
             const m = puestosOficiales.find(po => po.nombre_puesto.toLowerCase().includes((v.puesto||"").toLowerCase()));
             const com = m ? m.comuna : "OTRA";
             if(com !== "OTRA") cCom[com] = (cCom[com] || 0) + 1;
-            return { ...v, comuna: com, oficial: m ? m.nombre_puesto : "PENDIENTE" };
+        });
+
+        // AJUSTE: La Base de Datos General muestra TODOS los votantes procesados (sin filtrar por fecha)
+        const todosProcesados = votantes.map(v => {
+            const m = puestosOficiales.find(po => po.nombre_puesto.toLowerCase().includes((v.puesto||"").toLowerCase()));
+            return { ...v, comuna: m ? m.comuna : "OTRA", oficial: m ? m.nombre_puesto : "PENDIENTE" };
         });
 
         document.getElementById('tLidActivos').innerText = Object.keys(cLid).length;
@@ -259,8 +268,10 @@
         document.getElementById('tZonasCriticas').innerText = enCero.length;
 
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v])=>`<tr><td>${l}</td><td align="center">${v}</td></tr>`).join('');
-        document.getElementById('bodyM').innerHTML = procesados.map(v => `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.oficial}</td><td>${v.comuna}</td></tr>`).join('');
+        // Inyectamos todos los registros en la tabla
+        document.getElementById('bodyM').innerHTML = todosProcesados.map(v => `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.oficial}</td><td>${v.comuna}</td></tr>`).join('');
 
+        // Mapas y Gráficos (siguen al filtro)
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
             const t = cCom[c] || 0;
