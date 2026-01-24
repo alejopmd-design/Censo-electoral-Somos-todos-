@@ -61,18 +61,16 @@
     <div id="progresoCarga" style="margin-top:15px; font-weight:bold; color:var(--primary);"></div>
     <div id="logErrores"></div>
 
-    <button onclick="location.reload()" style="background:none; color:gray; text-decoration:underline; border:none; margin-top:30px;">Cerrar Sesión</button>
+    <button onclick="location.reload()" style="background:none; color:gray; text-decoration:underline; border:none; margin-top:30px; cursor:pointer;">Cerrar Sesión</button>
 </div>
 
 <script>
-    // CREDENCIALES
     const URL_SUPA = 'https://pmwlkdariynhaqbqursp.supabase.co';
     const KEY_SUPA = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(URL_SUPA, KEY_SUPA);
     
     let usuarioActivo = null;
 
-    // LOGIN MEJORADO
     async function login() {
         const input = document.getElementById('passLogin');
         const pass = input.value.trim();
@@ -82,15 +80,14 @@
         Swal.fire({ title: 'Verificando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
         try {
+            // AJUSTE DE SEGURIDAD SILENCIOSO: Solo pedimos el nombre, no todos los datos
             const { data, error } = await _supabase
                 .from('VOTANTES')
-                .select('*')
+                .select('["Nombres y apellidos"]')
                 .eq('cedula', pass)
                 .maybeSingle();
 
             Swal.close();
-
-            if (error) throw error;
 
             if (data) {
                 usuarioActivo = data;
@@ -101,8 +98,7 @@
                 Swal.fire('Error de Acceso', 'La cédula ' + pass + ' no existe en la base de datos.', 'error');
             }
         } catch (e) {
-            Swal.fire('Error de Red', 'Hubo un fallo al conectar con Supabase. Intenta de nuevo.', 'error');
-            console.error(e);
+            Swal.fire('Error de Red', 'Hubo un fallo al conectar. Intenta de nuevo.', 'error');
         }
     }
 
