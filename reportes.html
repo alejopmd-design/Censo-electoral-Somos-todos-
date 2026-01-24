@@ -42,11 +42,9 @@
 
         .main-layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; }
         
-        /* Ajuste para móviles */
         @media (max-width: 1024px) {
             .main-layout { grid-template-columns: 1fr; }
             .visual-container { grid-template-columns: 1fr !important; }
-            .master-header h1 { font-size: 1.4rem; }
         }
 
         .panel { background: var(--panel); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -64,13 +62,17 @@
         .alert-box { padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.75rem; font-weight: 900; border-left: 6px solid; display: flex; justify-content: space-between; align-items: center; }
         .alert-red { background: #fee2e2; color: #991b1b; border-color: var(--danger); }
         .alert-orange { background: #ffedd5; color: #9a3412; border-color: var(--warning); }
+
+        /* Estilo específico para la nueva tabla de últimos registros */
+        .txt-mini { font-size: 0.65rem; color: #64748b; display: block; }
+        .row-recent { border-left: 4px solid var(--accent); margin-bottom: 5px; background: #f8fafc; padding: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;}
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
     <header class="master-header">
-        <h1>PANEL DE CONTROL 2026</h1>
+        <h1>COMMAND CENTER: ROSSE MARY CABAL 2026</h1>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap: wrap;">
             <select id="filtroFecha" style="padding:10px; border-radius:8px; font-weight:900; background:white;" onchange="renderUI()">
                 <option value="all">TIEMPO TOTAL</option>
@@ -83,15 +85,15 @@
     </header>
 
     <div class="stats-grid">
-        <div class="stat-card"><span class="stat-label">CENSO TOTAL</span><span class="stat-val" id="tV">0</span></div>
-        <div class="stat-card" style="border-left-color: var(--danger)"><span class="stat-label">ZONAS CRÍTICAS</span><span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span></div>
-        <div class="stat-card" style="border-left-color: var(--success)"><span class="stat-label">LÍDERES</span><span class="stat-val" id="tLidActivos" style="color:var(--success)">0</span></div>
+        <div class="stat-card"><span class="stat-label">CENSO INTEGRAL</span><span class="stat-val" id="tV">0</span></div>
+        <div class="stat-card" style="border-left-color: var(--danger)"><span class="stat-label">ZONAS CRÍTICAS (EN 0 O BAJAS)</span><span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span></div>
+        <div class="stat-card" style="border-left-color: var(--success)"><span class="stat-label">LÍDERES DIRECTOS (EQUIPO)</span><span class="stat-val" id="tLidActivos" style="color:var(--success)">0</span></div>
     </div>
 
     <div class="main-layout">
         <div class="col-left">
             <div class="panel">
-                <h3><i class="fas fa-map-marked-alt"></i> MAPA ESTRATÉGICO Y DONA</h3>
+                <h3><i class="fas fa-map-marked-alt"></i> MAPA ESTRATÉGICO Y DISTRIBUCIÓN</h3>
                 <div class="visual-container">
                     <div id="map"></div>
                     <div>
@@ -103,13 +105,13 @@
 
             <div class="panel">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap: wrap; gap:10px;">
-                    <h3><i class="fas fa-table"></i> BASE DE DATOS</h3>
+                    <h3><i class="fas fa-table"></i> BASE DE DATOS GENERAL</h3>
                     <div style="display:flex; gap:5px;">
                         <button class="btn-exp btn-excel" onclick="exportTable('tablaG', 'excel')">XLS</button>
                         <button class="btn-exp btn-pdf" onclick="exportTable('tablaG', 'pdf')">PDF</button>
                     </div>
                 </div>
-                <input type="text" id="bus" onkeyup="filtrar()" placeholder="FILTRAR REGISTROS..." style="width:100%; padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid #cbd5e1; font-weight:800;">
+                <input type="text" id="bus" onkeyup="filtrar()" placeholder="BUSCAR REGISTROS..." style="width:100%; padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid #cbd5e1; font-weight:800;">
                 <div class="scroll">
                     <table id="tablaG">
                         <thead>
@@ -128,13 +130,19 @@
 
         <div class="col-right">
             <div class="panel">
-                <h3><i class="fas fa-bullhorn"></i> INTERVENCIÓN (0 Y MÍNIMOS)</h3>
+                <h3><i class="fas fa-history"></i> RED DE LÍDERES (ÚLT. 10 REGISTROS)</h3>
+                <div id="ultimosRegistrosContainer" class="scroll" style="max-height: 250px; padding: 5px;">
+                    </div>
+            </div>
+
+            <div class="panel">
+                <h3><i class="fas fa-bullhorn"></i> ALERTAS DE INTERVENCIÓN</h3>
                 <div id="alertasContainer" class="scroll" style="max-height: 180px;"></div>
             </div>
 
             <div class="panel">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-                    <h3><i class="fas fa-medal"></i> RANKING LÍDERES</h3>
+                    <h3><i class="fas fa-medal"></i> RANKING DE RENDIMIENTO</h3>
                     <button class="btn-exp btn-excel" onclick="exportTable('tablaLid', 'excel')">XLS</button>
                 </div>
                 <div class="scroll">
@@ -198,6 +206,22 @@
             if(fType === '3dias') { const limite = new Date(); limite.setDate(limite.getDate()-3); return fv >= limite; }
         });
 
+        // Ordenar por fecha para los últimos 10 registros
+        const ultimos10 = [...votantes].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10);
+        let hUltimos = "";
+        ultimos10.forEach(v => {
+            const fechaLimpia = new Date(v.created_at).toLocaleString([], {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
+            hUltimos += `
+                <div class="row-recent">
+                    <div>
+                        <b style="font-size:0.75rem;">${v["Nombres y apellidos"]}</b>
+                        <span class="txt-mini">LÍDER: ${v.lider || 'DIRECTO'}</span>
+                    </div>
+                    <span style="font-size:0.65rem; font-weight:900; color:var(--accent)">[${fechaLimpia}]</span>
+                </div>`;
+        });
+        document.getElementById('ultimosRegistrosContainer').innerHTML = hUltimos;
+
         const cCom = {}, cLid = {};
         votantes.filter(v => (v.lider||"").toUpperCase().includes("ROSSE MARY")).forEach(v => cLid[v["Nombres y apellidos"].toUpperCase()] = 0);
 
@@ -213,7 +237,6 @@
         document.getElementById('tV').innerText = filtered.length;
         document.getElementById('tLidActivos').innerText = Object.keys(cLid).length;
 
-        // ALERTAS 0 Y 5 MÍNIMOS
         let hAlert = "";
         const enCero = Object.keys(GPS).filter(c => !cCom[c]);
         enCero.forEach(c => hAlert += `<div class="alert-box alert-red"><span>COMUNA ${c}</span> <b>CERO (0)</b></div>`);
@@ -221,11 +244,9 @@
         document.getElementById('alertasContainer').innerHTML = hAlert;
         document.getElementById('tZonasCriticas').innerText = enCero.length;
 
-        // TABLAS
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v])=>`<tr><td>${l}</td><td align="center">${v}</td></tr>`).join('');
         document.getElementById('bodyM').innerHTML = procesados.map(v => `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.oficial}</td><td>${v.comuna}</td></tr>`).join('');
 
-        // SEMÁFORO DE BURBUJAS
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
             const t = cCom[c] || 0;
@@ -236,7 +257,6 @@
             }
         });
 
-        // DONA
         const eti = Object.keys(cCom).sort((a,b)=>a-b);
         const colDona = ['#2563eb','#8b5cf6','#06b6d4','#d946ef','#f97316','#a3e635','#2dd4bf','#fbbf24','#475569','#0f172a'];
         if(chartDona) chartDona.destroy();
