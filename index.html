@@ -16,12 +16,15 @@
         .input-group { text-align: left; margin-bottom: 15px; }
         label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #444; }
         input, textarea { width: 100%; padding: 12px; border: 2px solid #edeff2; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
+        
+        /* Estilo para los mensajitos de ayuda */
+        .help-text { font-size: 11px; color: #888; margin-top: 4px; display: block; }
+        
         button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; color: white; transition: 0.3s; }
         .btn-login { background: var(--primary); }
         .btn-save { background: var(--success); }
         .btn-template { background: #6c757d; font-size: 13px; }
         #seccionFormulario, #logErrores { display: none; }
-        #logErrores { background: #fff5f5; color: #c0392b; border: 1px solid #f5c6cb; padding: 15px; border-radius: 10px; margin-top: 20px; text-align: left; max-height: 200px; overflow-y: auto; }
         .user-info { font-size: 14px; background: #f8f9fa; padding: 10px 20px; border-radius: 50px; display: inline-block; margin-bottom: 20px; font-weight: bold; color: var(--primary); }
     </style>
 </head>
@@ -41,9 +44,24 @@
     <div class="user-info" id="txtBienvenida"></div>
     
     <div class="section-title">📝 Registro Individual</div>
-    <div class="input-group"><label>Cédula * (Obligatorio)</label><input type="text" id="vCedula"></div>
-    <div class="input-group"><label>Nombre Completo * (Obligatorio)</label><input type="text" id="vNombre"></div>
-    <div class="input-group"><label>Teléfono * (Obligatorio)</label><input type="text" id="vTelefono"></div>
+    
+    <div class="input-group">
+        <label>Cédula * (Obligatorio)</label>
+        <input type="text" id="vCedula" placeholder="Ej: 12345678">
+        <span class="help-text">Solo números, sin puntos ni espacios.</span>
+    </div>
+    
+    <div class="input-group">
+        <label>Nombre Completo * (Obligatorio)</label>
+        <input type="text" id="vNombre" placeholder="Ej: Juan Pérez">
+        <span class="help-text">Solo letras. Evita usar números aquí.</span>
+    </div>
+    
+    <div class="input-group">
+        <label>Teléfono * (Obligatorio)</label>
+        <input type="text" id="vTelefono" placeholder="Ej: 3001234567">
+        <span class="help-text">Solo números, sin guiones.</span>
+    </div>
     
     <div class="input-group"><label>Dirección (Opcional)</label><input type="text" id="vDireccion"></div>
     <div class="input-group"><label>Puesto de Votación (Opcional)</label><input type="text" id="vPuesto"></div>
@@ -59,8 +77,6 @@
     <button style="background: var(--primary);" onclick="cargarExcel()">🚀 INICIAR CARGA EXCEL</button>
     
     <div id="progresoCarga" style="margin-top:15px; font-weight:bold; color:var(--primary);"></div>
-    <div id="logErrores"></div>
-
     <button onclick="location.reload()" style="background:none; color:gray; text-decoration:underline; border:none; margin-top:30px; cursor:pointer;">Cerrar Sesión</button>
 </div>
 
@@ -72,34 +88,22 @@
     let usuarioActivo = null;
 
     async function login() {
-        const input = document.getElementById('passLogin');
-        const pass = input.value.trim();
-        
-        if (!pass) return Swal.fire('Aviso', 'Por favor ingresa tu cédula', 'warning');
-
+        const pass = document.getElementById('passLogin').value.trim();
+        if (!pass) return Swal.fire('Aviso', 'Ingresa tu cédula', 'warning');
         Swal.fire({ title: 'Verificando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
         try {
-            // AJUSTE DE SEGURIDAD SILENCIOSO: Solo pedimos el nombre, no todos los datos
-            const { data, error } = await _supabase
-                .from('VOTANTES')
-                .select('["Nombres y apellidos"]')
-                .eq('cedula', pass)
-                .maybeSingle();
-
+            const { data, error } = await _supabase.from('VOTANTES').select('["Nombres y apellidos"]').eq('cedula', pass).maybeSingle();
             Swal.close();
-
             if (data) {
                 usuarioActivo = data;
                 document.getElementById('txtBienvenida').innerText = "👤 LÍDER: " + data["Nombres y apellidos"].toUpperCase();
                 document.getElementById('seccionLogin').style.display = 'none';
                 document.getElementById('seccionFormulario').style.display = 'block';
             } else {
-                Swal.fire('Error de Acceso', 'La cédula ' + pass + ' no existe en la base de datos.', 'error');
+                Swal.fire('Error', 'Cédula no autorizada', 'error');
             }
-        } catch (e) {
-            Swal.fire('Error de Red', 'Hubo un fallo al conectar. Intenta de nuevo.', 'error');
-        }
+        } catch (e) { Swal.fire('Error', 'Fallo de conexión', 'error'); }
     }
 
     async function procesarRegistroManual() {
@@ -118,15 +122,19 @@
         }
 
         const { data: existe } = await _supabase.from('VOTANTES').select('cedula').eq('cedula', d.cedula).maybeSingle();
-        if (existe) return Swal.fire('Error', 'Esta cédula ya existe.', 'error');
+        if (existe) return Swal.fire('Error', 'Esta cédula ya está registrada.', 'error');
 
         const { error } = await _supabase.from('VOTANTES').insert([d]);
         if(!error) {
-            Swal.fire('Éxito', 'Registrado correctamente', 'success');
+            Swal.fire('Éxito', 'Guardado correctamente', 'success');
             document.querySelectorAll('#seccionFormulario input, textarea').forEach(i => i.value = "");
+        } else {
+            // Mensaje si la base de datos rechaza por las reglas de SQL (letras/números)
+            Swal.fire('Formato Incorrecto', 'Verifica que la cédula y teléfono solo tengan números, y el nombre solo letras.', 'error');
         }
     }
 
+    // Funciones de Excel se mantienen igual...
     function descargarPlantilla() {
         const h = [["cedula", "nombre_completo", "direccion", "telefono", "puesto", "observaciones"]];
         const ws = XLSX.utils.aoa_to_sheet(h);
@@ -137,22 +145,18 @@
 
     async function cargarExcel() {
         const file = document.getElementById('inputExcel').files[0];
-        if(!file) return alert("Selecciona un archivo");
-
+        if(!file) return Swal.fire('Archivo', 'Selecciona un archivo Excel', 'info');
         const reader = new FileReader();
         reader.onload = async (e) => {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
             const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-            
-            Swal.fire({title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-
+            Swal.fire({title: 'Cargando registros...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
             let subidos = 0;
             for (let i = 0; i < registros.length; i++) {
                 const r = registros[i];
                 const ced = String(r.cedula || "").trim();
                 if(!ced || !r.nombre_completo || !r.telefono) continue;
-
                 const { data: ex } = await _supabase.from('VOTANTES').select('cedula').eq('cedula', ced).maybeSingle();
                 if(!ex) {
                     await _supabase.from('VOTANTES').insert([{
@@ -169,7 +173,7 @@
                 document.getElementById('progresoCarga').innerText = `Procesados: ${i+1} de ${registros.length}`;
             }
             Swal.close();
-            Swal.fire('Terminado', `Se subieron ${subidos} registros nuevos.`, 'success');
+            Swal.fire('Éxito', `Se cargaron ${subidos} nuevos registros.`, 'success');
         };
         reader.readAsArrayBuffer(file);
     }
