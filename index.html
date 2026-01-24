@@ -16,16 +16,15 @@
         .input-group { text-align: left; margin-bottom: 15px; }
         label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #444; }
         input, textarea { width: 100%; padding: 12px; border: 2px solid #edeff2; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
-        
-        /* Estilo para los mensajitos de ayuda */
-        .help-text { font-size: 11px; color: #888; margin-top: 4px; display: block; }
-        
         button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; color: white; transition: 0.3s; }
         .btn-login { background: var(--primary); }
         .btn-save { background: var(--success); }
         .btn-template { background: #6c757d; font-size: 13px; }
         #seccionFormulario, #logErrores { display: none; }
         .user-info { font-size: 14px; background: #f8f9fa; padding: 10px 20px; border-radius: 50px; display: inline-block; margin-bottom: 20px; font-weight: bold; color: var(--primary); }
+        
+        /* Estilo para la nota explicativa */
+        .nota-informativa { font-size: 12px; color: #666; background: #fff9c4; padding: 10px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #fbc02d; text-align: left; }
     </style>
 </head>
 <body>
@@ -47,26 +46,27 @@
     
     <div class="input-group">
         <label>Cédula * (Obligatorio)</label>
-        <input type="text" id="vCedula" placeholder="Ej: 12345678">
-        <span class="help-text">Solo números, sin puntos ni espacios.</span>
+        <input type="text" id="vCedula" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
     </div>
     
     <div class="input-group">
         <label>Nombre Completo * (Obligatorio)</label>
-        <input type="text" id="vNombre" placeholder="Ej: Juan Pérez">
-        <span class="help-text">Solo letras. Evita usar números aquí.</span>
+        <input type="text" id="vNombre" oninput="this.value = this.value.replace(/[^a-zA-ZñÑáéíóúÁÉÍÓÚ ]/g, '')">
     </div>
     
     <div class="input-group">
         <label>Teléfono * (Obligatorio)</label>
-        <input type="text" id="vTelefono" placeholder="Ej: 3001234567">
-        <span class="help-text">Solo números, sin guiones.</span>
+        <input type="text" id="vTelefono" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
     </div>
     
     <div class="input-group"><label>Dirección (Opcional)</label><input type="text" id="vDireccion"></div>
     <div class="input-group"><label>Puesto de Votación (Opcional)</label><input type="text" id="vPuesto"></div>
     <div class="input-group"><label>Observaciones (Opcional)</label><textarea id="vObs"></textarea></div>
     
+    <div class="nota-informativa">
+        <strong>📌 Nota importante:</strong> Para garantizar la calidad de los datos, los campos de <strong>Cédula</strong> y <strong>Teléfono</strong> solo permiten números. El campo de <strong>Nombre</strong> solo permite letras y espacios.
+    </div>
+
     <button class="btn-save" onclick="procesarRegistroManual()">💾 GUARDAR REGISTRO</button>
 
     <hr style="margin:30px 0; border:0; border-top:1px solid #eee;">
@@ -91,7 +91,6 @@
         const pass = document.getElementById('passLogin').value.trim();
         if (!pass) return Swal.fire('Aviso', 'Ingresa tu cédula', 'warning');
         Swal.fire({ title: 'Verificando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
         try {
             const { data, error } = await _supabase.from('VOTANTES').select('["Nombres y apellidos"]').eq('cedula', pass).maybeSingle();
             Swal.close();
@@ -129,12 +128,10 @@
             Swal.fire('Éxito', 'Guardado correctamente', 'success');
             document.querySelectorAll('#seccionFormulario input, textarea').forEach(i => i.value = "");
         } else {
-            // Mensaje si la base de datos rechaza por las reglas de SQL (letras/números)
-            Swal.fire('Formato Incorrecto', 'Verifica que la cédula y teléfono solo tengan números, y el nombre solo letras.', 'error');
+            Swal.fire('Error', 'Verifica el formato de los datos.', 'error');
         }
     }
 
-    // Funciones de Excel se mantienen igual...
     function descargarPlantilla() {
         const h = [["cedula", "nombre_completo", "direccion", "telefono", "puesto", "observaciones"]];
         const ws = XLSX.utils.aoa_to_sheet(h);
@@ -151,7 +148,7 @@
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
             const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-            Swal.fire({title: 'Cargando registros...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            Swal.fire({title: 'Cargando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
             let subidos = 0;
             for (let i = 0; i < registros.length; i++) {
                 const r = registros[i];
@@ -173,7 +170,7 @@
                 document.getElementById('progresoCarga').innerText = `Procesados: ${i+1} de ${registros.length}`;
             }
             Swal.close();
-            Swal.fire('Éxito', `Se cargaron ${subidos} nuevos registros.`, 'success');
+            Swal.fire('Éxito', `Carga terminada.`, 'success');
         };
         reader.readAsArrayBuffer(file);
     }
