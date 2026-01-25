@@ -71,11 +71,11 @@
 
         .txt-mini { font-size: 0.65rem; color: #64748b; display: block; }
         .row-recent { border-left: 4px solid var(--accent); margin-bottom: 5px; background: #f8fafc; padding: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;}
-        
-        /* Estilos para el nuevo mapa estratégico desplegable */
-        .fila-comuna { background: #eef2ff !important; cursor: pointer; }
-        .fila-puesto { background: #ffffff !important; display: none; padding-left: 20px !important; cursor: pointer; }
-        .fila-mesa { background: #fffcf0 !important; display: none; padding-left: 40px !important; font-size: 0.7rem !important; }
+
+        /* ESTILOS PARA LA NUEVA TABLA JERÁRQUICA */
+        .fila-comuna { background: #eef2ff !important; font-weight: 900; cursor: pointer; }
+        .fila-puesto { display: none; background: #ffffff !important; padding-left: 25px !important; cursor: pointer; border-left: 4px solid var(--accent); }
+        .fila-mesa { display: none; background: #fffcf0 !important; padding-left: 45px !important; font-size: 0.7rem !important; font-style: italic; }
     </style>
 </head>
 <body>
@@ -108,32 +108,39 @@
                 </div>
             </div>
         </div>
-        <div class="stat-card" style="border-left-color: var(--danger)"><span class="stat-label">ZONAS CRÍTICAS (MÍNIMOS)</span><span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span></div>
-        <div class="stat-card" style="border-left-color: var(--success)"><span class="stat-label">LÍDERES EN OPERACIÓN</span><span class="stat-val" id="tLidActivos" style="color:var(--success)">0</span></div>
+        <div class="stat-card" style="border-left-color: var(--danger)">
+            <span class="stat-label">ZONAS CRÍTICAS (0 O MÍNIMOS)</span>
+            <span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span>
+        </div>
+        <div class="stat-card" style="border-left-color: var(--success)">
+            <span class="stat-label">GÉNERO (HOMBRES / MUJERES)</span>
+            <canvas id="chartGenero" style="max-height: 80px;"></canvas>
+        </div>
     </div>
 
     <div class="main-layout">
         <div class="col-left">
             <div class="panel">
-                <h3><i class="fas fa-map-marked-alt"></i> MAPA ESTRATÉGICO Y GESTIÓN</h3>
+                <h3><i class="fas fa-map-marked-alt"></i> MAPA ESTRATÉGICO Y DISTRIBUCIÓN</h3>
                 <div class="visual-container">
                     <div id="map"></div>
                     <div>
-                        <canvas id="donaComunas" style="max-height: 150px;"></canvas>
-                        <div id="donaLegend" class="scroll" style="max-height: 120px; margin-top:5px; background:#f8fafc;"></div>
-                        <hr>
-                        <span class="stat-label" style="text-align:center">GÉNERO (ESTIMADO)</span>
-                        <canvas id="chartGenero" style="max-height: 120px;"></canvas>
+                        <canvas id="donaComunas" style="max-height: 180px;"></canvas>
+                        <div id="donaLegend" class="scroll" style="max-height: 250px; margin-top:10px; background:#f8fafc;"></div>
                     </div>
                 </div>
             </div>
 
             <div class="panel">
-                <h3><i class="fas fa-sitemap"></i> MAPA DE CALOR: COMUNA > PUESTO > MESA</h3>
-                <div class="scroll" style="max-height: 300px;">
+                <h3><i class="fas fa-sitemap"></i> ESTRUCTURA DE VOTACIÓN: COMUNA > PUESTO > MESA</h3>
+                <div class="scroll" style="max-height: 350px;">
                     <table id="tablaJerarquica">
                         <thead>
-                            <tr><th>UBICACIÓN</th><th style="text-align:center">VOTOS</th><th style="text-align:center">%</th></tr>
+                            <tr>
+                                <th>UBICACIÓN GEOGRÁFICA</th>
+                                <th style="text-align:center">VOTOS</th>
+                                <th style="text-align:center">% PARTICIPACIÓN</th>
+                            </tr>
                         </thead>
                         <tbody id="bodyJerarquico"></tbody>
                     </table>
@@ -153,11 +160,11 @@
                     <table id="tablaG">
                         <thead>
                             <tr>
-                                <th onclick="ordenarMaster('tablaG', 0)">VOTANTE</th>
-                                <th onclick="ordenarMaster('tablaG', 1)">CÉDULA</th>
-                                <th onclick="ordenarMaster('tablaG', 2)">PUESTO</th>
-                                <th onclick="ordenarMaster('tablaG', 3)">MESA</th>
-                                <th onclick="ordenarMaster('tablaG', 4)">COMUNA</th>
+                                <th onclick="ordenarMaster('tablaG', 0)">VOTANTE <i class="fas fa-sort"></i></th>
+                                <th onclick="ordenarMaster('tablaG', 1)">CÉDULA <i class="fas fa-sort"></i></th>
+                                <th onclick="ordenarMaster('tablaG', 2)">PUESTO <i class="fas fa-sort"></i></th>
+                                <th onclick="ordenarMaster('tablaG', 3)">MESA <i class="fas fa-sort"></i></th>
+                                <th onclick="ordenarMaster('tablaG', 4)">COMUNA <i class="fas fa-sort"></i></th>
                             </tr>
                         </thead>
                         <tbody id="bodyM"></tbody>
@@ -186,8 +193,8 @@
                     <table id="tablaLid">
                         <thead>
                             <tr>
-                                <th onclick="ordenarMaster('tablaLid', 0)">NOMBRE</th>
-                                <th onclick="ordenarMaster('tablaLid', 1)" style="text-align:center">VOTOS</th>
+                                <th onclick="ordenarMaster('tablaLid', 0)">NOMBRE <i class="fas fa-sort"></i></th>
+                                <th onclick="ordenarMaster('tablaLid', 1)" style="text-align:center">VOTOS <i class="fas fa-sort"></i></th>
                             </tr>
                         </thead>
                         <tbody id="bodyLid"></tbody>
@@ -214,6 +221,8 @@
             initMap(); 
             await cargarBase();
             setInterval(() => { document.getElementById('reloj').innerText = new Date().toLocaleString(); }, 1000);
+        } else {
+            login();
         }
     }
 
@@ -244,71 +253,72 @@
             if(fType === '3dias') { const limite = new Date(); limite.setDate(limite.getDate()-3); return fv >= limite; }
         });
 
-        document.getElementById('tV').innerText = votantes.length;
-        const porcentaje = Math.min((votantes.length / META_TOTAL) * 100, 100).toFixed(1);
-        document.getElementById('pAvance').innerText = porcentaje + '%';
-        document.getElementById('barAvance').style.width = porcentaje + '%';
+        const totalReg = votantes.length;
+        document.getElementById('tV').innerText = totalReg;
+        const porcAvance = Math.min((totalReg / META_TOTAL) * 100, 100).toFixed(1);
+        document.getElementById('pAvance').innerText = porcAvance + '%';
+        document.getElementById('barAvance').style.width = porcAvance + '%';
 
-        // Lógica de Género (Dra. Angie)
-        let masc = 0, fem = 0;
+        // LÓGICA DE GÉNERO
+        let m = 0, f = 0;
         votantes.forEach(v => {
             const nom = (v["Nombres y apellidos"] || "").split(" ")[0].toUpperCase();
-            if(nom.endsWith('A')) fem++; else masc++;
+            if(nom.endsWith('A') || nom.endsWith('A') || nom === 'MARIA' || nom === 'ELENA') f++; else m++;
         });
-        updateChartGen(masc, fem);
+        renderChartGenero(m, f);
 
-        const ultimos10 = [...votantes].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10);
-        document.getElementById('ultimosRegistrosContainer').innerHTML = ultimos10.map(v => `
+        // FEED LATERAL
+        const ult10 = [...votantes].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10);
+        document.getElementById('ultimosRegistrosContainer').innerHTML = ult10.map(v => `
             <div class="row-recent">
-                <div><b>${v["Nombres y apellidos"]}</b><span class="txt-mini">LÍDER: ${v.lider || 'DIRECTO'}</span></div>
+                <div><b>${v["Nombres y apellidos"]}</b><span class="txt-mini">LIDER: ${v.lider || 'DIRECTO'}</span></div>
                 <span style="font-size:0.65rem; font-weight:900; color:var(--accent)">[${new Date(v.created_at).toLocaleTimeString()}]</span>
             </div>`).join('');
 
         const cCom = {}, cLid = {}, jerarquia = {};
         filtered.forEach(v => {
-            const lidV = (v.lider||"").toUpperCase();
-            if(!cLid[lidV]) cLid[lidV] = 0; cLid[lidV]++;
+            const lid = (v.lider||"").toUpperCase();
+            if(!cLid[lid]) cLid[lid] = 0; cLid[lid]++;
             
-            const m = puestosOficiales.find(po => po.nombre_puesto.toLowerCase().includes((v.puesto||"").toLowerCase()));
-            const com = m ? m.comuna : "OTRA";
-            const pto = m ? m.nombre_puesto : "PENDIENTE";
+            const po = puestosOficiales.find(p => p.nombre_puesto.toLowerCase().trim() === (v.puesto||"").toLowerCase().trim());
+            const com = po ? po.comuna : "OTRA";
+            const pto = po ? po.nombre_puesto : "PENDIENTE";
             const msa = v.mesa || "0";
 
             if(com !== "OTRA") cCom[com] = (cCom[com] || 0) + 1;
-            
-            // Construir Jerarquía
+
             if(!jerarquia[com]) jerarquia[com] = { t: 0, p: {} };
             if(!jerarquia[com].p[pto]) jerarquia[com].p[pto] = { t: 0, m: {} };
             if(!jerarquia[com].p[pto].m[msa]) jerarquia[com].p[pto].m[msa] = 0;
             jerarquia[com].t++; jerarquia[com].p[pto].t++; jerarquia[com].p[pto].m[msa]++;
         });
 
-        renderJerarquia(jerarquia);
+        renderTablaJerarquica(jerarquia);
 
-        document.getElementById('tLidActivos').innerText = Object.keys(cLid).length;
+        // RANKING LÍDERES
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v])=>`<tr><td>${l}</td><td align="center">${v}</td></tr>`).join('');
         
+        // TABLA GENERAL CON COLUMNA MESA
         document.getElementById('bodyM').innerHTML = votantes.map(v => {
-            const m = puestosOficiales.find(po => po.nombre_puesto.toLowerCase().includes((v.puesto||"").toLowerCase()));
-            return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${m ? m.nombre_puesto : v.puesto}</td><td>${v.mesa || 'S/M'}</td><td>${m ? m.comuna : 'S/C'}</td></tr>`;
+            const po = puestosOficiales.find(p => p.nombre_puesto.toLowerCase().trim() === (v.puesto||"").toLowerCase().trim());
+            return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.puesto || '---'}</td><td>${v.mesa || '0'}</td><td>${po ? po.comuna : '---'}</td></tr>`;
         }).join('');
 
-        // Alertas
+        // ALERTAS
         const enCero = Object.keys(GPS).filter(c => !cCom[c]);
         document.getElementById('tZonasCriticas').innerText = enCero.length;
         let hAlert = enCero.map(c => `<div class="alert-box alert-red"><span>COMUNA ${c}</span> <b>CERO (0)</b></div>`).join('');
         hAlert += Object.entries(cCom).sort((a,b)=>a[1]-b[1]).slice(0, 5).map(([c,t]) => `<div class="alert-box alert-orange"><span>COMUNA ${c}</span> <b>BAJA (${t})</b></div>`).join('');
         document.getElementById('alertasContainer').innerHTML = hAlert;
 
-        // Mapa Burbujas
+        // MAPA Y DONA
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
             const t = cCom[c] || 0;
-            let col = t === 0 ? "#ef4444" : (t < 30 ? "#f59e0b" : "#10b981");
+            const col = t === 0 ? "#ef4444" : (t < 30 ? "#f59e0b" : "#10b981");
             L.circle(GPS[c], { color: col, fillColor: col, fillOpacity: 0.7, radius: 400 + (t * 12) }).addTo(capaBurbujas).bindTooltip(`COMUNA ${c}: ${t} REGISTROS`);
         });
 
-        // Gráfico Dona
         const eti = Object.keys(cCom).sort((a,b)=>a-b);
         const colDona = ['#2563eb','#8b5cf6','#06b6d4','#d946ef','#f97316','#a3e635','#2dd4bf','#fbbf24','#475569','#0f172a'];
         if(chartDona) chartDona.destroy();
@@ -317,20 +327,76 @@
             data: { labels: eti.map(e=>'C'+e), datasets: [{ data: eti.map(e=>cCom[e]), backgroundColor: colDona }] },
             options: { plugins: { legend: { display: false } } }
         });
-        document.getElementById('donaLegend').innerHTML = eti.map((c, i) => `<div style="display:flex; justify-content:space-between; padding:4px; border-bottom:1px solid #ddd; font-size:0.65rem;"><span><i class="fas fa-circle" style="color:${colDona[i%colDona.length]}"></i> COMUNA ${c}</span><b>${cCom[c]}</b></div>`).join('');
+        document.getElementById('donaLegend').innerHTML = eti.map((c, i) => `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #ddd; font-size:0.75rem;"><span><i class="fas fa-circle" style="color:${colDona[i%colDona.length]}"></i> COMUNA ${c}</span><b>${cCom[c]}</b></div>`).join('');
     }
 
-    function renderJerarquia(data) {
+    function renderTablaJerarquica(data) {
         const body = document.getElementById('bodyJerarquico');
         body.innerHTML = "";
         const total = votantes.length;
 
-        Object.keys(data).forEach((com, i) => {
-            const idC = `com-${i}`;
+        Object.keys(data).sort((a,b)=>a-b).forEach((com, i) => {
+            const idC = `c-${i}`;
             body.innerHTML += `<tr class="fila-comuna" onclick="toggle('${idC}')"><td>📂 COMUNA ${com}</td><td align="center">${data[com].t}</td><td align="center">${((data[com].t/total)*100).toFixed(1)}%</td></tr>`;
             
             Object.keys(data[com].p).forEach((pto, j) => {
-                const idP = `${idC}-pto-${j}`;
+                const idP = `${idC}-p-${j}`;
                 body.innerHTML += `<tr class="fila-puesto ${idC}" onclick="toggle('${idP}')"><td>📍 ${pto}</td><td align="center">${data[com].p[pto].t}</td><td align="center">${((data[com].p[pto].t/total)*100).toFixed(1)}%</td></tr>`;
                 
                 Object.keys(data[com].p[pto].m).forEach(msa => {
+                    body.innerHTML += `<tr class="fila-mesa ${idP}"><td>🪑 MESA ${msa}</td><td align="center">${data[com].p[pto].m[msa]}</td><td align="center">${((data[com].p[pto].m[msa]/total)*100).toFixed(1)}%</td></tr>`;
+                });
+            });
+        });
+    }
+
+    function toggle(clase) {
+        const els = document.getElementsByClassName(clase);
+        for(let e of els) e.style.display = (e.style.display === 'table-row') ? 'none' : 'table-row';
+    }
+
+    function renderChartGenero(m, f) {
+        if(chartGen) chartGen.destroy();
+        chartGen = new Chart(document.getElementById('chartGenero'), {
+            type: 'bar',
+            data: { labels: ['HOMBRES','MUJERES'], datasets: [{ data:[m,f], backgroundColor:['#2563eb','#e91e63'] }] },
+            options: { indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{display:false},y:{ticks:{color:'#0f172a', font:{weight:'900'}}}} }
+        });
+    }
+
+    function ordenarMaster(tableId, col) {
+        const table = document.getElementById(tableId);
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.rows);
+        const newAsc = table.getAttribute('data-asc') !== 'true';
+        rows.sort((a, b) => {
+            let valA = a.cells[col].innerText.trim();
+            let valB = b.cells[col].innerText.trim();
+            return newAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        });
+        table.setAttribute('data-asc', newAsc);
+        rows.forEach(r => tbody.appendChild(r));
+    }
+
+    function exportTable(id, type) {
+        const table = document.getElementById(id);
+        if(type === 'excel') { 
+            const wb = XLSX.utils.table_to_book(table);
+            XLSX.writeFile(wb, `REPORTE_${id}.xlsx`); 
+        } else { 
+            const { jsPDF } = window.jspdf; 
+            const doc = new jsPDF(); 
+            doc.autoTable({ html: `#${id}`, theme: 'grid', styles: {fontSize: 8, textTransform: 'uppercase'} }); 
+            doc.save(`REPORTE_${id}.pdf`); 
+        }
+    }
+
+    function filtrar() {
+        const q = document.getElementById('bus').value.toUpperCase();
+        Array.from(document.getElementById('bodyM').rows).forEach(r => r.style.display = r.innerText.toUpperCase().includes(q) ? '' : 'none');
+    }
+
+    login();
+</script>
+</body>
+</html>
