@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA ESTRATÉGICO CALI 2026 | MASTER COMMAND</title>
+    <title>COMMAND CENTER CALI 2026 | ESTRATEGIA MASTER</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -43,7 +43,6 @@
         th { background: #f8fafc; padding: 12px; text-align: left; font-size: 0.7rem; color: #64748b; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 700; }
 
-        /* Filas Jerárquicas Funcionales */
         .row-comuna { background: #f8fafc; cursor: pointer; }
         .row-puesto { display: none; border-left: 5px solid var(--accent); background: #fff; cursor: pointer; }
         .row-mesa { display: none; border-left: 10px solid #cbd5e1; font-size: 0.75rem; background: #fafafa; }
@@ -56,28 +55,31 @@
 
         .search-input { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #e2e8f0; margin-bottom: 15px; font-weight: 700; box-sizing: border-box; }
         .full-row { grid-column: span 2; }
+
+        /* Optimización de Tablas Lado a Lado */
+        .activity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; grid-column: span 2; }
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
     <header class="master-header">
-        <h1><i class="fas fa-satellite-dish"></i> COMMAND CENTER CALI 2026</h1>
+        <h1><i class="fas fa-microchip"></i> COMMAND CENTER CALI 2026</h1>
         <div id="reloj" style="font-family: monospace; font-weight: 900;"></div>
     </header>
 
     <div class="stats-grid">
         <div class="stat-card">
-            <span class="stat-label">POTENCIAL TOTAL</span>
+            <span class="stat-label">CENSO TOTAL</span>
             <span class="stat-val" id="tV">0</span>
         </div>
         <div class="stat-card" style="border-top-color: var(--danger)">
-            <span class="stat-label">CRITICAL ZONES (ALERT)</span>
+            <span class="stat-label">ZONAS CRÍTICAS</span>
             <span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span>
             <span class="stat-pct" id="pctAlerta">0%</span>
         </div>
         <div class="stat-card" style="border-top-color: var(--success)">
-            <span class="stat-label">INSCRITOS ROSSMERY</span>
+            <span class="stat-label">LÍDERES ACTIVOS</span>
             <span class="stat-val" id="tRossmery" style="color:var(--success)">0</span>
             <span class="stat-pct" id="pctRoss">0%</span>
         </div>
@@ -90,16 +92,16 @@
     <div class="dashboard-main">
         <div class="left-col">
             <div class="panel">
-                <h3><i class="fas fa-map-marked-alt"></i> MAPA ESTRATÉGICO DE DISTRIBUCIÓN</h3>
+                <h3><i class="fas fa-map-marked-alt"></i> DISTRIBUCIÓN TERRITORIAL</h3>
                 <div id="map"></div>
             </div>
             <div class="panel">
-                <h3><i class="fas fa-sitemap"></i> EXPLORADOR (COMUNA > PUESTO > MESA)</h3>
+                <h3><i class="fas fa-sitemap"></i> EXPLORADOR JERÁRQUICO</h3>
                 <div class="scroll" style="max-height: 400px;">
                     <table>
                         <thead>
                             <tr>
-                                <th>UBICACIÓN TERRITORIAL</th>
+                                <th>UBICACIÓN</th>
                                 <th style="text-align:center">VOTOS</th>
                                 <th style="text-align:center">%</th>
                             </tr>
@@ -113,16 +115,28 @@
         <div class="right-col">
             <div class="panel">
                 <h3><i class="fas fa-chart-pie"></i> DISTRIBUCIÓN PORCENTUAL</h3>
-                <div style="height: 200px;"><canvas id="chartDona"></canvas></div>
+                <div style="height: 250px;"><canvas id="chartDona"></canvas></div>
                 <div id="donaLegend" style="margin-top: 15px;"></div>
             </div>
             <div class="panel">
                 <h3><i class="fas fa-bell"></i> ALERTAS DE INTERVENCIÓN</h3>
                 <div id="alertasContainer"></div>
             </div>
+        </div>
+
+        <div class="activity-grid">
             <div class="panel">
-                <h3><i class="fas fa-history"></i> ÚLTIMA ACTIVIDAD (CON LÍDER)</h3>
-                <div class="scroll" style="max-height: 430px;">
+                <h3><i class="fas fa-award"></i> RENDIMIENTO DE LIDERAZGO</h3>
+                <div class="scroll" style="max-height: 400px;">
+                    <table>
+                        <thead><tr><th>LÍDER</th><th style="text-align:center">VOTOS</th><th style="text-align:center">%</th></tr></thead>
+                        <tbody id="bodyLid"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="panel">
+                <h3><i class="fas fa-history"></i> ÚLTIMA ACTIVIDAD</h3>
+                <div class="scroll" style="max-height: 400px;">
                     <table>
                         <thead>
                             <tr>
@@ -138,18 +152,8 @@
         </div>
 
         <div class="panel full-row">
-            <h3><i class="fas fa-award"></i> RENDIMIENTO DE LIDERAZGO</h3>
-            <div class="scroll" style="max-height: 250px;">
-                <table>
-                    <thead><tr><th>LÍDER</th><th style="text-align:center">VOTOS</th><th style="text-align:center">%</th></tr></thead>
-                    <tbody id="bodyLid"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="panel full-row">
-            <h3><i class="fas fa-database"></i> BASE DE DATOS GENERAL</h3>
-            <input type="text" id="busG" onkeyup="filtrarG()" placeholder="BUSCAR POR NOMBRE, CÉDULA, LÍDER O PUESTO..." class="search-input">
+            <h3><i class="fas fa-database"></i> CONSOLIDADO GENERAL</h3>
+            <input type="text" id="busG" onkeyup="filtrarG()" placeholder="FILTRAR REGISTROS..." class="search-input">
             <div class="scroll" style="max-height: 500px;">
                 <table>
                     <thead><tr><th>NOMBRE</th><th>CÉDULA</th><th>TELÉFONO</th><th>PUESTO</th><th style="text-align:center">COMUNA</th></tr></thead>
@@ -170,7 +174,7 @@
     const GPS = { "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],"6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],"11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],"16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],"21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510],"25":[3.370,-76.570],"33":[3.480,-76.570] };
 
     async function login() {
-        const { value: p } = await Swal.fire({ title: 'ACCESO MASTER', input: 'password', allowOutsideClick: false, confirmButtonColor: '#0f172a' });
+        const { value: p } = await Swal.fire({ title: 'ACCESO MASTER', input: 'password', allowOutsideClick: false });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
             initMap(); cargarBase(); 
@@ -180,7 +184,7 @@
 
     function initMap() {
         map = L.map('map').setView([3.42, -76.52], 12);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
         capaBurbujas = L.layerGroup().addTo(map);
     }
 
@@ -211,7 +215,8 @@
 
     function renderUI() {
         const total = votantes.length || 1;
-        const rossCount = votantes.filter(v => (v.lider||"").toUpperCase().includes("ROSSMERY")).length;
+        // FILTRO ESPECÍFICO ROSSMERY CABAL FRANCO
+        const rossCount = votantes.filter(v => (v.lider||"").toUpperCase().includes("ROSSMERY CABAL FRANCO")).length;
         
         document.getElementById('tV').innerText = votantes.length;
         document.getElementById('tRossmery').innerText = rossCount;
@@ -234,7 +239,6 @@
             }
         });
 
-        // Actividad Reciente Completa
         document.getElementById('bodyActividad').innerHTML = votantes.slice(0, 10).map(v => `
             <tr>
                 <td><b>${v["Nombres y apellidos"]}</b><br><span class="tag-lider">${v.lider || 'DIRECTO'}</span></td>
@@ -243,7 +247,6 @@
             </tr>
         `).join('');
 
-        // Explorador Jerárquico Funcional
         let htmlJer = "";
         Object.keys(GPS).sort((a,b)=>a-b).forEach(com => {
             const vCom = cCom[com] || 0;
@@ -263,7 +266,6 @@
         });
         document.getElementById('bodyJerarquia').innerHTML = htmlJer;
 
-        // Base y Ranking
         document.getElementById('bodyGeneral').innerHTML = votantes.map(v => {
             const pInfo = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
             return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.telefono || '-'}</td><td>${v.puesto || '-'}</td><td align="center">${pInfo ? pInfo.comuna : '-'}</td></tr>`;
@@ -271,7 +273,6 @@
 
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/total)*100).toFixed(1)}%</td></tr>`).join('');
 
-        // Regla: 0 y últimas 5 con menos registros
         const rankingC = Object.keys(GPS).map(c => ({ id: c, v: cCom[c] || 0 })).sort((a,b) => a.v - b.v);
         const alertas = [...rankingC.filter(x => x.v === 0), ...rankingC.filter(x => x.v > 0).slice(0, 5)];
         document.getElementById('tZonasCriticas').innerText = alertas.length;
@@ -298,10 +299,17 @@
         const data = labels.map(l => cCom[l]);
         if(chartDona) chartDona.destroy();
         chartDona = new Chart(document.getElementById('chartDona'), {
-            type: 'doughnut', data: { labels, datasets:[{data, backgroundColor:['#0f172a','#2563eb','#3b82f6','#64748b','#94a3b8']}] },
-            options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            type: 'doughnut', data: { labels, datasets:[{data, backgroundColor:['#0f172a','#2563eb','#3b82f6','#64748b','#94a3b8'], borderWidth: 2}] },
+            options: { 
+                maintainAspectRatio: false, 
+                cutout: '65%',
+                plugins: { 
+                    legend: { display: false },
+                    datalabels: { display: false }
+                } 
+            }
         });
-        document.getElementById('donaLegend').innerHTML = labels.map((l,i) => `<div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.75rem;"><b>COMUNA ${l}</b><span>${data[i]} (${((data[i]/total)*100).toFixed(1)}%)</span></div>`).join('');
+        document.getElementById('donaLegend').innerHTML = labels.map((l,i) => `<div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.7rem;"><b>COMUNA ${l}</b><span>${data[i]} (${((data[i]/total)*100).toFixed(1)}%)</span></div>`).join('');
     }
 
     function renderChartGenero(h, m) {
