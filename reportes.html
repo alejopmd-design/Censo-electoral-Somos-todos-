@@ -13,93 +13,72 @@
         :root { --p: #0f172a; --a: #2563eb; --bg: #f1f5f9; }
         * { box-sizing: border-box; margin: 0; padding: 0; text-transform: uppercase; font-family: sans-serif; }
         body { background: var(--bg); padding: 15px; color: #1e293b; }
-        .header { background: var(--p); padding: 20px; border-radius: 12px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 5px solid var(--a); }
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
-        .card { background: white; padding: 20px; border-radius: 12px; border-top: 5px solid var(--a); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .val { font-size: 2rem; font-weight: 900; display: block; color: var(--p); }
-        .main { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
-        .panel { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 15px rgba(0,0,0,0.05); }
+        .h { background: var(--p); padding: 20px; border-radius: 12px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 5px solid var(--a); }
+        .st { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .c { background: white; padding: 20px; border-radius: 12px; border-top: 5px solid var(--a); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .v { font-size: 2rem; font-weight: 900; display: block; color: var(--p); }
+        .m { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
+        .pn { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
         #map { height: 400px; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 10px; font-size: 0.7rem; border-bottom: 2px solid #e2e8f0; text-align: left; }
-        td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 700; }
-        .alert { padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.7rem; font-weight: 800; display: flex; justify-content: space-between; border-left: 5px solid; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.8rem; }
+        .al { padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.7rem; font-weight: 800; display: flex; justify-content: space-between; border-left: 5px solid; }
         .red { background: #fee2e2; color: #991b1b; border-color: #ef4444; }
-        .orange { background: #ffedd5; color: #9a3412; border-color: #f59e0b; }
-        .scroll { overflow-y: auto; max-height: 350px; }
     </style>
 </head>
 <body>
-    <header class="header">
-        <h1>COMMAND CENTER 2026</h1>
-        <div id="reloj" style="font-family: monospace">00:00:00</div>
-    </header>
-
-    <div class="grid">
-        <div class="card"><span>TOTAL</span><span class="val" id="tV">0</span></div>
-        <div class="card" style="border-top-color:#ef4444"><span>ALERTAS</span><span class="val" id="tA">0</span></div>
-        <div class="card" style="border-top-color:#10b981"><span>ROSSE MARY</span><span class="val" id="tRM">0</span></div>
-        <div class="card"><span>META 7K</span><div style="height:15px;background:#eee;border-radius:10px;margin-top:10px;"><div id="mB" style="width:0%;height:100%;background:#10b981;border-radius:10px;transition:1s;"></div></div></div>
+    <header class="h"><h1>COMMAND CENTER 2026</h1><div id="reloj">00:00:00</div></header>
+    <div class="st">
+        <div class="c"><span>TOTAL</span><span class="v" id="tV">0</span></div>
+        <div class="c" style="border-top-color:#ef4444"><span>ALERTAS</span><span class="val" id="tA">0</span></div>
+        <div class="c" style="border-top-color:#10b981"><span>ROSSE MARY</span><span class="v" id="tRM">0</span></div>
+        <div class="c"><span>META 7K</span><div style="height:10px;background:#eee;margin-top:10px;"><div id="mB" style="width:0%;height:100%;background:#10b981;transition:1s;"></div></div></div>
     </div>
-
-    <div class="main">
-        <div class="col1">
-            <div class="panel"><h3>MAPA</h3><div id="map"></div></div>
-            <div class="panel"><h3>VOTANTES</h3><div class="scroll"><table><thead><tr><th>NOMBRE</th><th>CEDULA</th><th>PUESTO</th></tr></thead><tbody id="bG"></tbody></table></div></div>
+    <div class="m">
+        <div class="cl1">
+            <div class="pn"><h3>MAPA</h3><div id="map"></div></div>
+            <div class="pn"><h3>VOTANTES</h3><div style="max-height:300px;overflow-y:auto"><table><thead><tr><th>NOMBRE</th><th>CEDULA</th></tr></thead><tbody id="bG"></tbody></table></div></div>
         </div>
-        <div class="col2">
-            <div class="panel"><h3>COMUNAS %</h3><canvas id="cD"></canvas><div id="leg" style="margin-top:10px; font-size:0.7rem; display:grid; grid-template-columns:1fr 1fr"></div></div>
-            <div class="panel"><h3>INTERVENCIÓN</h3><div id="als"></div></div>
-            <div class="panel"><h3>LIDERAZGO</h3><table><thead><tr><th>LIDER</th><th>VOTOS</th><th>%</th></tr></thead><tbody id="bL"></tbody></table></div>
+        <div class="cl2">
+            <div class="pn"><h3>COMUNAS</h3><canvas id="cD"></canvas></div>
+            <div class="pn"><h3>INTERVENCIÓN</h3><div id="als"></div></div>
         </div>
     </div>
-
 <script>
     const _s = supabase.createClient('https://pmwlkdariynhaqbqursp.supabase.co', 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv');
-    let vots = [], pts = [], map, cD;
-    const GPS = {"1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],"6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],"11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],"16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],"21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510]};
-
+    let vts = [], pts = [], map, cD;
     async function init() {
         const {data: p} = await _s.from('PUESTOS_VOTACION').select('*');
         const {data: v} = await _s.from('VOTANTES').select('*');
-        pts = p || []; vots = v || [];
+        pts = p || []; vts = v || [];
         if(!map) {
             map = L.map('map').setView([3.42, -76.52], 12);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
         }
         render();
     }
-
     function render() {
-        const t = vots.length || 1;
-        const vR = vots.filter(x => (x.lider||"").toUpperCase().includes("ROSSE MARY"));
-        document.getElementById('tV').innerText = vots.length;
-        document.getElementById('tRM').innerText = vRoss = vR.length;
+        const t = vts.length || 1;
+        const vR = vts.filter(x => (x.lider||"").toUpperCase().includes("ROSSE MARY"));
+        document.getElementById('tV').innerText = vts.length;
+        document.getElementById('tRM').innerText = vR.length;
         document.getElementById('mB').style.width = Math.min((vR.length/7000)*100, 100) + '%';
-
         let cC = {};
-        vots.forEach(x => {
+        vts.forEach(x => {
             const p = pts.find(y => y.nombre_puesto.trim().toUpperCase() === (x.puesto||"").trim().toUpperCase());
             if(p) cC[p.comuna] = (cC[p.comuna]||0) + 1;
         });
-
-        document.getElementById('bL').innerHTML = `<tr><td>ROSSE MARY CABAL FRANCO</td><td>${vR.length}</td><td>${((vR.length/t)*100).toFixed(1)}%</td></tr>`;
-        document.getElementById('bG').innerHTML = vots.slice(0,50).map(x => `<tr><td>${x["Nombres y apellidos"]}</td><td>${x.cedula}</td><td>${x.puesto}</td></tr>`).join('');
-
-        const rk = Object.keys(GPS).map(c => ({id: c, v: cC[c]||0})).sort((a,b)=>a.v - b.v);
-        const als = [...rk.filter(x=>x.v===0), ...rk.filter(x=>x.v>0).slice(0,5)];
-        document.getElementById('tA').innerText = als.length;
-        document.getElementById('als').innerHTML = als.map(a => `<div class="alert ${a.v===0?'red':'orange'}"><span>C-${a.id}</span><span>${a.v} VOTOS</span></div>`).join('');
-
-        const lab = Object.keys(cC).sort((a,b)=>a-b);
+        document.getElementById('bG').innerHTML = vts.slice(0,30).map(x => `<tr><td>${x["Nombres y apellidos"]}</td><td>${x.cedula}</td></tr>`).join('');
+        const rk = Object.keys(cC).map(c => ({id: c, v: cC[c]})).sort((a,b)=>a.v-b.v);
+        document.getElementById('als').innerHTML = rk.slice(0,5).map(a => `<div class="al red"><span>C-${a.id}</span><span>${a.v} VOTOS</span></div>`).join('');
+        const lab = Object.keys(cC);
         const dat = lab.map(l => cC[l]);
         if(cD) cD.destroy();
         cD = new Chart(document.getElementById('cD'), {
             type: 'doughnut',
-            data: { labels: lab, datasets: [{ data: dat, backgroundColor: ['#2563eb','#10b981','#f59e0b','#8b5cf6','#ec4899'] }] },
-            options: { plugins: { legend: { display: false } } }
+            data: { labels: lab, datasets: [{ data: dat, backgroundColor: ['#2563eb','#10b981','#f59e0b'] }] },
+            options: { plugins: { legend: { position: 'bottom' } } }
         });
-        document.getElementById('leg').innerHTML = lab.map((l, i) => `<div><b>C-${l}:</b> ${((dat[i]/t)*100).toFixed(1)}%</div>`).join('');
     }
     init();
     setInterval(() => { document.getElementById('reloj').innerText = new Date().toLocaleTimeString(); }, 1000);
