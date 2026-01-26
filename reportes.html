@@ -51,7 +51,6 @@
 
         .fila-comuna { background: #eef2ff !important; font-weight: 900; cursor: pointer; border-left: 6px solid var(--accent); }
         .fila-puesto { display: none; background: #ffffff !important; padding-left: 30px !important; border-left: 4px solid #94a3b8; }
-        .fila-mesa { display: none; background: #fffcf0 !important; padding-left: 50px !important; font-size: 0.75rem !important; }
 
         .alert-box { padding: 15px; border-radius: 10px; margin-bottom: 10px; font-size: 0.8rem; font-weight: 900; border-left: 8px solid; }
         .alert-red { background: #fee2e2; color: #991b1b; border-color: var(--danger); }
@@ -89,12 +88,16 @@
         <div class="stat-card" style="border-left-color: var(--success)">
             <span class="stat-label">FUERZA OPERATIVA ACTIVA</span>
             <span class="stat-val" id="tLideresActivos" style="color:var(--success)">0</span>
-            <span style="font-size:0.6rem; font-weight:800;">TOTAL PERSONAS MOVILIZADAS</span>
+            <span style="font-size:0.6rem; font-weight:800;">INSCRITOS POR ROSSMERY</span>
         </div>
 
         <div class="stat-card" style="border-left-color: #e91e63">
             <span class="stat-label">BALANCE GÉNERO</span>
             <div style="height: 50px;"><canvas id="chartGenero"></canvas></div>
+            <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:900; margin-top:5px;">
+                <span id="txtH" style="color:#2563eb">H: 0</span>
+                <span id="txtM" style="color:#e91e63">M: 0</span>
+            </div>
         </div>
     </div>
 
@@ -106,7 +109,7 @@
                     <div id="map"></div>
                     <div>
                         <canvas id="donaComunas"></canvas>
-                        <div id="donaLegend" class="scroll" style="max-height: 250px; margin-top:15px;"></div>
+                        <div id="donaLegend" class="scroll" style="max-height: 250px; margin-top:15px; border:none;"></div>
                     </div>
                 </div>
             </div>
@@ -128,7 +131,7 @@
                     <h3><i class="fas fa-database"></i> BASE DE DATOS</h3>
                     <button class="btn-exp" onclick="exportTable()">DESCARGAR EXCEL</button>
                 </div>
-                <input type="text" id="bus" onkeyup="filtrar()" placeholder="BUSCAR POR NOMBRE, CÉDULA O PUESTO..." style="width:100%; padding:12px; border-radius:10px; border:2px solid #e2e8f0; font-weight:800; margin-bottom:15px;">
+                <input type="text" id="bus" onkeyup="filtrar()" placeholder="BUSCAR..." style="width:100%; padding:12px; border-radius:10px; border:2px solid #e2e8f0; font-weight:800; margin-bottom:15px;">
                 <div class="scroll">
                     <table id="tablaG">
                         <thead>
@@ -172,7 +175,10 @@
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
     let votantes = [], puestosOficiales = [], map, capaBurbujas, chartDona, chartGen;
-    const EXCLUIDOS = ["ROSSMERY", "ANGIE", "ROSSE MARY", "ROSSMERY CABAL", "ANGIE CABAL"];
+    
+    // Nombres que identifican a la cabeza de lista
+    const CABEZA_LISTA = ["ROSSMERY", "ROSSE MARY", "ROSSMERY CABAL", "ROSSE MARY CABAL FRANCO"];
+    const EXCLUIDOS = [...CABEZA_LISTA, "ANGIE", "ANGIE CABAL"];
 
     const GPS = { "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],"6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],"11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],"16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],"21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510],"25":[3.370,-76.570],"33":[3.480,-76.570] };
 
@@ -200,8 +206,13 @@
     }
 
     function renderUI() {
-        // FILTROS DE SEGURIDAD PARA NOMBRES
-        const movilizadosRoss = votantes.filter(v => (v.lider || "").toUpperCase().includes("ROSSMERY"));
+        // AJUSTE: Filtrar quiénes tienen como líder a Rossmery (en cualquiera de sus nombres)
+        const inscritosPorRossmery = votantes.filter(v => {
+            const liderNombre = (v.lider || "").toUpperCase();
+            return CABEZA_LISTA.some(nombre => liderNombre.includes(nombre));
+        });
+
+        // Filtrar para tablas (Sin los nombres prohibidos)
         const votantesLimpios = votantes.filter(v => {
             const nom = (v["Nombres y apellidos"] || "").toUpperCase();
             return !EXCLUIDOS.some(e => nom.includes(e));
@@ -215,39 +226,39 @@
         let m=0, f=0, cCom={}, cLid={}, jerarquia={};
 
         votantes.forEach(v => {
-            // Genero
-            const pNom = (v["Nombres y apellidos"] || "").split(" ")[0].toUpperCase();
-            if(pNom.endsWith('A') || pNom === 'MARIA') f++; else m++;
+            const nomComp = (v["Nombres y apellidos"] || "").toUpperCase();
+            const pNom = nomComp.split(" ")[0];
+            if(pNom.endsWith('A') || pNom === 'MARIA' || pNom === 'LADY') f++; else m++;
             
-            // Líderes (Excluir nombres prohibidos del Ranking)
             const lid = (v.lider || "DIRECTO").toUpperCase();
             if(!EXCLUIDOS.some(e => lid.includes(e))) cLid[lid] = (cLid[lid]||0) + 1;
 
-            // Geografía
             const po = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
             const com = po ? po.comuna : "OTRA";
             const pto = po ? po.nombre_puesto : (v.puesto || "PENDIENTE");
             
             if(com !== "OTRA") cCom[com] = (cCom[com]||0) + 1;
             if(!jerarquia[com]) jerarquia[com] = { t:0, p:{} };
-            if(!jerarquia[com].p[pto]) jerarquia[com].p[pto] = { t:0, m:{} };
+            if(!jerarquia[com].p[pto]) jerarquia[com].p[pto] = { t:0 };
             jerarquia[com].t++; jerarquia[com].p[pto].t++;
         });
 
-        document.getElementById('tLideresActivos').innerText = movilizadosRoss.length;
+        // Actualizar indicadores
+        document.getElementById('tLideresActivos').innerText = inscritosPorRossmery.length;
+        document.getElementById('txtH').innerText = `H: ${m}`;
+        document.getElementById('txtM').innerText = `M: ${f}`;
         renderChartGenero(m, f);
 
-        // Alertas Comunas
+        // Alertas y Visuales
         const enCero = Object.keys(GPS).filter(c => !cCom[c]);
         document.getElementById('tZonasCriticas').innerText = enCero.length;
-        document.getElementById('alertasContainer').innerHTML = enCero.map(c => `<div class="alert-box alert-red">COMUNA ${c}: CERO REGISTROS</div>`).join('');
+        document.getElementById('alertasContainer').innerHTML = enCero.map(c => `<div class="alert-box alert-red">COMUNA ${c}: SIN REGISTROS</div>`).join('');
 
-        // Mapa y Dona con porcentajes
         renderMapa(cCom, total);
-        renderDona(cCom, total);
+        renderDona(cCom, total); // Esto actualiza la leyenda detallada
         renderJerarquia(jerarquia, total);
 
-        // Tablas Limpias
+        // Tablas
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1])
             .map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/total)*100).toFixed(1)}%</td></tr>`).join('');
 
@@ -274,12 +285,23 @@
 
     function renderDona(cCom, total) {
         const eti = Object.keys(cCom).sort((a,b)=>a-b);
+        const colores = ['#2563eb','#8b5cf6','#06b6d4','#d946ef','#f97316','#a3e635','#2dd4bf','#fbbf24','#475569','#0f172a'];
         if(chartDona) chartDona.destroy();
         chartDona = new Chart(document.getElementById('donaComunas'), {
             type: 'doughnut',
-            data: { labels: eti.map(e=>'C'+e), datasets: [{ data: eti.map(e=>cCom[e]), backgroundColor: ['#2563eb','#8b5cf6','#06b6d4','#d946ef','#f97316','#a3e635','#2dd4bf','#fbbf24','#475569','#0f172a'] }] },
-            options: { plugins: { legend:{display:false}, tooltip:{ callbacks:{label:(c)=>` ${c.raw} (${(total>0?(c.raw/total*100):0).toFixed(1)}%)`} } } }
+            data: { labels: eti.map(e=>'C'+e), datasets: [{ data: eti.map(e=>cCom[e]), backgroundColor: colores }] },
+            options: { plugins: { legend:{display:false} } }
         });
+
+        // AJUSTE: Mantener descripción con número de votos y porcentaje
+        document.getElementById('donaLegend').innerHTML = eti.map((c, i) => {
+            const v = cCom[c];
+            const p = ((v/total)*100).toFixed(1);
+            return `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #f1f5f9; font-size:0.75rem;">
+                <span><i class="fas fa-circle" style="color:${colores[i%colores.length]}"></i> COMUNA ${c}</span>
+                <b>${v} VOTOS (${p}%)</b>
+            </div>`;
+        }).join('');
     }
 
     function renderJerarquia(data, total) {
