@@ -33,7 +33,9 @@
         .stat-card { background: var(--panel); border-radius: 12px; padding: 22px; border-top: 5px solid var(--accent); box-shadow: var(--shadow); position: relative; }
         .stat-val { font-size: 3.5rem; font-weight: 900; display: block; line-height: 1; margin-bottom: 8px; color: var(--primary); }
         .stat-label { font-size: 0.75rem; font-weight: 800; color: #64748b; margin-bottom: 15px; display: block; }
-        .stat-pct { position: absolute; top: 22px; right: 22px; font-weight: 900; font-size: 0.9rem; color: #64748b; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; }
+        
+        /* Porcentaje de género se mantiene en su sitio */
+        .gender-pbox { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 900; margin-top: 10px; }
 
         .main-layout { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 25px; }
         .panel { background: var(--panel); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: var(--shadow); }
@@ -55,8 +57,6 @@
         
         .progress-mini { height: 6px; background: #e2e8f0; border-radius: 10px; margin-top: 4px; overflow: hidden; }
         .progress-mini-fill { height: 100%; background: var(--accent); }
-
-        .gender-pbox { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 900; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -76,12 +76,10 @@
             <span class="stat-val" id="tV">0</span>
         </div>
         <div class="stat-card" style="border-top-color: var(--danger)">
-            <span class="stat-pct" id="pctAlertas">0%</span>
             <span class="stat-label">ZONAS EN ALERTA</span>
             <span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span>
         </div>
         <div class="stat-card" style="border-top-color: var(--success)">
-            <span class="stat-pct" id="pctRoss">0%</span>
             <span class="stat-label">REGISTROS ROSSMERY</span>
             <span class="stat-val" id="tLideresActivos" style="color:var(--success)">0</span>
         </div>
@@ -204,7 +202,6 @@
         
         const rossCount = votantes.filter(v => ROSS.some(n => (v.lider||"").toUpperCase().includes(n))).length;
         document.getElementById('tLideresActivos').innerText = rossCount;
-        document.getElementById('pctRoss').innerText = ((rossCount/total)*100).toFixed(1) + "%";
 
         let h=0, m=0, cCom={}, cLid={};
         const limpios = votantes.filter(v => !EXCLUIDOS.some(e => (v["Nombres y apellidos"]||"").toUpperCase().includes(e)));
@@ -223,28 +220,23 @@
         document.getElementById('pctH').innerText = `H: ${((h/total)*100).toFixed(1)}%`;
         document.getElementById('pctM').innerText = `M: ${((m/total)*100).toFixed(1)}%`;
 
-        // TABLA FLUJO RECIENTE (VOTANTE, LIDER, FECHA, PUESTO)
         document.getElementById('bodyFlujo').innerHTML = limpios.slice(0, 15).map(v => {
             const f = v.created_at ? new Date(v.created_at).toLocaleDateString('es-CO') : '-';
             return `<tr><td>${v["Nombres y apellidos"]}</td><td style="color:#64748b;">${v.lider || 'DIRECTO'}</td><td>${f}</td><td style="color:var(--accent);">${v.puesto || '-'}</td></tr>`;
         }).join('');
 
-        // TABLA BASE GENERAL
         document.getElementById('bodyM').innerHTML = limpios.map(v => {
             const po = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
             return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.puesto||'-'}</td><td align="center">${v.mesa||'0'}</td><td align="center">${po?po.comuna:'-'}</td></tr>`;
         }).join('');
 
-        // ALERTAS
         const rankingC = Object.keys(GPS).map(c => ({ id: c, v: cCom[c] || 0 })).sort((a,b) => a.v - b.v);
         const ceros = rankingC.filter(x => x.v === 0);
         const bajas = rankingC.filter(x => x.v > 0).slice(0, 5);
         const todasAlerta = [...ceros, ...bajas];
         document.getElementById('tZonasCriticas').innerText = todasAlerta.length;
-        document.getElementById('pctAlertas').innerText = ((todasAlerta.length/25)*100).toFixed(0) + "%";
         document.getElementById('alertasContainer').innerHTML = todasAlerta.map(c => `<div class="alert-box ${c.v===0?'alert-red':'alert-orange'}"><span>COMUNA ${c.id}: ${c.v} VOTOS</span><i class="fas fa-exclamation-circle"></i></div>`).join('');
 
-        // RANKING
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/total)*100).toFixed(1)}%</td></tr>`).join('');
 
         renderMapa(cCom);
