@@ -17,7 +17,7 @@
 
     <style>
         /* ==========================================================================================
-        ARQUITECTURA VISUAL CSS
+        ARQUITECTURA VISUAL CSS (MANTENIENDO TODA LA IDENTIDAD)
         ========================================================================================== */
         :root { 
             --primary: #0f172a; 
@@ -137,44 +137,6 @@
             gap: 10px;
         }
 
-        /* NUEVO: Contenedor para porcentajes de género */
-        .gender-percent-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-            gap: 15px;
-        }
-
-        .gender-percent {
-            text-align: center;
-            flex: 1;
-            padding: 8px;
-            background: #f8fafc;
-            border-radius: 8px;
-            border: 2px solid #e2e8f0;
-        }
-
-        .gender-percent-label {
-            font-size: 0.7rem;
-            font-weight: 800;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-        }
-
-        .gender-percent-value {
-            font-size: 1.8rem;
-            font-weight: 950;
-            color: var(--primary);
-        }
-
-        .gender-percent-value.male {
-            color: #2563eb;
-        }
-
-        .gender-percent-value.female {
-            color: #db2777;
-        }
-
         /* DASHBOARD LAYOUT */
         .dashboard-main { 
             display: grid; 
@@ -281,37 +243,6 @@
         .legend-item { display: flex; align-items: center; gap: 12px; font-size: 0.72rem; font-weight: 800; }
         .legend-color { width: 14px; height: 14px; border-radius: 5px; }
 
-        /* LOADER PARA EVITAR PANTALLA EN BLANCO */
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 23, 42, 0.9);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            color: white;
-        }
-
-        .loader {
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #2563eb;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* SCROLLBAR CUSTOM */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
@@ -320,12 +251,6 @@
     </style>
 </head>
 <body>
-
-<!-- Overlay de carga -->
-<div id="loadingOverlay" class="loading-overlay">
-    <div class="loader"></div>
-    <div>PROCESANDO FILTROS...</div>
-</div>
 
 <div id="app" class="container">
     <header class="master-header">
@@ -349,10 +274,6 @@
         <div class="stat-card" style="border-top-color: #be185d">
             <span class="stat-label"><i class="fas fa-venus-mars"></i> BALANCE GÉNERO</span>
             <div style="height: 55px; margin-top: 12px;"><canvas id="chartGenero"></canvas></div>
-            <!-- NUEVO: Contenedor para porcentajes -->
-            <div id="genderPercentContainer" class="gender-percent-container">
-                <!-- Se llenará dinámicamente -->
-            </div>
         </div>
     </div>
 
@@ -451,7 +372,7 @@
 
 <script>
     /* ==========================================================================================
-    MASTER LOGIC ENGINE - FULL VERSION 2026 (OPTIMIZADO)
+    MASTER LOGIC ENGINE - FULL VERSION 2026
     ========================================================================================== */
     const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
@@ -475,12 +396,6 @@
         '#06b6d4', '#f43f5e', '#6366f1', '#14b8a6', '#f97316',
         '#3b82f6', '#10b981', '#6366f1', '#8b5cf6', '#d946ef'
     ];
-
-    // FUNCIÓN PARA MOSTRAR/OCULTAR LOADER
-    function showLoader(show) {
-        const loader = document.getElementById('loadingOverlay');
-        loader.style.display = show ? 'flex' : 'none';
-    }
 
     async function startSystem() {
         const { value: access_key } = await Swal.fire({ 
@@ -524,7 +439,6 @@
 
     async function syncSupabaseData() {
         try {
-            showLoader(true);
             const [respPuestos, respVotantes] = await Promise.all([
                 _supabase.from('PUESTOS_VOTACION').select('*'),
                 _supabase.from('VOTANTES').select('*').order('created_at', { ascending: false })
@@ -532,46 +446,32 @@
             puestosOficiales = respPuestos.data || [];
             votantes = respVotantes.data || [];
             refreshInterface();
-            showLoader(false);
         } catch (err) { 
             console.error("Sync Error:", err);
-            showLoader(false);
             setTimeout(syncSupabaseData, 5000); 
         }
     }
 
-    /* ==========================================================================================
-    FUNCIONES OPTIMIZADAS PARA EVITAR BLOQUEOS
-    ========================================================================================== */
+    // GESTIÓN DE NIVELES DE TABLA (ACORDEÓN)
     function toggleNivel(clase) {
-        showLoader(true);
+        const elementos = document.getElementsByClassName(clase);
+        if(!elementos.length) return;
+        const estaAbierto = elementos[0].style.display === 'table-row';
         
-        setTimeout(() => {
-            const elementos = document.getElementsByClassName(clase);
-            if(!elementos.length) {
-                showLoader(false);
-                return;
+        for (let el of elementos) {
+            el.style.display = estaAbierto ? 'none' : 'table-row';
+            // Cerrar recursivamente si se cierra el padre
+            if (estaAbierto && el.getAttribute('data-sub')) {
+                const subniveles = document.getElementsByClassName(el.getAttribute('data-sub'));
+                for(let sub of subniveles) sub.style.display = 'none';
             }
-            
-            const estaAbierto = elementos[0].style.display === 'table-row';
-            
-            requestAnimationFrame(() => {
-                for (let el of elementos) {
-                    el.style.display = estaAbierto ? 'none' : 'table-row';
-                    
-                    if (estaAbierto && el.getAttribute('data-sub')) {
-                        const subniveles = document.getElementsByClassName(el.getAttribute('data-sub'));
-                        for(let sub of subniveles) sub.style.display = 'none';
-                    }
-                }
-                showLoader(false);
-            });
-        }, 50);
+        }
     }
 
     function refreshInterface() {
         const globalTotal = votantes.length || 1;
         
+        // FILTRO LÍDER ESPECÍFICO (ROSSE MARY)
         const inscritosRosse = votantes.filter(v => 
             (v.lider || "").toUpperCase().trim() === "ROSSE MARY CABAL FRANCO"
         ).length;
@@ -583,12 +483,15 @@
         let logActividad = "";
 
         votantes.forEach((v, index) => {
+            // Lógica de Género (Basada en terminación)
             const nom = (v["Nombres y apellidos"] || "").toUpperCase().trim();
             if(nom.endsWith('A') || nom.includes('MARIA') || nom.endsWith('S')) mujeres++; else hombres++;
             
+            // Lógica de Líderes
             const lid = (v.lider || "DIRECTO").toUpperCase().trim();
             contLid[lid] = (contLid[lid]||0) + 1;
 
+            // Relación Geográfica
             const pRef = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
             if(pRef) {
                 const c = pRef.comuna;
@@ -602,6 +505,7 @@
                 contMesa[v.puesto][m] = (contMesa[v.puesto][m]||0) + 1;
             }
 
+            // Actividad Reciente (Ultimos 10)
             if(index < 10) {
                 logActividad += `<tr><td><i class="fas fa-circle-check" style="color:var(--success)"></i> ${nom}</td><td align="right">${new Date(v.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td></tr>`;
             }
@@ -609,10 +513,9 @@
 
         document.getElementById('bodyActividad').innerHTML = logActividad;
 
+        // CONSTRUCCIÓN JERÁRQUICA (TABLA PRINCIPAL)
         let jerHtml = "";
-        const comKeys = Object.keys(GPS).sort((a,b)=>parseInt(a)-parseInt(b));
-        
-        for (let com of comKeys) {
+        Object.keys(GPS).sort((a,b)=>a-b).forEach(com => {
             const totalC = contCom[com] || 0;
             const pctC = ((totalC/globalTotal)*100).toFixed(1);
             
@@ -623,8 +526,7 @@
             </tr>`;
 
             if(contPue[com]) {
-                const puestos = Object.entries(contPue[com]);
-                for (let [pue, vP] of puestos) {
+                Object.entries(contPue[com]).forEach(([pue, vP]) => {
                     const idPue = `p-${pue.replace(/[^a-zA-Z0-9]/g, '')}`;
                     const pctP = ((vP/globalTotal)*100).toFixed(1);
                     
@@ -635,22 +537,22 @@
                     </tr>`;
 
                     if(contMesa[pue]) {
-                        const mesas = Object.entries(contMesa[pue]);
-                        for (let [m, vM] of mesas) {
+                        Object.entries(contMesa[pue]).forEach(([m, vM]) => {
                             const pctM = ((vM/globalTotal)*100).toFixed(1);
                             jerHtml += `<tr class="c-${com} ${idPue} row-mesa">
                                 <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-box-archive"></i> MESA ${m}</td>
                                 <td align="center">${vM}</td>
                                 <td align="center">${pctM}%</td>
                             </tr>`;
-                        }
+                        });
                     }
-                }
+                });
             }
-        }
+        });
         document.getElementById('bodyJerarquia').innerHTML = jerHtml;
 
-        const generalHtml = votantes.map(v => {
+        // CONSOLIDADO GENERAL (BÚSQUEDA)
+        document.getElementById('bodyGeneral').innerHTML = votantes.map(v => {
             const p = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
             return `<tr>
                 <td>${v["Nombres y apellidos"]}</td>
@@ -660,13 +562,14 @@
                 <td>${p?p.comuna:'-'}</td>
             </tr>`;
         }).join('');
-        document.getElementById('bodyGeneral').innerHTML = generalHtml;
 
-        const lideresEntries = Object.entries(contLid);
-        lideresEntries.sort((a,b) => b[1] - a[1]);
-        const lideresHtml = lideresEntries.map(([l,v]) => `<tr><td>${l}</td><td>${v}</td><td>${((v/globalTotal)*100).toFixed(1)}%</td></tr>`).join('');
-        document.getElementById('bodyLid').innerHTML = lideresHtml;
+        // RANKING LÍDERES
+        document.getElementById('bodyLid').innerHTML = Object.entries(contLid)
+            .sort((a,b) => b[1] - a[1])
+            .map(([l,v]) => `<tr><td>${l}</td><td>${v}</td><td>${((v/globalTotal)*100).toFixed(1)}%</td></tr>`)
+            .join('');
 
+        // GESTIÓN DE ALERTAS (Regla: Comunas en 0 y las 5 más bajas)
         const rankingAlertas = Object.keys(GPS).map(c => ({ id: c, v: contCom[c] || 0 })).sort((a,b) => a.v - b.v);
         const alertas = [...rankingAlertas.filter(x => x.v === 0), ...rankingAlertas.filter(x => x.v > 0).slice(0, 5)];
         
@@ -678,25 +581,11 @@
             </div>`
         ).join('');
 
-        const totalGenero = hombres + mujeres;
-        const pctHombres = totalGenero > 0 ? ((hombres/totalGenero)*100).toFixed(1) : "0.0";
-        const pctMujeres = totalGenero > 0 ? ((mujeres/totalGenero)*100).toFixed(1) : "0.0";
-
-        document.getElementById('genderPercentContainer').innerHTML = `
-            <div class="gender-percent">
-                <div class="gender-percent-label">HOMBRES</div>
-                <div class="gender-percent-value male">${pctHombres}%</div>
-            </div>
-            <div class="gender-percent">
-                <div class="gender-percent-label">MUJERES</div>
-                <div class="gender-percent-value female">${pctMujeres}%</div>
-            </div>
-        `;
-
         updateVisuals(contCom, globalTotal, hombres, mujeres);
     }
 
     function updateVisuals(contCom, total, h, m) {
+        // MAPA ACTUALIZACIÓN
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
             const v = contCom[c] || 0;
@@ -711,7 +600,8 @@
             }).addTo(capaBurbujas).bindTooltip(`COMUNA ${c}<br><b>${v} VOTOS</b><br>${((v/total)*100).toFixed(1)}%`, { sticky: true });
         });
 
-        const labels = Object.keys(contCom).sort((a,b) => parseInt(a)-parseInt(b));
+        // CHART DONA (PORCENTAJES SOLO EN HOVER)
+        const labels = Object.keys(contCom).sort((a,b) => a-b);
         const data = labels.map(l => contCom[l]);
         
         if(chartDona) chartDona.destroy();
@@ -730,7 +620,7 @@
                 maintainAspectRatio: false,
                 plugins: { 
                     legend: { display: false },
-                    datalabels: { display: false },
+                    datalabels: { display: false }, // ELIMINADOS DE LA VISTA FIJA
                     tooltip: {
                         enabled: true,
                         backgroundColor: '#0f172a',
@@ -750,6 +640,7 @@
             }
         });
 
+        // LEYENDA DINÁMICA DONA
         document.getElementById('donaLegend').innerHTML = labels.slice(0, 10).map((l, idx) => `
             <div class="legend-item">
                 <span class="legend-color" style="background:${PALETA_MASTER[idx]}"></span>
@@ -757,6 +648,7 @@
             </div>
         `).join('');
 
+        // CHART GÉNERO
         if(chartGen) chartGen.destroy();
         chartGen = new Chart(document.getElementById('chartGenero'), {
             type: 'bar',
@@ -771,3 +663,55 @@
             options: {
                 indexAxis: 'y',
                 maintainAspectRatio: false,
+                scales: { x: { display: false }, y: { display: false } },
+                plugins: { legend: { display: false }, datalabels: { display: false } }
+            }
+        });
+    }
+
+    /* ==========================================================================================
+    SISTEMA DE EXPORTACIÓN MASTER (SIN CORTES)
+    ========================================================================================== */
+    function exportHierarchicalData(tableId, fileName) {
+        const table = document.getElementById(tableId);
+        const rows = Array.from(table.querySelectorAll('tr'));
+        
+        // Procesar datos manteniendo la estructura visual
+        const processedData = rows.map(row => {
+            return Array.from(row.querySelectorAll('th, td')).map(cell => {
+                let text = cell.innerText.replace(/\s+/g, ' ').trim();
+                return text;
+            });
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet(processedData);
+        
+        // Estilo básico para columnas
+        ws['!cols'] = [{ wch: 50 }, { wch: 15 }, { wch: 15 }];
+        
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "ESTRUCTURA_CALI");
+        XLSX.writeFile(wb, `${fileName}_${new Date().getTime()}.xlsx`);
+    }
+
+    function exportFlatData(tableId, fileName) {
+        const table = document.getElementById(tableId);
+        const wb = XLSX.utils.table_to_book(table, { raw: true });
+        XLSX.writeFile(wb, `${fileName}.xlsx`);
+    }
+
+    function filterConsolidado() {
+        let val = document.getElementById("busG").value.toUpperCase();
+        let rows = document.getElementById("bodyGeneral").rows;
+        for (let i = 0; i < rows.length; i++) {
+            let text = rows[i].innerText.toUpperCase();
+            rows[i].style.display = text.includes(val) ? "" : "none";
+        }
+    }
+
+    // ARRANQUE
+    window.onload = startSystem;
+
+</script>
+</body>
+</html>
