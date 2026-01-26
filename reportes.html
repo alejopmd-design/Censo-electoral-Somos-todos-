@@ -33,7 +33,6 @@
         .panel { background: var(--panel); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: var(--shadow); }
         h3 { font-size: 0.9rem; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; font-weight: 900; }
 
-        /* Mapa con brillo intermedio */
         #map { height: 500px; width: 100%; border-radius: 10px; filter: contrast(1.1) brightness(0.95); }
 
         .scroll { max-height: 450px; overflow-y: auto; }
@@ -41,7 +40,6 @@
         th { background: #f8fafc; padding: 12px; text-align: left; font-size: 0.7rem; color: #64748b; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 700; }
 
-        /* Jerarquía */
         .row-comuna { background: #f1f5f9; cursor: pointer; }
         .row-puesto { background: #ffffff; cursor: pointer; display: none; border-left: 4px solid var(--accent); }
         .row-mesa { background: #fafafa; display: none; border-left: 8px solid #cbd5e1; }
@@ -54,6 +52,8 @@
         .legend-item { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.75rem; font-weight: 800; }
         .progress-mini { height: 6px; background: #e2e8f0; border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
         .progress-mini-fill { height: 100%; background: var(--accent); }
+
+        .search-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -65,24 +65,14 @@
     </header>
 
     <div class="stats-grid">
-        <div class="stat-card">
-            <span class="stat-label">CENSO TOTAL</span>
-            <span class="stat-val" id="tV">0</span>
-        </div>
-        <div class="stat-card" style="border-top-color: var(--danger)">
-            <span class="stat-label">ZONAS EN ALERTA</span>
-            <span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span>
-        </div>
-        <div class="stat-card" style="border-top-color: var(--success)">
-            <span class="stat-label">LÍDERES ACTIVOS</span>
-            <span class="stat-val" id="tLideresActivos" style="color:var(--success)">0</span>
-        </div>
+        <div class="stat-card"><span class="stat-label">CENSO TOTAL</span><span class="stat-val" id="tV">0</span></div>
+        <div class="stat-card" style="border-top-color: var(--danger)"><span class="stat-label">ZONAS EN ALERTA</span><span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span></div>
+        <div class="stat-card" style="border-top-color: var(--success)"><span class="stat-label">LÍDERES ACTIVOS</span><span class="stat-val" id="tLideresActivos" style="color:var(--success)">0</span></div>
         <div class="stat-card" style="border-top-color: #be185d">
             <span class="stat-label">GÉNERO (%)</span>
             <div style="height: 35px;"><canvas id="chartGenero"></canvas></div>
             <div style="display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 900; margin-top: 5px;">
-                <span id="pctH" style="color:var(--accent)">H: 0%</span>
-                <span id="pctM" style="color:#be185d">M: 0%</span>
+                <span id="pctH" style="color:var(--accent)">H: 0%</span><span id="pctM" style="color:#be185d">M: 0%</span>
             </div>
         </div>
     </div>
@@ -102,11 +92,9 @@
 
             <div class="panel">
                 <h3>EXPLORADOR DE REGISTROS (COMUNA > PUESTO > MESA)</h3>
-                <div class="scroll" style="max-height: 500px;">
+                <div class="scroll">
                     <table>
-                        <thead>
-                            <tr><th>UBICACIÓN JERÁRQUICA</th><th style="text-align:center">VOTOS</th><th style="text-align:center">%</th></tr>
-                        </thead>
+                        <thead><tr><th>UBICACIÓN JERÁRQUICA</th><th style="text-align:center">VOTOS</th><th style="text-align:center">%</th></tr></thead>
                         <tbody id="bodyJerarquia"></tbody>
                     </table>
                 </div>
@@ -114,11 +102,7 @@
         </div>
 
         <div class="col-right">
-            <div class="panel">
-                <h3>ALERTAS DE INTERVENCIÓN</h3>
-                <div id="alertasContainer"></div>
-            </div>
-
+            <div class="panel"><h3>ALERTAS DE INTERVENCIÓN</h3><div id="alertasContainer"></div></div>
             <div class="panel">
                 <h3>RANKING DE LÍDERES</h3>
                 <div class="scroll">
@@ -128,16 +112,19 @@
                     </table>
                 </div>
             </div>
-            
-            <div class="panel">
-                <h3>FLUJO RECIENTE</h3>
-                <div class="scroll">
-                    <table>
-                        <thead><tr><th>VOTANTE</th><th>LÍDER</th><th>PUESTO</th></tr></thead>
-                        <tbody id="bodyFlujo"></tbody>
-                    </table>
-                </div>
-            </div>
+        </div>
+    </div>
+
+    <div class="panel" style="grid-column: span 2;">
+        <h3><i class="fas fa-database"></i> BASE DE DATOS GENERAL</h3>
+        <input type="text" id="busG" onkeyup="filtrarG()" placeholder="BUSCAR POR NOMBRE, CÉDULA O PUESTO..." class="search-input">
+        <div class="scroll" style="max-height: 600px;">
+            <table id="tablaGeneral">
+                <thead>
+                    <tr><th>NOMBRE Y APELLIDO</th><th>CÉDULA</th><th>TELÉFONO</th><th>PUESTO</th><th style="text-align:center">COMUNA</th></tr>
+                </thead>
+                <tbody id="bodyGeneral"></tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -159,7 +146,6 @@
 
     function initMap() {
         map = L.map('map').setView([3.42, -76.52], 12);
-        // Mapa estilo intermedio (no tan oscuro)
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
         capaBurbujas = L.layerGroup().addTo(map);
     }
@@ -186,8 +172,7 @@
 
         votantes.forEach(v => {
             const n = (v["Nombres y apellidos"] || "").toUpperCase();
-            if(n.endsWith('A') || n.includes('MARIA') || n.includes('LUZ')) m++; else h++;
-            
+            if(n.endsWith('A') || n.includes('MARIA')) m++; else h++;
             const lid = (v.lider || "DIRECTO").toUpperCase();
             if(!EXCLUIDOS.some(e => lid.includes(e))) cLid[lid] = (cLid[lid]||0) + 1;
 
@@ -210,32 +195,29 @@
             const vCom = cCom[com] || 0;
             const idCom = `c-${com}`;
             htmlJer += `<tr class="row-comuna" onclick="toggleLevel('${idCom}')"><td><i class="fas fa-folder folder-icon"></i> COMUNA ${com}</td><td align="center">${vCom}</td><td align="center">${((vCom/total)*100).toFixed(1)}%</td></tr>`;
-            
             if(cPue[com]) {
                 Object.entries(cPue[com]).forEach(([pue, vPue]) => {
                     const idPue = `p-${pue.replace(/\s+/g, '')}`;
-                    htmlJer += `<tr class="${idCom} row-puesto" onclick="toggleLevel('${idPue}')"><td>&nbsp;&nbsp;<i class="fas fa-map-marker-alt" style="color:#64748b"></i> ${pue}</td><td align="center">${vPue}</td><td align="center">${((vPue/total)*100).toFixed(1)}%</td></tr>`;
-                    if(cMesa[pue]) {
-                        Object.entries(cMesa[pue]).forEach(([mesa, vMesa]) => {
-                            htmlJer += `<tr class="${idCom} ${idPue} row-mesa"><td>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-inbox" style="color:#94a3b8"></i> MESA ${mesa}</td><td align="center">${vMesa}</td><td align="center">${((vMesa/total)*100).toFixed(1)}%</td></tr>`;
-                        });
-                    }
+                    htmlJer += `<tr class="${idCom} row-puesto" onclick="toggleLevel('${idPue}')"><td>&nbsp;&nbsp;${pue}</td><td align="center">${vPue}</td><td align="center">${((vPue/total)*100).toFixed(1)}%</td></tr>`;
                 });
             }
         });
         document.getElementById('bodyJerarquia').innerHTML = htmlJer;
 
-        // ALERTAS (REGLA 0 + 5)
-        const rankingC = Object.keys(GPS).map(c => ({ id: c, v: cCom[c] || 0 })).sort((a,b) => a.v - b.v);
-        const alertas = [...rankingC.filter(x => x.v === 0), ...rankingC.filter(x => x.v > 0).slice(0, 5)];
-        document.getElementById('tZonasCriticas').innerText = alertas.length;
-        document.getElementById('alertasContainer').innerHTML = alertas.map(c => `<div class="alert-box ${c.v===0?'alert-red':'alert-orange'}"><span>COMUNA ${c.id}: ${c.v} VOTOS</span></div>`).join('');
+        // TABLA GENERAL (NOMBRE, CÉDULA, TELÉFONO, PUESTO, COMUNA)
+        document.getElementById('bodyGeneral').innerHTML = votantes.map(v => {
+            const pInfo = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
+            return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.telefono || '-'}</td><td>${v.puesto || '-'}</td><td align="center">${pInfo ? pInfo.comuna : '-'}</td></tr>`;
+        }).join('');
 
         // RANKING LÍDERES
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/total)*100).toFixed(1)}%</td></tr>`).join('');
 
-        // FLUJO RECIENTE
-        document.getElementById('bodyFlujo').innerHTML = votantes.slice(0, 10).map(v => `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.lider||'DIR'}</td><td>${v.puesto||'-'}</td></tr>`).join('');
+        // ALERTAS (0 + 5)
+        const rankingC = Object.keys(GPS).map(c => ({ id: c, v: cCom[c] || 0 })).sort((a,b) => a.v - b.v);
+        const alertas = [...rankingC.filter(x => x.v === 0), ...rankingC.filter(x => x.v > 0).slice(0, 5)];
+        document.getElementById('tZonasCriticas').innerText = alertas.length;
+        document.getElementById('alertasContainer').innerHTML = alertas.map(c => `<div class="alert-box ${c.v===0?'alert-red':'alert-orange'}"><span>COMUNA ${c.id}: ${c.v} VOTOS</span></div>`).join('');
 
         renderMapa(cCom, total);
         renderDona(cCom, total);
@@ -255,7 +237,7 @@
         const data = labels.map(l => cCom[l]);
         if(chartDona) chartDona.destroy();
         chartDona = new Chart(document.getElementById('chartDona'), {
-            type: 'doughnut', data: { labels: labels, datasets:[{data:data, backgroundColor:['#1e293b','#2563eb','#475569','#059669','#be123c','#3b82f6','#94a3b8']}] },
+            type: 'doughnut', data: { labels: labels, datasets:[{data:data, backgroundColor:['#1e293b','#2563eb','#475569','#059669','#be123c']}] },
             options: { maintainAspectRatio:false, plugins:{legend:{display:false}} }
         });
         document.getElementById('donaLegend').innerHTML = labels.map((l, i) => {
@@ -267,6 +249,12 @@
     function renderChartGenero(h, m) {
         if(chartGen) chartGen.destroy();
         chartGen = new Chart(document.getElementById('chartGenero'), { type:'bar', data:{labels:['H','M'], datasets:[{data:[h,m], backgroundColor:['#2563eb','#be185d']}]}, options:{indexAxis:'y', maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false},y:{display:false}}} });
+    }
+
+    function filtrarG() {
+        const q = document.getElementById('busG').value.toUpperCase();
+        const rows = document.getElementById('bodyGeneral').rows;
+        Array.from(rows).forEach(r => { r.style.display = r.innerText.toUpperCase().includes(q) ? '' : 'none'; });
     }
 
     window.onload = login;
