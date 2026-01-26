@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA ESTRATÉGICO CALI 2026 - FULL MASTER</title>
+    <title>SISTEMA ESTRATÉGICO CALI 2026 - FULL PREMIUM</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -30,17 +30,18 @@
         }
 
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px; }
-        .stat-card { background: var(--panel); border-radius: 12px; padding: 22px; border-top: 5px solid var(--accent); box-shadow: var(--shadow); }
+        .stat-card { background: var(--panel); border-radius: 12px; padding: 22px; border-top: 5px solid var(--accent); box-shadow: var(--shadow); position: relative; }
         .stat-val { font-size: 3.5rem; font-weight: 900; display: block; line-height: 1; margin-bottom: 8px; color: var(--primary); }
         .stat-label { font-size: 0.75rem; font-weight: 800; color: #64748b; margin-bottom: 15px; display: block; }
+        .stat-pct { position: absolute; top: 22px; right: 22px; font-weight: 900; font-size: 0.8rem; color: #64748b; }
 
-        .main-layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 25px; }
+        .main-layout { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 25px; }
         .panel { background: var(--panel); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: var(--shadow); }
         h3 { font-size: 0.9rem; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; font-weight: 900; color: #334155; }
 
-        #map { height: 500px; width: 100%; border-radius: 10px; border: 1px solid #e2e8f0; filter: brightness(0.85) contrast(1.1); }
+        #map { height: 550px; width: 100%; border-radius: 10px; border: 1px solid #e2e8f0; filter: brightness(0.85) contrast(1.1); }
 
-        .scroll { max-height: 450px; overflow-y: auto; }
+        .scroll { max-height: 500px; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #f8fafc; padding: 15px; text-align: left; font-size: 0.7rem; position: sticky; top: 0; color: #64748b; border-bottom: 2px solid #e2e8f0; z-index: 10; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 700; }
@@ -62,7 +63,7 @@
     <header class="master-header">
         <div>
             <h1 style="margin:0; letter-spacing:2px; font-size: 1.8rem;">ESTRATEGIA CALI 2026</h1>
-            <span style="font-weight: 700; opacity: 0.8; font-size: 0.8rem;">AUDITORÍA Y CONTROL GEOPOLÍTICO</span>
+            <span style="font-weight: 700; opacity: 0.8; font-size: 0.8rem;">INTELIGENCIA ELECTORAL EN TIEMPO REAL</span>
         </div>
         <div id="reloj" style="font-size: 1.1rem; font-weight: 900;"></div>
     </header>
@@ -73,15 +74,17 @@
             <span class="stat-val" id="tV">0</span>
         </div>
         <div class="stat-card" style="border-top-color: var(--danger)">
+            <span class="stat-pct" id="pctAlertas">0%</span>
             <span class="stat-label">ZONAS EN ALERTA</span>
             <span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span>
         </div>
         <div class="stat-card" style="border-top-color: var(--success)">
+            <span class="stat-pct" id="pctRoss">0%</span>
             <span class="stat-label">REGISTROS ROSSMERY</span>
             <span class="stat-val" id="tLideresActivos" style="color:var(--success)">0</span>
         </div>
         <div class="stat-card" style="border-top-color: #be185d">
-            <span class="stat-label">EQUILIBRIO GÉNERO</span>
+            <span class="stat-label">BALANCE GÉNERO (H / M)</span>
             <div style="height: 50px;"><canvas id="chartGenero"></canvas></div>
         </div>
     </div>
@@ -89,12 +92,12 @@
     <div class="main-layout">
         <div class="col-left">
             <div class="panel">
-                <h3><i class="fas fa-map-marked-alt"></i> MAPA Y DISTRIBUCIÓN POR COMUNA</h3>
-                <div style="display: grid; grid-template-columns: 1fr 320px; gap: 25px;">
+                <h3><i class="fas fa-map-marked-alt"></i> GEOLOCALIZACIÓN Y DISTRIBUCIÓN POR COMUNA</h3>
+                <div style="display: grid; grid-template-columns: 1fr 340px; gap: 25px;">
                     <div id="map"></div>
                     <div>
-                        <div style="height: 250px;"><canvas id="chartDona"></canvas></div>
-                        <div id="donaLegend" class="scroll" style="max-height: 200px; margin-top: 15px;"></div>
+                        <div style="height: 280px;"><canvas id="chartDona"></canvas></div>
+                        <div id="donaLegend" class="scroll" style="max-height: 250px; margin-top: 15px;"></div>
                     </div>
                 </div>
             </div>
@@ -104,11 +107,11 @@
                     <h3><i class="fas fa-database"></i> BASE DE DATOS MAESTRA</h3>
                     <button class="btn-exp" onclick="exportTable()">DESCARGAR EXCEL</button>
                 </div>
-                <input type="text" id="bus" onkeyup="filtrar()" placeholder="BUSCAR POR NOMBRE O CÉDULA..." style="width:100%; padding:12px; border-radius:10px; border:1px solid #e2e8f0; font-weight:800; margin-bottom:15px;">
+                <input type="text" id="bus" onkeyup="filtrar()" placeholder="FILTRAR POR CUALQUIER CAMPO..." style="width:100%; padding:15px; border-radius:10px; border:1px solid #e2e8f0; font-weight:800; margin-bottom:15px; background: #f8fafc;">
                 <div class="scroll">
                     <table id="tablaG">
                         <thead>
-                            <tr><th>VOTANTE</th><th>CÉDULA</th><th>PUESTO</th><th style="text-align:center">MESA</th></tr>
+                            <tr><th>VOTANTE</th><th>CÉDULA</th><th>PUESTO</th><th style="text-align:center">MESA</th><th style="text-align:center">COMUNA</th></tr>
                         </thead>
                         <tbody id="bodyM"></tbody>
                     </table>
@@ -135,7 +138,7 @@
             </div>
 
             <div class="panel">
-                <h3><i class="fas fa-exclamation-triangle"></i> INTERVENCIÓN REQUERIDA (0 REG + 5 BAJAS)</h3>
+                <h3><i class="fas fa-exclamation-triangle"></i> ALERTAS DE INTERVENCIÓN (0 REG + 5 BAJAS)</h3>
                 <div id="alertasContainer"></div>
             </div>
             
@@ -195,16 +198,14 @@
         
         const rossCount = votantes.filter(v => ROSS.some(n => (v.lider||"").toUpperCase().includes(n))).length;
         document.getElementById('tLideresActivos').innerText = rossCount;
+        document.getElementById('pctRoss').innerText = ((rossCount/total)*100).toFixed(1) + "%";
 
         let h=0, m=0, cCom={}, cLid={};
-        const limpios = votantes.filter(v => {
-            const n = (v["Nombres y apellidos"]||"").toUpperCase();
-            return !EXCLUIDOS.some(e => n.includes(e));
-        });
+        const limpios = votantes.filter(v => !EXCLUIDOS.some(e => (v["Nombres y apellidos"]||"").toUpperCase().includes(e)));
 
         votantes.forEach(v => {
-            const pNom = (v["Nombres y apellidos"] || "").split(" ")[0].toUpperCase();
-            if(pNom.endsWith('A') || pNom === 'MARIA') m++; else h++;
+            const n = (v["Nombres y apellidos"] || "").toUpperCase();
+            if(n.endsWith('A') || n.includes('MARIA') || n.includes('LUZ') || n.includes('ANA')) m++; else h++;
             
             const lid = (v.lider || "DIRECTO").toUpperCase();
             if(!EXCLUIDOS.some(e => lid.includes(e))) cLid[lid] = (cLid[lid]||0) + 1;
@@ -213,42 +214,29 @@
             if(po) cCom[po.comuna] = (cCom[po.comuna]||0) + 1;
         });
 
-        // TABLA FLUJO RECIENTE (Votante, Líder, Fecha, Puesto)
+        // TABLA FLUJO RECIENTE (VOTANTE, LIDER, FECHA, PUESTO)
         document.getElementById('bodyFlujo').innerHTML = limpios.slice(0, 15).map(v => {
-            const fecha = v.created_at ? new Date(v.created_at).toLocaleDateString('es-CO') : '-';
-            return `<tr>
-                <td>${v["Nombres y apellidos"]}</td>
-                <td style="color:#64748b;">${v.lider || 'DIRECTO'}</td>
-                <td>${fecha}</td>
-                <td style="color:var(--accent);">${v.puesto || '-'}</td>
-            </tr>`;
+            const f = v.created_at ? new Date(v.created_at).toLocaleDateString('es-CO') : '-';
+            return `<tr><td>${v["Nombres y apellidos"]}</td><td style="color:#64748b;">${v.lider || 'DIRECTO'}</td><td>${f}</td><td style="color:var(--accent);">${v.puesto || '-'}</td></tr>`;
         }).join('');
 
-        // TABLA BASE DE DATOS
-        document.getElementById('bodyM').innerHTML = limpios.map(v => `
-            <tr>
-                <td>${v["Nombres y apellidos"]}</td>
-                <td>${v.cedula}</td>
-                <td>${v.puesto || '-'}</td>
-                <td align="center">${v.mesa || '0'}</td>
-            </tr>`).join('');
+        // TABLA BASE GENERAL
+        document.getElementById('bodyM').innerHTML = limpios.map(v => {
+            const po = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
+            return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.puesto||'-'}</td><td align="center">${v.mesa||'0'}</td><td align="center">${po?po.comuna:'-'}</td></tr>`;
+        }).join('');
 
-        // ALERTAS (0 registros + 5 más bajas)
+        // ALERTAS
         const rankingC = Object.keys(GPS).map(c => ({ id: c, v: cCom[c] || 0 })).sort((a,b) => a.v - b.v);
         const ceros = rankingC.filter(x => x.v === 0);
         const bajas = rankingC.filter(x => x.v > 0).slice(0, 5);
         const todasAlerta = [...ceros, ...bajas];
-        
         document.getElementById('tZonasCriticas').innerText = todasAlerta.length;
-        document.getElementById('alertasContainer').innerHTML = todasAlerta.map(c => `
-            <div class="alert-box ${c.v === 0 ? 'alert-red' : 'alert-orange'}">
-                <span>COMUNA ${c.id}: ${c.v === 0 ? 'SIN REGISTROS' : c.v + ' REGISTROS'}</span>
-                <i class="fas ${c.v === 0 ? 'fa-ban' : 'fa-exclamation-triangle'}"></i>
-            </div>`).join('');
+        document.getElementById('pctAlertas').innerText = ((todasAlerta.length/25)*100).toFixed(0) + "%";
+        document.getElementById('alertasContainer').innerHTML = todasAlerta.map(c => `<div class="alert-box ${c.v===0?'alert-red':'alert-orange'}"><span>COMUNA ${c.id}: ${c.v} VOTOS</span><i class="fas fa-exclamation-circle"></i></div>`).join('');
 
         // RANKING
-        document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1])
-            .map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/total)*100).toFixed(1)}%</td></tr>`).join('');
+        document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/total)*100).toFixed(1)}%</td></tr>`).join('');
 
         renderMapa(cCom);
         renderChartGenero(h, m);
@@ -259,52 +247,39 @@
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
             const t = cCom[c] || 0;
-            const col = t === 0 ? "#be123c" : "#1e293b";
-            L.circle(GPS[c], { color: col, fillColor: col, fillOpacity: 0.6, radius: 450 + (t*15) }).addTo(capaBurbujas);
+            const marker = L.circle(GPS[c], { color: t===0?'#be123c':'#1e293b', fillColor: t===0?'#be123c':'#1e293b', fillOpacity: 0.6, radius: 450 + (t*15) }).addTo(capaBurbujas);
+            marker.bindTooltip(`<b>COMUNA ${c}</b><br>VOTOS: ${t}`, { permanent: false, sticky: true });
         });
     }
 
     function renderDona(cCom, total) {
         const labels = Object.keys(cCom).sort((a,b) => a-b);
         const data = labels.map(l => cCom[l]);
-        
         if(chartDona) chartDona.destroy();
         chartDona = new Chart(document.getElementById('chartDona'), {
             type: 'doughnut',
-            data: {
-                labels: labels.map(l => "C" + l),
-                datasets: [{ data: data, backgroundColor: ['#1e293b','#334155','#475569','#64748b','#94a3b8','#cbd5e1','#2563eb','#3b82f6','#60a5fa'] }]
-            },
-            options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            data: { labels: labels.map(l => "COMUNA " + l), datasets: [{ data: data, backgroundColor: ['#1e293b','#334155','#475569','#2563eb','#3b82f6','#60a5fa','#93c5fd'] }] },
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: true } } }
         });
-
-        document.getElementById('donaLegend').innerHTML = labels.map((l, i) => `
-            <div class="legend-item">
-                <span>COMUNA ${l}</span>
-                <span>${data[i]} VOTOS (${((data[i]/total)*100).toFixed(1)}%)</span>
-            </div>
-            <div class="progress-mini"><div class="progress-mini-fill" style="width:${(data[i]/total)*100}%"></div></div>
-        `).join('');
+        document.getElementById('donaLegend').innerHTML = labels.map((l, i) => `<div class="legend-item"><span>COMUNA ${l}</span><span>${data[i]} (${((data[i]/total)*100).toFixed(1)}%)</span></div><div class="progress-mini"><div class="progress-mini-fill" style="width:${(data[i]/total)*100}%"></div></div>`).join('');
     }
 
     function renderChartGenero(h, m) {
         if(chartGen) chartGen.destroy();
         chartGen = new Chart(document.getElementById('chartGenero'), {
             type: 'bar', data: { labels: ['H','M'], datasets: [{ data:[h,m], backgroundColor:['#2563eb','#be185d'] }] },
-            options: { indexAxis:'y', maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false},y:{display:false}} }
+            options: { indexAxis:'y', maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{enabled:true}}, scales:{x:{display:false},y:{display:false}} }
         });
     }
 
     function filtrar() {
         const q = document.getElementById('bus').value.toUpperCase();
-        Array.from(document.getElementById('bodyM').rows).forEach(r => {
-            r.style.display = r.innerText.toUpperCase().includes(q) ? '' : 'none';
-        });
+        Array.from(document.getElementById('bodyM').rows).forEach(r => { r.style.display = r.innerText.toUpperCase().includes(q) ? '' : 'none'; });
     }
 
     function exportTable() {
         const wb = XLSX.utils.table_to_book(document.getElementById('tablaG'));
-        XLSX.writeFile(wb, "REPORTE_ESTRATEGICO_CALI.xlsx");
+        XLSX.writeFile(wb, "DATOS_ESTRATEGIA_CALI.xlsx");
     }
 
     window.onload = login;
