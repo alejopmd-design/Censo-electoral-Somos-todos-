@@ -23,8 +23,6 @@
         /* ==========================================================================================
         SECCIÓN 2: ARQUITECTURA DE ESTILOS CSS (DISEÑO INDUSTRIAL Y CONTROL DE ESPACIOS)
         ==========================================================================================
-        Definición del Framework Visual: Colores corporativos, espaciados y jerarquía.
-        ==========================================================================================
         */
         :root { 
             --primary: #0f172a; 
@@ -37,12 +35,10 @@
             --border: #e2e8f0;
             --text-main: #1e293b;
             --text-muted: #64748b;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        /* Reset y Normalización de Caja */
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
         
         body { 
@@ -62,12 +58,7 @@
             animation: fadeInSystem 0.8s ease-out; 
         }
 
-        @keyframes fadeInSystem { 
-            from { opacity: 0; transform: scale(0.99); } 
-            to { opacity: 1; transform: scale(1); } 
-        }
-
-        /* DISEÑO DE CABECERA DE ALTO RANGO */
+        /* HEADER DE COMANDO */
         .master-header { 
             display: flex; 
             justify-content: space-between; 
@@ -97,12 +88,10 @@
             padding: 5px 15px;
             border-radius: 8px;
             font-size: 0.9rem;
-            border: 1px solid rgba(255,255,255,0.15);
             color: #f8fafc;
-            letter-spacing: 1px;
         }
 
-        /* GRID DE INDICADORES DE RENDIMIENTO (KPIs) */
+        /* STAT CARDS */
         .stats-grid { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
@@ -119,7 +108,6 @@
             position: relative; 
             transition: var(--transition);
         }
-        .stat-card:hover { transform: translateY(-3px); }
 
         .stat-val { 
             font-size: 2.8rem; 
@@ -139,7 +127,7 @@
             gap: 6px;
         }
 
-        /* LAYOUT PRINCIPAL DE PANELES */
+        /* DASHBOARD LAYOUT */
         .dashboard-main { 
             display: grid; 
             grid-template-columns: 1.15fr 0.85fr; 
@@ -153,7 +141,6 @@
             margin-bottom: 15px; 
             box-shadow: var(--shadow); 
             border: 1px solid var(--border);
-            height: auto;
         }
 
         .panel-header {
@@ -167,16 +154,13 @@
         
         h3 { 
             font-size: 0.8rem; 
-            margin: 0;
             font-weight: 900; 
             display: flex; 
             align-items: center; 
             gap: 10px; 
             color: var(--primary);
-            letter-spacing: 0.5px;
         }
 
-        /* BOTONES DE ACCIÓN GLOBAL */
         .btn-action {
             padding: 6px 12px;
             font-size: 0.65rem;
@@ -185,19 +169,13 @@
             cursor: pointer;
             border: 1px solid var(--border);
             background: #f8fafc;
-            color: var(--text-main);
-            transition: var(--transition);
             display: flex;
             align-items: center;
             gap: 6px;
+            transition: var(--transition);
         }
-        .btn-action:hover {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
+        .btn-action:hover { background: var(--accent); color: white; }
 
-        /* ENTORNO GEOGRÁFICO */
         #map { 
             height: 480px; 
             width: 100%; 
@@ -206,17 +184,15 @@
             z-index: 1;
         }
 
-        /* SISTEMA DE DESPLAZAMIENTO (SCROLLBARS) */
+        /* SCROLL Y TABLAS */
         .scroll { 
             overflow-y: auto; 
             scrollbar-width: thin; 
             scrollbar-color: var(--accent) var(--bg);
         }
         .scroll::-webkit-scrollbar { width: 6px; }
-        .scroll::-webkit-scrollbar-track { background: var(--bg); }
         .scroll::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
 
-        /* DISEÑO DE TABLAS CORPORATIVAS */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { 
             background: #f8fafc; 
@@ -229,10 +205,7 @@
             top: 0; 
             z-index: 10; 
             cursor: pointer;
-            transition: background 0.2s;
         }
-        th:hover { background: #f1f5f9; color: var(--accent); }
-
         td { 
             padding: 12px; 
             border-bottom: 1px solid #f1f5f9; 
@@ -241,9 +214,8 @@
             word-wrap: break-word; 
         }
 
-        /* JERARQUÍA VISUAL DE FILAS */
+        /* FILAS JERARQUÍA */
         .row-comuna { background: #f8fafc; cursor: pointer; border-left: 4px solid #cbd5e1; }
-        .row-comuna:hover { background: #f1f5f9; }
         .row-puesto { display: none; border-left: 6px solid var(--accent); background: #ffffff; cursor: pointer; }
         .row-mesa { display: none; border-left: 10px solid #94a3b8; font-size: 0.72rem; background: #fafafa; }
 
@@ -253,13 +225,10 @@
             padding: 3px 8px; 
             border-radius: 5px; 
             font-size: 0.62rem; 
-            display: inline-block; 
-            margin-top: 5px; 
-            border: 1px solid #bfdbfe; 
             font-weight: 800;
         }
         
-        /* SISTEMA DE ALERTAS CRÍTICAS */
+        /* ALERTAS */
         .alert-box { 
             padding: 12px 15px; 
             border-radius: 10px; 
@@ -270,12 +239,10 @@
             display: flex; 
             justify-content: space-between; 
             align-items: center;
-            box-shadow: var(--shadow-sm);
         }
         .alert-red { background: #fff1f2; color: #9f1239; border-color: #be123c; }
         .alert-orange { background: #fff7ed; color: #9a3412; border-color: #f59e0b; }
 
-        /* CAMPOS DE BÚSQUEDA */
         .search-input { 
             width: 100%; 
             padding: 12px 18px; 
@@ -284,10 +251,7 @@
             margin-bottom: 15px; 
             font-weight: 700; 
             font-size: 0.82rem; 
-            background: #f8fafc;
-            transition: var(--transition);
         }
-        .search-input:focus { border-color: var(--accent); background: white; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
         .activity-grid { 
             display: grid; 
@@ -310,18 +274,17 @@
 
 <div id="app" class="container">
     <header class="master-header">
-        <h1><i class="fas fa-shield-halved"></i> COMMAND CENTER CALI 2026 | MASTER TOTAL CONTROL</h1>
-        <div class="reloj-container" id="reloj">SINCRONIZANDO SISTEMA...</div>
+        <h1><i class="fas fa-microchip"></i> COMMAND CENTER CALI 2026 | MASTER TOTAL CONTROL</h1>
+        <div class="reloj-container" id="reloj">SINCRONIZANDO...</div>
     </header>
 
     <div class="stats-grid">
         <div class="stat-card">
             <span class="stat-label"><i class="fas fa-database"></i> CENSO REGISTRADO</span>
             <span class="stat-val" id="tV">0</span>
-            <span class="stat-pct">ACTUALIZADO</span>
         </div>
         <div class="stat-card" style="border-top-color: var(--danger)">
-            <span class="stat-label"><i class="fas fa-triangle-exclamation"></i> ALERTAS COMUNALES</span>
+            <span class="stat-label"><i class="fas fa-triangle-exclamation"></i> COMUNAS EN ALERTA</span>
             <span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span>
         </div>
         <div class="stat-card" style="border-top-color: var(--success)">
@@ -337,9 +300,7 @@
     <div class="dashboard-main">
         <div class="left-col">
             <div class="panel">
-                <div class="panel-header">
-                    <h3><i class="fas fa-map-location-dot"></i> DESPLIEGUE GEOGRÁFICO</h3>
-                </div>
+                <div class="panel-header"><h3><i class="fas fa-map-location-dot"></i> DESPLIEGUE GEOGRÁFICO</h3></div>
                 <div id="map"></div>
             </div>
             
@@ -347,15 +308,15 @@
                 <div class="panel-header">
                     <h3><i class="fas fa-sitemap"></i> ESTRUCTURA TERRITORIAL DE VOTACIÓN</h3>
                     <button class="btn-action" onclick="exportExcel('tblJer', 'Estructura_Territorial')">
-                        <i class="fas fa-file-excel"></i> EXCEL COMPLETO
+                        <i class="fas fa-file-excel"></i> EXCEL
                     </button>
                 </div>
                 <div class="scroll" style="height: 1250px;">
                     <table id="tblJer">
                         <thead>
                             <tr>
-                                <th onclick="sortTable('tblJer', 0)" style="width: 60%;">NIVEL / UBICACIÓN <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('tblJer', 1)" style="text-align:center;">VOTOS <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTerritorial(0)" style="width: 60%;">NIVEL / UBICACIÓN <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTerritorial(1)" style="text-align:center;">VOTOS <i class="fas fa-sort"></i></th>
                                 <th style="text-align:center;">% PESO</th>
                             </tr>
                         </thead>
@@ -367,32 +328,21 @@
 
         <div class="right-col">
             <div class="panel">
-                <div class="panel-header">
-                    <h3><i class="fas fa-chart-pie"></i> DISTRIBUCIÓN POR COMUNA</h3>
-                </div>
+                <div class="panel-header"><h3><i class="fas fa-chart-pie"></i> DISTRIBUCIÓN POR COMUNA</h3></div>
                 <div style="height: 250px;"><canvas id="chartDona"></canvas></div>
                 <div id="donaLegend" class="dona-legend-grid"></div>
             </div>
 
             <div class="panel">
-                <div class="panel-header">
-                    <h3><i class="fas fa-fire"></i> ALERTAS DE INTERVENCIÓN</h3>
-                </div>
+                <div class="panel-header"><h3><i class="fas fa-fire"></i> ALERTAS DE INTERVENCIÓN</h3></div>
                 <div id="alertasContainer"></div>
             </div>
 
             <div class="panel">
-                <div class="panel-header">
-                    <h3><i class="fas fa-bolt"></i> ACTIVIDAD EN TIEMPO REAL</h3>
-                </div>
+                <div class="panel-header"><h3><i class="fas fa-bolt"></i> ACTIVIDAD EN TIEMPO REAL</h3></div>
                 <div class="scroll" style="height: 420px;">
                     <table id="tblAct">
-                        <thead>
-                            <tr>
-                                <th>REGISTRO</th>
-                                <th style="text-align:right;">HORA</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>REGISTRO</th><th style="text-align:right;">HORA</th></tr></thead>
                         <tbody id="bodyActividad"></tbody>
                     </table>
                 </div>
@@ -403,16 +353,14 @@
             <div class="panel">
                 <div class="panel-header">
                     <h3><i class="fas fa-ranking-star"></i> RANKING DE LIDERAZGO</h3>
-                    <button class="btn-action" onclick="exportExcel('tblLid', 'Ranking_Lideres')">
-                        <i class="fas fa-file-excel"></i> REPORTE
-                    </button>
+                    <button class="btn-action" onclick="exportExcel('tblLid', 'Ranking_Lideres')"><i class="fas fa-file-excel"></i> EXCEL</button>
                 </div>
                 <div class="scroll" style="height: 450px;">
                     <table id="tblLid">
                         <thead>
                             <tr>
-                                <th onclick="sortTable('tblLid', 0)">LÍDER RESPONSABLE <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('tblLid', 1)" style="text-align:center;">VOTOS <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTableFast('tblLid', 0)">LÍDER <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTableFast('tblLid', 1)" style="text-align:center;">TOTAL <i class="fas fa-sort"></i></th>
                                 <th style="text-align:center;">%</th>
                             </tr>
                         </thead>
@@ -424,20 +372,18 @@
             <div class="panel">
                 <div class="panel-header">
                     <h3><i class="fas fa-magnifying-glass"></i> CONSOLIDADO GENERAL</h3>
-                    <button class="btn-action" onclick="exportExcel('tblGen', 'Consolidado_Votantes')">
-                        <i class="fas fa-file-excel"></i> LISTADO
-                    </button>
+                    <button class="btn-action" onclick="exportExcel('tblGen', 'Consolidado_Votantes')"><i class="fas fa-file-excel"></i> EXCEL</button>
                 </div>
-                <input type="text" id="busG" onkeyup="filtrarG()" placeholder="BUSCAR POR NOMBRE O CÉDULA..." class="search-input">
+                <input type="text" id="busG" onkeyup="filtrarG()" placeholder="BUSCAR..." class="search-input">
                 <div class="scroll" style="height: 385px;">
                     <table id="tblGen">
                         <thead>
                             <tr>
-                                <th onclick="sortTable('tblGen', 0)">NOMBRE <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('tblGen', 1)">CÉDULA <i class="fas fa-sort"></i></th>
-                                <th>TELÉFONO</th>
-                                <th onclick="sortTable('tblGen', 3)">PUESTO <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('tblGen', 4)" style="text-align:center;">C. <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTableFast('tblGen', 0)">NOMBRE <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTableFast('tblGen', 1)">CÉDULA <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTableFast('tblGen', 2)">TELÉFONO <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTableFast('tblGen', 3)">PUESTO <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTableFast('tblGen', 4)" style="text-align:center;">C. <i class="fas fa-sort"></i></th>
                             </tr>
                         </thead>
                         <tbody id="bodyGeneral"></tbody>
@@ -453,20 +399,14 @@
     SECCIÓN 3: LÓGICA DE PROGRAMACIÓN (MASTER ENGINE) - 750+ LÍNEAS
     ==========================================================================================
     */
-    
-    // CONFIGURACIÓN DE NÚCLEO SUPABASE
     const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
     Chart.register(ChartDataLabels);
 
-    // ESTADO GLOBAL DE DATOS
-    let votantes = [];
-    let puestosOficiales = [];
-    let map, capaBurbujas, chartGen, chartDona;
-    let sesionActiva = false;
+    let votantes = [], puestosOficiales = [], map, capaBurbujas, chartGen, chartDona;
+    let currentDir = {}; 
 
-    // BASE DE DATOS GEOGRÁFICA (GPS COMUNAS CALI)
     const GPS = { 
         "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],
         "6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],
@@ -477,94 +417,68 @@
 
     const PALETA = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e', '#6366f1', '#14b8a6', '#f97316'];
 
-    /* ==========================================================================================
-    MODULO DE AUDITORÍA Y ORDENAMIENTO (DATA-SORT ENGINE)
-    ==========================================================================================
-    */
-    function sortTable(tableId, n) {
-        let table = document.getElementById(tableId);
-        let switching = true, i, x, y, shouldSwitch, dir = "asc", switchcount = 0;
-        
-        console.log("Iniciando algoritmo de ordenamiento en: " + tableId);
-
-        while (switching) {
-            switching = false;
-            let rows = table.rows;
-            for (i = 1; i < (rows.length - 1); i++) {
-                shouldSwitch = false;
-                x = rows[i].getElementsByTagName("TD")[n];
-                y = rows[i + 1].getElementsByTagName("TD")[n];
-                
-                if (!x || !y) continue;
-                
-                let xVal = x.innerText.toLowerCase();
-                let yVal = y.innerText.toLowerCase();
-                
-                let xNum = parseFloat(xVal.replace(/,/g, ''));
-                let yNum = parseFloat(yVal.replace(/,/g, ''));
-
-                if (!isNaN(xNum) && !isNaN(yNum)) {
-                    if (dir == "asc") { if (xNum > yNum) { shouldSwitch = true; break; } }
-                    else { if (xNum < yNum) { shouldSwitch = true; break; } }
-                } else {
-                    if (dir == "asc") { if (xVal > yVal) { shouldSwitch = true; break; } }
-                    else { if (xVal < yVal) { shouldSwitch = true; break; } }
-                }
-            }
-            if (shouldSwitch) {
-                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                switching = true; switchcount ++;
-            } else if (switchcount == 0 && dir == "asc") {
-                dir = "desc"; switching = true;
-            }
-        }
-    }
-
-    /* ==========================================================================================
-    MODULO DE EXPORTACIÓN (XLSX BRIDGE)
-    ==========================================================================================
-    */
-    function exportExcel(tableId, fileName) {
-        console.log("Generando reporte binario para: " + fileName);
+    /* ---------------------------------------------------------
+       MOTOR DE ORDENAMIENTO ULTRA RÁPIDO (SIN LAG)
+    --------------------------------------------------------- */
+    function sortTableFast(tableId, n) {
         const table = document.getElementById(tableId);
-        if(!table || table.rows.length <= 1) {
-            Swal.fire('Atención', 'No hay registros suficientes para exportar', 'warning');
-            return;
-        }
-        const wb = XLSX.utils.table_to_book(table, { sheet: "Data_CommandCenter" });
-        XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0,10)}.xlsx`);
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.rows);
+        const key = `${tableId}-${n}`;
+        currentDir[key] = !currentDir[key];
+        
+        // Indicador de procesamiento para tablas muy pesadas
+        console.log(`Ordenando ${tableId} por columna ${n}...`);
+
+        rows.sort((a, b) => {
+            let x = a.cells[n].innerText.trim().toLowerCase();
+            let y = b.cells[n].innerText.trim().toLowerCase();
+            
+            // Intento de orden numérico
+            let nx = parseFloat(x.replace(/[^0-9.-]+/g,""));
+            let ny = parseFloat(y.replace(/[^0-9.-]+/g,""));
+
+            if (!isNaN(nx) && !isNaN(ny)) {
+                return currentDir[key] ? nx - ny : ny - nx;
+            }
+            return currentDir[key] ? x.localeCompare(y) : y.localeCompare(x);
+        });
+
+        // Reinserción masiva optimizada
+        const fragment = document.createDocumentFragment();
+        rows.forEach(row => fragment.appendChild(row));
+        tbody.appendChild(fragment);
     }
 
-    /* ==========================================================================================
-    AUTENTICACIÓN Y CARGA INICIAL
-    ==========================================================================================
-    */
+    /* ---------------------------------------------------------
+       AUDITORÍA DE INTEGRIDAD DE DATOS
+    --------------------------------------------------------- */
+    function auditData(data) {
+        console.group("AUDITORÍA COMMAND CENTER");
+        const logs = {
+            total: data.length,
+            conNombre: data.filter(v => v["Nombres y apellidos"]).length,
+            conCedula: data.filter(v => v.cedula).length,
+            conTelefono: data.filter(v => v.telefono).length
+        };
+        console.table(logs);
+        console.groupEnd();
+        return logs.conCedula > 0;
+    }
+
     async function login() {
         const { value: pass } = await Swal.fire({ 
-            title: 'ACCESO DE COMANDO', 
-            text: 'Ingrese su clave de encriptación',
+            title: 'SISTEMA PROTEGIDO', 
             input: 'password', 
             confirmButtonColor: '#0f172a', 
             allowOutsideClick: false 
         });
-        
         if(pass === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
-            sesionActiva = true;
             initMap(); 
             cargarDatosSupabase(); 
-            iniciarReloj();
-            console.log("SISTEMA ONLINE - BIENVENIDO ADMINISTRADOR");
-        } else {
-            Swal.fire('Error', 'Credenciales Inválidas', 'error').then(() => login());
-        }
-    }
-
-    function iniciarReloj() {
-        setInterval(() => { 
-            const d = new Date();
-            document.getElementById('reloj').innerHTML = d.toLocaleDateString() + ' | ' + d.toLocaleTimeString(); 
-        }, 1000);
+            setInterval(() => { document.getElementById('reloj').innerHTML = new Date().toLocaleString(); }, 1000); 
+        } else login();
     }
 
     function initMap() {
@@ -573,25 +487,17 @@
         capaBurbujas = L.layerGroup().addTo(map);
     }
 
-    /* ==========================================================================================
-    NÚCLEO DE PROCESAMIENTO DE DATOS (DATA CORE ENGINE)
-    ==========================================================================================
-    */
     async function cargarDatosSupabase() {
         try {
-            // Re-intento automático de conexión
-            const { data: pData, error: e1 } = await _supabase.from('PUESTOS_VOTACION').select('*');
-            if(e1) throw e1;
+            const { data: pData } = await _supabase.from('PUESTOS_VOTACION').select('*');
             puestosOficiales = pData || [];
-
-            const { data: vData, error: e2 } = await _supabase.from('VOTANTES').select('*').order('created_at', { ascending: false });
-            if(e2) throw e2;
+            const { data: vData } = await _supabase.from('VOTANTES').select('*').order('created_at', { ascending: false });
             votantes = vData || [];
-
-            renderizarInterfaz();
-        } catch (err) {
-            console.error("Fallo crítico de sincronización:", err);
-            setTimeout(cargarDatosSupabase, 5000); // Re-intento en 5 segundos
+            
+            if(auditData(votantes)) renderizarInterfaz();
+        } catch (e) {
+            console.error("Error Supabase:", e);
+            setTimeout(cargarDatosSupabase, 3000);
         }
     }
 
@@ -615,52 +521,41 @@
     function renderizarInterfaz() {
         const total = votantes.length || 1;
         const rossCount = votantes.filter(v => (v.lider||"").toUpperCase().includes("ROSSE MARY")).length;
-        
         document.getElementById('tV').innerText = votantes.length.toLocaleString();
         document.getElementById('tRossmery').innerText = rossCount.toLocaleString();
 
         let h=0, m=0, cCom={}, cPue={}, cMesa={}, cLid={};
-
         votantes.forEach(v => {
             const nom = (v["Nombres y apellidos"] || "").toUpperCase();
-            if(nom.endsWith('A') || nom.includes('MARIA') || nom.includes('ISABEL')) m++; else h++;
-            
+            if(nom.endsWith('A') || nom.includes('MARIA')) m++; else h++;
             const lid = (v.lider || "DIRECTO").toUpperCase();
             cLid[lid] = (cLid[lid]||0) + 1;
-
             const pInfo = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
             if(pInfo) {
                 const com = pInfo.comuna;
                 cCom[com] = (cCom[com]||0) + 1;
-                cPue[com] = cPue[com] || {}; 
-                cPue[com][v.puesto] = (cPue[com][v.puesto]||0) + 1;
+                cPue[com] = cPue[com] || {}; cPue[com][v.puesto] = (cPue[com][v.puesto]||0) + 1;
                 cMesa[v.puesto] = cMesa[v.puesto] || {};
-                const mesa = v.mesa || "0"; 
-                cMesa[v.puesto][mesa] = (cMesa[v.puesto][mesa]||0) + 1;
+                const mesa = v.mesa || "0"; cMesa[v.puesto][mesa] = (cMesa[v.puesto][mesa]||0) + 1;
             }
         });
 
-        // Actividad Reciente
         document.getElementById('bodyActividad').innerHTML = votantes.slice(0, 20).map(v => `
-            <tr>
-                <td><b>${v["Nombres y apellidos"]}</b><br><span class="tag-lider">${v.lider || 'DIRECTO'}</span></td>
-                <td align="right" style="color:var(--accent)">${new Date(v.created_at).toLocaleTimeString()}</td>
-            </tr>
+            <tr><td><b>${v["Nombres y apellidos"]}</b><br><span class="tag-lider">${v.lider}</span></td><td align="right">${new Date(v.created_at).toLocaleTimeString()}</td></tr>
         `).join('');
 
-        // Generador de Jerarquía Territorial
         let htmlJer = "";
         Object.keys(GPS).sort((a,b)=>a-b).forEach(com => {
             const vCom = cCom[com] || 0;
-            const idCom = `c-${com}`;
-            htmlJer += `<tr class="row-comuna" onclick="toggleNivel('${idCom}')"><td><i class="fas fa-folder"></i> COMUNA ${com}</td><td align="center">${vCom}</td><td align="center">${((vCom/total)*100).toFixed(1)}%</td></tr>`;
+            const pct = ((vCom/total)*100).toFixed(1);
+            htmlJer += `<tr class="row-comuna" onclick="toggleNivel('c-${com}')"><td>COMUNA ${com}</td><td align="center">${vCom}</td><td align="center">${pct}%</td></tr>`;
             if(cPue[com]) {
                 Object.entries(cPue[com]).forEach(([pue, vPue]) => {
                     const idPue = `p-${pue.replace(/[^a-zA-Z0-9]/g, '')}`;
-                    htmlJer += `<tr class="${idCom} row-puesto" data-sub="${idPue}" onclick="toggleNivel('${idPue}')"><td>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-building"></i> ${pue}</td><td align="center">${vPue}</td><td align="center">${((vPue/total)*100).toFixed(1)}%</td></tr>`;
+                    htmlJer += `<tr class="c-${com} row-puesto" data-sub="${idPue}" onclick="toggleNivel('${idPue}')"><td>&nbsp;&nbsp;${pue}</td><td align="center">${vPue}</td><td align="center">${((vPue/total)*100).toFixed(1)}%</td></tr>`;
                     if(cMesa[pue]) {
                         Object.entries(cMesa[pue]).forEach(([mesa, vMesa]) => {
-                            htmlJer += `<tr class="${idCom} ${idPue} row-mesa"><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MESA ${mesa}</td><td align="center">${vMesa}</td><td align="center">${((vMesa/total)*100).toFixed(1)}%</td></tr>`;
+                            htmlJer += `<tr class="c-${com} ${idPue} row-mesa"><td>&nbsp;&nbsp;&nbsp;&nbsp;MESA ${mesa}</td><td align="center">${vMesa}</td><td align="center">${((vMesa/total)*100).toFixed(1)}%</td></tr>`;
                         });
                     }
                 });
@@ -668,42 +563,32 @@
         });
         document.getElementById('bodyJerarquia').innerHTML = htmlJer;
 
-        // Consolidado General (Lógica de los 3 datos obligatorios + opcionales)
         document.getElementById('bodyGeneral').innerHTML = votantes.map(v => {
             const pInfo = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
-            return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.telefono || '-'}</td><td>${v.puesto || '-'}</td><td align="center">${pInfo ? pInfo.comuna : '-'}</td></tr>`;
+            return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.telefono || '-'}</td><td>${v.puesto}</td><td align="center">${pInfo ? pInfo.comuna : '-'}</td></tr>`;
         }).join('');
 
-        // Ranking Líderes
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/total)*100).toFixed(1)}%</td></tr>`).join('');
 
-        // LÓGICA DE ALERTAS: COMUNAS EN 0 Y LAS 5 CON MENOS REGISTROS
         const rankC = Object.keys(GPS).map(c => ({ id: c, v: cCom[c] || 0 })).sort((a,b) => a.v - b.v);
         const alertas = [...rankC.filter(x => x.v === 0), ...rankC.filter(x => x.v > 0).slice(0, 5)];
         document.getElementById('tZonasCriticas').innerText = alertas.length;
-        document.getElementById('alertasContainer').innerHTML = alertas.map(c => `
-            <div class="alert-box ${c.v === 0 ? 'alert-red' : 'alert-orange'}">
-                <span>COMUNA ${c.id}</span>
-                <span>${c.v} REGISTROS</span>
-            </div>`).join('');
+        document.getElementById('alertasContainer').innerHTML = alertas.map(c => `<div class="alert-box ${c.v === 0 ? 'alert-red' : 'alert-orange'}"><span>COMUNA ${c.id}</span><span>${c.v} REGISTROS</span></div>`).join('');
 
         renderVisuales(cCom, total, h, m);
     }
 
-    /* ==========================================================================================
-    MODULO DE VISUALIZACIÓN GRÁFICA (VISUAL ENGINE)
-    ==========================================================================================
-    */
     function renderVisuales(cCom, total, h, m) {
-        // Mapa Dinámico
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
             const v = cCom[c] || 0;
+            const pct = ((v/total)*100).toFixed(1);
             const color = v === 0 ? '#be123c' : '#2563eb';
-            L.circle(GPS[c], { color, fillColor: color, fillOpacity: 0.5, radius: 400 + (v*15) }).addTo(capaBurbujas).bindTooltip(`COMUNA ${c}: ${v} VOTOS`);
+            L.circle(GPS[c], { color, fillColor: color, fillOpacity: 0.5, radius: 400 + (v*15) })
+             .addTo(capaBurbujas)
+             .bindTooltip(`<b>COMUNA ${c}</b><br>Votos: ${v}<br>Peso: ${pct}%`); // PORCENTAJES RESTAURADOS EN MAPA
         });
 
-        // Gráfica de Dona (Configuración Limpia: Solo Hover)
         const labels = Object.keys(cCom).sort((a,b)=>a-b);
         const data = labels.map(l => cCom[l]);
         if(chartDona) chartDona.destroy();
@@ -715,52 +600,41 @@
                 cutout: '75%', 
                 plugins: { 
                     legend: { display: false },
-                    datalabels: { display: false } // ELIMINACIÓN DE NÚMEROS FIJOS
+                    datalabels: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(item) {
+                                let val = item.raw;
+                                let p = ((val/total)*100).toFixed(1);
+                                return ` VOTOS: ${val} (${p}%)`; // PORCENTAJES RESTAURADOS EN DONA (HOVER)
+                            }
+                        }
+                    }
                 } 
             }
         });
-        
-        // Generador de Leyendas de Dona
-        document.getElementById('donaLegend').innerHTML = labels.map((l,i) => `
-            <div class="legend-item">
-                <div class="legend-color" style="background:${PALETA[i%10]}"></div>
-                <span>C-${l}: ${data[i]}</span>
-            </div>`).join('');
+        document.getElementById('donaLegend').innerHTML = labels.map((l,i) => `<div class="legend-item"><div class="legend-color" style="background:${PALETA[i%10]}"></div><span>C-${l}: ${data[i]}</span></div>`).join('');
 
-        // Gráfica de Balance de Género
         if(chartGen) chartGen.destroy();
         chartGen = new Chart(document.getElementById('chartGenero'), {
             type: 'bar',
             data: { labels: ['H', 'M'], datasets: [{ data: [h, m], backgroundColor: ['#2563eb', '#be185d'] }] },
-            options: { 
-                indexAxis: 'y', 
-                maintainAspectRatio: false, 
-                plugins: { 
-                    legend: { display: false }, 
-                    datalabels: { 
-                        color: '#fff', 
-                        formatter: v => ((v/(h+m||1))*100).toFixed(0)+'%' 
-                    } 
-                }, 
-                scales: { x: { display: false }, y: { display: false } } 
-            }
+            options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { color: '#fff', formatter: v => ((v/(h+m||1))*100).toFixed(0)+'%' } }, scales: { x: { display: false }, y: { display: false } } }
         });
     }
 
-    /* ==========================================================================================
-    BUSCADOR Y FILTRADO (SEARCH ENGINE)
-    ==========================================================================================
-    */
+    function exportExcel(tableId, fileName) {
+        const table = document.getElementById(tableId);
+        const wb = XLSX.utils.table_to_book(table, { sheet: "Data" });
+        XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
     function filtrarG() {
         const q = document.getElementById('busG').value.toUpperCase();
         const filas = document.getElementById('bodyGeneral').rows;
-        for (let i = 0; i < filas.length; i++) { 
-            const texto = filas[i].innerText.toUpperCase();
-            filas[i].style.display = texto.includes(q) ? '' : 'none'; 
-        }
+        for (let i = 0; i < filas.length; i++) { filas[i].style.display = filas[i].innerText.toUpperCase().includes(q) ? '' : 'none'; }
     }
 
-    // DISPARO INICIAL DEL COMANDO
     window.onload = login;
 </script>
 </body>
