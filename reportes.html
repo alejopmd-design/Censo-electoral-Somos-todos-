@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA ESTRATÉGICO CALI 2026 - FULL</title>
+    <title>SISTEMA ESTRATÉGICO CALI 2026</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -23,11 +23,7 @@
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--primary); text-transform: uppercase; overflow-x: hidden; }
         .container { max-width: 1900px; margin: auto; display: none; }
 
-        .master-header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: var(--primary); padding: 25px; border-radius: 12px; 
-            color: white; margin-bottom: 25px; border-bottom: 4px solid var(--accent);
-        }
+        .master-header { display: flex; justify-content: space-between; align-items: center; background: var(--primary); padding: 25px; border-radius: 12px; color: white; margin-bottom: 25px; border-bottom: 4px solid var(--accent); }
 
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px; }
         .stat-card { background: var(--panel); border-radius: 12px; padding: 22px; border-top: 5px solid var(--accent); box-shadow: var(--shadow); position: relative; }
@@ -40,21 +36,19 @@
         .panel { background: var(--panel); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: var(--shadow); }
         h3 { font-size: 0.9rem; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; font-weight: 900; color: #334155; }
 
-        #map { height: 550px; width: 100%; border-radius: 10px; border: 1px solid #e2e8f0; filter: brightness(0.85) contrast(1.1); }
+        #map { height: 500px; width: 100%; border-radius: 10px; border: 1px solid #e2e8f0; }
 
-        .scroll { max-height: 500px; overflow-y: auto; }
+        .scroll { max-height: 450px; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 15px; text-align: left; font-size: 0.7rem; position: sticky; top: 0; color: #64748b; border-bottom: 2px solid #e2e8f0; z-index: 10; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 700; }
+        th { background: #f8fafc; padding: 12px; text-align: left; font-size: 0.7rem; position: sticky; top: 0; color: #64748b; border-bottom: 2px solid #e2e8f0; z-index: 10; }
+        td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 700; }
 
-        .alert-box { padding: 15px; border-radius: 10px; margin-bottom: 10px; font-size: 0.75rem; font-weight: 900; border-left: 6px solid; display: flex; justify-content: space-between; align-items: center; }
+        .alert-box { padding: 12px; border-radius: 10px; margin-bottom: 8px; font-size: 0.75rem; font-weight: 900; border-left: 6px solid; display: flex; justify-content: space-between; align-items: center; }
         .alert-red { background: #fff1f2; color: #9f1239; border-color: #be123c; }
         .alert-orange { background: #fff7ed; color: #9a3412; border-color: #f59e0b; }
         
-        .legend-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.75rem; font-weight: 800; }
-        .btn-exp { padding: 10px 15px; border-radius: 8px; border: none; font-weight: 800; cursor: pointer; color: white; background: var(--success); }
-        
-        .progress-mini { height: 6px; background: #e2e8f0; border-radius: 10px; margin-top: 4px; overflow: hidden; }
+        .legend-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.75rem; font-weight: 800; }
+        .progress-mini { height: 6px; background: #e2e8f0; border-radius: 10px; margin-top: 2px; overflow: hidden; }
         .progress-mini-fill { height: 100%; background: var(--accent); }
     </style>
 </head>
@@ -62,60 +56,50 @@
 
 <div id="app" class="container">
     <header class="master-header">
-        <div>
-            <h1 style="margin:0; letter-spacing:2px; font-size: 1.8rem;">ESTRATEGIA CALI 2026</h1>
-            <span style="font-weight: 700; opacity: 0.8; font-size: 0.8rem;">GESTIÓN ELECTORAL AVANZADA</span>
-        </div>
-        <div id="reloj" style="font-size: 1.1rem; font-weight: 900;"></div>
+        <div><h1 style="margin:0;">ESTRATEGIA CALI 2026</h1></div>
+        <div id="reloj" style="font-weight: 900;"></div>
     </header>
 
     <div class="stats-grid">
-        <div class="stat-card">
-            <span class="stat-label">CENSO INTEGRAL</span>
-            <span class="stat-val" id="tV">0</span>
-        </div>
-        <div class="stat-card" style="border-top-color: var(--danger)">
-            <span class="stat-label">ZONAS EN ALERTA</span>
-            <span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span>
-        </div>
-        <div class="stat-card" style="border-top-color: var(--success)">
-            <span class="stat-label">REGISTROS ROSSMERY</span>
-            <span class="stat-val" id="tLideresActivos" style="color:var(--success)">0</span>
-        </div>
+        <div class="stat-card"><span class="stat-label">CENSO INTEGRAL</span><span class="stat-val" id="tV">0</span></div>
+        <div class="stat-card" style="border-top-color: var(--danger)"><span class="stat-label">ZONAS EN ALERTA</span><span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span></div>
+        <div class="stat-card" style="border-top-color: var(--success)"><span class="stat-label">REGISTROS ROSSMERY</span><span class="stat-val" id="tLideresActivos" style="color:var(--success)">0</span></div>
         <div class="stat-card" style="border-top-color: #be185d">
             <span class="stat-label">BALANCE GÉNERO</span>
             <div style="height: 40px;"><canvas id="chartGenero"></canvas></div>
-            <div class="gender-pbox">
-                <span style="color:var(--accent)" id="pctH">H: 0%</span>
-                <span style="color:#be185d" id="pctM">M: 0%</span>
-            </div>
+            <div class="gender-pbox"><span id="pctH">H: 0%</span><span id="pctM">M: 0%</span></div>
         </div>
     </div>
 
     <div class="main-layout">
         <div class="col-left">
             <div class="panel">
-                <h3><i class="fas fa-map-marked-alt"></i> GEOLOCALIZACIÓN POR COMUNA</h3>
-                <div style="display: grid; grid-template-columns: 1fr 360px; gap: 25px;">
+                <h3>MAPA DE CALOR Y DISTRIBUCIÓN POR COMUNA</h3>
+                <div style="display: grid; grid-template-columns: 1fr 340px; gap: 20px;">
                     <div id="map"></div>
                     <div>
-                        <div style="height: 280px;"><canvas id="chartDona"></canvas></div>
-                        <div id="donaLegend" class="scroll" style="max-height: 250px; margin-top: 15px;"></div>
+                        <div style="height: 250px;"><canvas id="chartDona"></canvas></div>
+                        <div id="donaLegend" class="scroll"></div>
                     </div>
                 </div>
             </div>
 
             <div class="panel">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h3><i class="fas fa-database"></i> BASE DE DATOS MAESTRA</h3>
-                    <button class="btn-exp" onclick="exportTable()">DESCARGAR EXCEL</button>
+                <h3>DETALLE DE UBICACIÓN (COMUNA - PUESTO - MESA)</h3>
+                <div class="scroll">
+                    <table>
+                        <thead><tr><th>VOTANTE</th><th>COMUNA</th><th>PUESTO</th><th>MESA</th></tr></thead>
+                        <tbody id="bodyUbicacion"></tbody>
+                    </table>
                 </div>
-                <input type="text" id="bus" onkeyup="filtrar()" placeholder="BUSCAR VOTANTE, CÉDULA O PUESTO..." style="width:100%; padding:15px; border-radius:10px; border:1px solid #e2e8f0; font-weight:800; margin-bottom:15px; background: #f8fafc;">
+            </div>
+
+            <div class="panel">
+                <h3>BASE DE DATOS MAESTRA</h3>
+                <input type="text" id="bus" onkeyup="filtrar()" placeholder="BUSCAR..." style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
                 <div class="scroll">
                     <table id="tablaG">
-                        <thead>
-                            <tr><th>VOTANTE</th><th>CÉDULA</th><th>PUESTO</th><th style="text-align:center">MESA</th><th style="text-align:center">COMUNA</th></tr>
-                        </thead>
+                        <thead><tr><th>NOMBRE</th><th>CÉDULA</th><th>LÍDER</th><th>TELÉFONO</th></tr></thead>
                         <tbody id="bodyM"></tbody>
                     </table>
                 </div>
@@ -124,29 +108,25 @@
 
         <div class="col-right">
             <div class="panel">
-                <h3><i class="fas fa-stream"></i> FLUJO RECIENTE</h3>
+                <h3>FLUJO RECIENTE</h3>
                 <div class="scroll">
                     <table>
-                        <thead>
-                            <tr><th>VOTANTE</th><th>LÍDER</th><th>FECHA</th><th>PUESTO</th></tr>
-                        </thead>
+                        <thead><tr><th>VOTANTE</th><th>LÍDER</th><th>FECHA</th><th>PUESTO</th></tr></thead>
                         <tbody id="bodyFlujo"></tbody>
                     </table>
                 </div>
             </div>
 
             <div class="panel">
-                <h3><i class="fas fa-exclamation-triangle"></i> ALERTAS DE INTERVENCIÓN</h3>
+                <h3>ALERTAS DE INTERVENCIÓN</h3>
                 <div id="alertasContainer"></div>
             </div>
             
             <div class="panel">
-                <h3><i class="fas fa-trophy"></i> RANKING DE LÍDERES</h3>
+                <h3>RANKING DE LÍDERES</h3>
                 <div class="scroll">
                     <table>
-                        <thead>
-                            <tr><th>LÍDER ESTRATÉGICO</th><th style="text-align:center">VOTOS</th><th style="text-align:center">%</th></tr>
-                        </thead>
+                        <thead><tr><th>LÍDER</th><th>VOTOS</th><th>%</th></tr></thead>
                         <tbody id="bodyLid"></tbody>
                     </table>
                 </div>
@@ -163,17 +143,11 @@
     let votantes = [], puestosOficiales = [], map, capaBurbujas, chartGen, chartDona;
     const ROSS = ["ROSSMERY", "ROSSE MARY", "ROSSMERY CABAL", "ROSSE MARY CABAL FRANCO"];
     const EXCLUIDOS = [...ROSS, "ANGIE", "ANGIE CABAL"];
-
     const GPS = { "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],"6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],"11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],"16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],"21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510],"25":[3.370,-76.570],"33":[3.480,-76.570] };
 
     async function login() {
-        const { value: p } = await Swal.fire({ title: 'CONTROL DE ACCESO', input: 'password', allowOutsideClick: false });
-        if(p === 'ADMIN2026') { 
-            document.getElementById('app').style.display = 'block'; 
-            initMap(); 
-            cargarBase();
-            setInterval(() => { document.getElementById('reloj').innerText = new Date().toLocaleString(); }, 1000);
-        } else { login(); }
+        const { value: p } = await Swal.fire({ title: 'ACCESO', input: 'password', allowOutsideClick: false });
+        if(p === 'ADMIN2026') { document.getElementById('app').style.display = 'block'; initMap(); cargarBase(); } else { login(); }
     }
 
     function initMap() {
@@ -193,9 +167,7 @@
     function renderUI() {
         const total = votantes.length || 1;
         document.getElementById('tV').innerText = votantes.length;
-        
-        const rossCount = votantes.filter(v => ROSS.some(n => (v.lider||"").toUpperCase().includes(n))).length;
-        document.getElementById('tLideresActivos').innerText = rossCount;
+        document.getElementById('tLideresActivos').innerText = votantes.filter(v => ROSS.some(n => (v.lider||"").toUpperCase().includes(n))).length;
 
         let h=0, m=0, cCom={}, cLid={};
         const limpios = votantes.filter(v => !EXCLUIDOS.some(e => (v["Nombres y apellidos"]||"").toUpperCase().includes(e)));
@@ -203,86 +175,73 @@
         votantes.forEach(v => {
             const n = (v["Nombres y apellidos"] || "").toUpperCase();
             if(n.endsWith('A') || n.includes('MARIA') || n.includes('LUZ') || n.includes('ANA')) m++; else h++;
-            
             const lid = (v.lider || "DIRECTO").toUpperCase();
             if(!EXCLUIDOS.some(e => lid.includes(e))) cLid[lid] = (cLid[lid]||0) + 1;
-
             const po = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
             if(po) cCom[po.comuna] = (cCom[po.comuna]||0) + 1;
         });
 
         // PORCENTAJES GÉNERO
-        document.getElementById('pctH').innerText = `H: ${((h/votantes.length)*100).toFixed(1)}%`;
-        document.getElementById('pctM').innerText = `M: ${((m/votantes.length)*100).toFixed(1)}%`;
+        document.getElementById('pctH').innerText = `H: ${((h/total)*100).toFixed(1)}%`;
+        document.getElementById('pctM').innerText = `M: ${((m/total)*100).toFixed(1)}%`;
         renderChartGenero(h, m);
 
-        // TABLA FLUJO
-        document.getElementById('bodyFlujo').innerHTML = limpios.slice(0, 15).map(v => `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.lider || 'DIRECTO'}</td><td>${v.created_at?new Date(v.created_at).toLocaleDateString():'-'}</td><td>${v.puesto || '-'}</td></tr>`).join('');
-
-        // TABLA BASE MAESTRA (RESTAURADA)
-        document.getElementById('bodyM').innerHTML = limpios.map(v => {
+        // TABLA UBICACIÓN (ESPECÍFICA)
+        document.getElementById('bodyUbicacion').innerHTML = limpios.map(v => {
             const po = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
-            return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.puesto||'-'}</td><td align="center">${v.mesa||'0'}</td><td align="center">${po?po.comuna:'-'}</td></tr>`;
+            return `<tr><td>${v["Nombres y apellidos"]}</td><td>${po?po.comuna:'-'}</td><td>${v.puesto||'-'}</td><td>${v.mesa||'0'}</td></tr>`;
         }).join('');
 
-        // ALERTAS
+        // TABLA MAESTRA
+        document.getElementById('bodyM').innerHTML = limpios.map(v => `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.lider||'DIRECTO'}</td><td>${v.telefono||'-'}</td></tr>`).join('');
+
+        // FLUJO
+        document.getElementById('bodyFlujo').innerHTML = limpios.slice(0, 10).map(v => `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.lider||'DIR'}</td><td>${new Date(v.created_at).toLocaleDateString()}</td><td>${v.puesto||'-'}</td></tr>`).join('');
+
+        // ALERTAS (REGLA 0 + 5 BAJAS)
         const rankingC = Object.keys(GPS).map(c => ({ id: c, v: cCom[c] || 0 })).sort((a,b) => a.v - b.v);
-        const ceros = rankingC.filter(x => x.v === 0);
-        const bajas = rankingC.filter(x => x.v > 0).slice(0, 5);
-        const todasAlerta = [...ceros, ...bajas];
+        const todasAlerta = [...rankingC.filter(x => x.v === 0), ...rankingC.filter(x => x.v > 0).slice(0, 5)];
         document.getElementById('tZonasCriticas').innerText = todasAlerta.length;
-        document.getElementById('alertasContainer').innerHTML = todasAlerta.map(c => `<div class="alert-box ${c.v===0?'alert-red':'alert-orange'}"><span>COMUNA ${c.id}: ${c.v} VOTOS</span><i class="fas fa-exclamation-circle"></i></div>`).join('');
+        document.getElementById('alertasContainer').innerHTML = todasAlerta.map(c => `<div class="alert-box ${c.v===0?'alert-red':'alert-orange'}"><span>COMUNA ${c.id}: ${c.v} VOTOS</span></div>`).join('');
 
-        // RANKING LÍDERES (CON PORCENTAJES)
-        document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/votantes.length)*100).toFixed(1)}%</td></tr>`).join('');
+        // RANKING LÍDERES CON %
+        document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v]) => `<tr><td>${l}</td><td>${v}</td><td>${((v/total)*100).toFixed(1)}%</td></tr>`).join('');
 
-        renderMapa(cCom);
-        renderDona(cCom, votantes.length);
+        renderMapa(cCom, total);
+        renderDona(cCom, total);
     }
 
-    function renderMapa(cCom) {
+    function renderMapa(cCom, total) {
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
-            const t = cCom[c] || 0;
-            const marker = L.circle(GPS[c], { color: t===0?'#be123c':'#1e293b', fillColor: t===0?'#be123c':'#1e293b', fillOpacity: 0.6, radius: 450 + (t*15) }).addTo(capaBurbujas);
-            // PORCENTAJES EN MAPA RESTAURADOS
-            marker.bindTooltip(`<b>COMUNA ${c}</b><br>VOTOS: ${t}`, { permanent: false, sticky: true });
+            const v = cCom[c] || 0;
+            const marker = L.circle(GPS[c], { color: v===0?'#be123c':'#1e293b', radius: 400 + (v*10) }).addTo(capaBurbujas);
+            marker.bindTooltip(`<b>COMUNA ${c}</b><br>VOTOS: ${v}<br>PCT: ${((v/total)*100).toFixed(1)}%`);
         });
     }
 
     function renderDona(cCom, total) {
-        const labels = Object.keys(cCom).sort((a,b) => a-b);
+        const labels = Object.keys(cCom).sort((a,b)=>a-b);
         const data = labels.map(l => cCom[l]);
         if(chartDona) chartDona.destroy();
         chartDona = new Chart(document.getElementById('chartDona'), {
-            type: 'doughnut',
-            data: { labels: labels.map(l => "COMUNA " + l), datasets: [{ data: data, backgroundColor: ['#1e293b','#334155','#475569','#2563eb','#3b82f6','#60a5fa','#93c5fd'] }] },
-            options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: true } } }
+            type: 'doughnut', data: { labels: labels.map(l=>'C'+l), datasets:[{data:data, backgroundColor:['#1e293b','#2563eb','#64748b','#be123c','#059669']}] },
+            options: { maintainAspectRatio:false, plugins:{legend:{display:false}} }
         });
-        
-        // PORCENTAJES Y BARRAS EN DONA RESTAURADOS
         document.getElementById('donaLegend').innerHTML = labels.map((l, i) => {
-            const pct = ((data[i]/total)*100).toFixed(1);
-            return `<div class="legend-item"><span>COMUNA ${l}</span><span>${data[i]} (${pct}%)</span></div><div class="progress-mini"><div class="progress-mini-fill" style="width:${pct}%"></div></div>`;
+            const p = ((data[i]/total)*100).toFixed(1);
+            return `<div class="legend-item"><span>COMUNA ${l}</span><span>${data[i]} (${p}%)</span></div><div class="progress-mini"><div class="progress-mini-fill" style="width:${p}%"></div></div>`;
         }).join('');
     }
 
     function renderChartGenero(h, m) {
         if(chartGen) chartGen.destroy();
-        chartGen = new Chart(document.getElementById('chartGenero'), {
-            type: 'bar', data: { labels: ['H','M'], datasets: [{ data:[h,m], backgroundColor:['#2563eb','#be185d'] }] },
-            options: { indexAxis:'y', maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{enabled:true}}, scales:{x:{display:false},y:{display:false}} }
-        });
+        chartGen = new Chart(document.getElementById('chartGenero'), { type:'bar', data:{labels:['H','M'], datasets:[{data:[h,m], backgroundColor:['#2563eb','#be185d']}]}, options:{indexAxis:'y', maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false},y:{display:false}}} });
     }
 
     function filtrar() {
         const q = document.getElementById('bus').value.toUpperCase();
-        Array.from(document.getElementById('bodyM').rows).forEach(r => { r.style.display = r.innerText.toUpperCase().includes(q) ? '' : 'none'; });
-    }
-
-    function exportTable() {
-        const wb = XLSX.utils.table_to_book(document.getElementById('tablaG'));
-        XLSX.writeFile(wb, "REPORTE_ESTRATEGICO_CALI.xlsx");
+        Array.from(document.getElementById('bodyM').rows).forEach(r => r.style.display = r.innerText.toUpperCase().includes(q)?'':'none');
     }
 
     window.onload = login;
