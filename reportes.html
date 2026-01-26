@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA ESTRATÉGICO CALI 2026</title>
+    <title>SISTEMA ESTRATÉGICO CALI 2026 - FULL</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -64,7 +64,7 @@
     <header class="master-header">
         <div>
             <h1 style="margin:0; letter-spacing:2px; font-size: 1.8rem;">ESTRATEGIA CALI 2026</h1>
-            <span style="font-weight: 700; opacity: 0.8; font-size: 0.8rem;">INTELIGENCIA ELECTORAL</span>
+            <span style="font-weight: 700; opacity: 0.8; font-size: 0.8rem;">GESTIÓN ELECTORAL AVANZADA</span>
         </div>
         <div id="reloj" style="font-size: 1.1rem; font-weight: 900;"></div>
     </header>
@@ -95,7 +95,7 @@
     <div class="main-layout">
         <div class="col-left">
             <div class="panel">
-                <h3><i class="fas fa-map-marked-alt"></i> GEOLOCALIZACIÓN Y DISTRIBUCIÓN POR COMUNA</h3>
+                <h3><i class="fas fa-map-marked-alt"></i> GEOLOCALIZACIÓN POR COMUNA</h3>
                 <div style="display: grid; grid-template-columns: 1fr 360px; gap: 25px;">
                     <div id="map"></div>
                     <div>
@@ -110,7 +110,7 @@
                     <h3><i class="fas fa-database"></i> BASE DE DATOS MAESTRA</h3>
                     <button class="btn-exp" onclick="exportTable()">DESCARGAR EXCEL</button>
                 </div>
-                <input type="text" id="bus" onkeyup="filtrar()" placeholder="BUSCAR..." style="width:100%; padding:15px; border-radius:10px; border:1px solid #e2e8f0; font-weight:800; margin-bottom:15px;">
+                <input type="text" id="bus" onkeyup="filtrar()" placeholder="BUSCAR VOTANTE, CÉDULA O PUESTO..." style="width:100%; padding:15px; border-radius:10px; border:1px solid #e2e8f0; font-weight:800; margin-bottom:15px; background: #f8fafc;">
                 <div class="scroll">
                     <table id="tablaG">
                         <thead>
@@ -145,7 +145,7 @@
                 <div class="scroll">
                     <table>
                         <thead>
-                            <tr><th>LÍDER</th><th style="text-align:center">VOTOS</th><th style="text-align:center">%</th></tr>
+                            <tr><th>LÍDER ESTRATÉGICO</th><th style="text-align:center">VOTOS</th><th style="text-align:center">%</th></tr>
                         </thead>
                         <tbody id="bodyLid"></tbody>
                     </table>
@@ -167,7 +167,7 @@
     const GPS = { "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],"6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],"11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],"16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],"21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510],"25":[3.370,-76.570],"33":[3.480,-76.570] };
 
     async function login() {
-        const { value: p } = await Swal.fire({ title: 'ACCESO', input: 'password', allowOutsideClick: false });
+        const { value: p } = await Swal.fire({ title: 'CONTROL DE ACCESO', input: 'password', allowOutsideClick: false });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
             initMap(); 
@@ -211,19 +211,21 @@
             if(po) cCom[po.comuna] = (cCom[po.comuna]||0) + 1;
         });
 
-        // 1. GÉNERO (CON PORCENTAJES)
+        // PORCENTAJES GÉNERO
         document.getElementById('pctH').innerText = `H: ${((h/votantes.length)*100).toFixed(1)}%`;
         document.getElementById('pctM').innerText = `M: ${((m/votantes.length)*100).toFixed(1)}%`;
         renderChartGenero(h, m);
 
-        // 2. TABLAS
+        // TABLA FLUJO
         document.getElementById('bodyFlujo').innerHTML = limpios.slice(0, 15).map(v => `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.lider || 'DIRECTO'}</td><td>${v.created_at?new Date(v.created_at).toLocaleDateString():'-'}</td><td>${v.puesto || '-'}</td></tr>`).join('');
+
+        // TABLA BASE MAESTRA (RESTAURADA)
         document.getElementById('bodyM').innerHTML = limpios.map(v => {
             const po = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
             return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.puesto||'-'}</td><td align="center">${v.mesa||'0'}</td><td align="center">${po?po.comuna:'-'}</td></tr>`;
         }).join('');
 
-        // 3. ALERTAS (REGLA: 0 REG + 5 MÁS BAJAS)
+        // ALERTAS
         const rankingC = Object.keys(GPS).map(c => ({ id: c, v: cCom[c] || 0 })).sort((a,b) => a.v - b.v);
         const ceros = rankingC.filter(x => x.v === 0);
         const bajas = rankingC.filter(x => x.v > 0).slice(0, 5);
@@ -231,10 +233,9 @@
         document.getElementById('tZonasCriticas').innerText = todasAlerta.length;
         document.getElementById('alertasContainer').innerHTML = todasAlerta.map(c => `<div class="alert-box ${c.v===0?'alert-red':'alert-orange'}"><span>COMUNA ${c.id}: ${c.v} VOTOS</span><i class="fas fa-exclamation-circle"></i></div>`).join('');
 
-        // 4. RANKING LÍDERES
+        // RANKING LÍDERES (CON PORCENTAJES)
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/votantes.length)*100).toFixed(1)}%</td></tr>`).join('');
 
-        // 5. MAPA Y DONA (RESTAURANDO PORCENTAJES)
         renderMapa(cCom);
         renderDona(cCom, votantes.length);
     }
@@ -244,6 +245,7 @@
         Object.keys(GPS).forEach(c => {
             const t = cCom[c] || 0;
             const marker = L.circle(GPS[c], { color: t===0?'#be123c':'#1e293b', fillColor: t===0?'#be123c':'#1e293b', fillOpacity: 0.6, radius: 450 + (t*15) }).addTo(capaBurbujas);
+            // PORCENTAJES EN MAPA RESTAURADOS
             marker.bindTooltip(`<b>COMUNA ${c}</b><br>VOTOS: ${t}`, { permanent: false, sticky: true });
         });
     }
@@ -254,11 +256,11 @@
         if(chartDona) chartDona.destroy();
         chartDona = new Chart(document.getElementById('chartDona'), {
             type: 'doughnut',
-            data: { labels: labels.map(l => "COMUNA " + l), datasets: [{ data: data, backgroundColor: ['#1e293b','#334155','#475569','#2563eb','#3b82f6','#60a5fa','#93c5fd','#1e40af','#1e3a8a','#172554'] }] },
-            options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            data: { labels: labels.map(l => "COMUNA " + l), datasets: [{ data: data, backgroundColor: ['#1e293b','#334155','#475569','#2563eb','#3b82f6','#60a5fa','#93c5fd'] }] },
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: true } } }
         });
         
-        // LEYENDA CON PORCENTAJES Y BARRAS
+        // PORCENTAJES Y BARRAS EN DONA RESTAURADOS
         document.getElementById('donaLegend').innerHTML = labels.map((l, i) => {
             const pct = ((data[i]/total)*100).toFixed(1);
             return `<div class="legend-item"><span>COMUNA ${l}</span><span>${data[i]} (${pct}%)</span></div><div class="progress-mini"><div class="progress-mini-fill" style="width:${pct}%"></div></div>`;
@@ -269,7 +271,7 @@
         if(chartGen) chartGen.destroy();
         chartGen = new Chart(document.getElementById('chartGenero'), {
             type: 'bar', data: { labels: ['H','M'], datasets: [{ data:[h,m], backgroundColor:['#2563eb','#be185d'] }] },
-            options: { indexAxis:'y', maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false},y:{display:false}} }
+            options: { indexAxis:'y', maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{enabled:true}}, scales:{x:{display:false},y:{display:false}} }
         });
     }
 
@@ -280,7 +282,7 @@
 
     function exportTable() {
         const wb = XLSX.utils.table_to_book(document.getElementById('tablaG'));
-        XLSX.writeFile(wb, "REPORTE_CALI.xlsx");
+        XLSX.writeFile(wb, "REPORTE_ESTRATEGICO_CALI.xlsx");
     }
 
     window.onload = login;
