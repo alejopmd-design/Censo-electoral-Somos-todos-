@@ -15,95 +15,96 @@
     <style>
         :root { 
             --primary: #0f172a; --accent: #2563eb; --success: #059669; 
-            --danger: #be123c; --bg: #f1f5f9; --panel: #ffffff;
-            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --danger: #be123c; --bg: #f8fafc; --panel: #ffffff;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
         
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--primary); text-transform: uppercase; }
-        .container { max-width: 1850px; margin: auto; display: none; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--primary); text-transform: uppercase; overflow-x: hidden; }
+        .container { max-width: 1880px; margin: auto; display: none; }
 
-        .master-header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, var(--primary), #1e293b); padding: 25px 35px; border-radius: 16px; color: white; margin-bottom: 25px; box-shadow: var(--shadow); }
-        .master-header h1 { margin:0; letter-spacing: 2px; font-size: 1.5rem; font-weight: 800; }
+        /* Header Estilo Premium */
+        .master-header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%); padding: 20px 40px; border-radius: 20px; color: white; margin-bottom: 25px; box-shadow: var(--shadow); }
+        .master-header h1 { margin:0; letter-spacing: 3px; font-size: 1.4rem; font-weight: 900; }
 
+        /* KPIs con porcentajes integrados */
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px; }
-        .stat-card { background: var(--panel); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); border-bottom: 4px solid var(--accent); transition: transform 0.2s; }
-        .stat-val { font-size: 3.2rem; font-weight: 900; display: block; line-height: 1; margin: 10px 0; color: var(--primary); }
-        .stat-label { font-size: 0.75rem; font-weight: 800; color: #64748b; letter-spacing: 1px; }
+        .stat-card { background: var(--panel); border-radius: 20px; padding: 25px; box-shadow: var(--shadow); border-top: 6px solid var(--accent); position: relative; }
+        .stat-val { font-size: 3.5rem; font-weight: 900; display: block; line-height: 1; margin: 10px 0; }
+        .stat-label { font-size: 0.8rem; font-weight: 800; color: #64748b; letter-spacing: 1px; }
+
+        /* Layout Maestro para Evitar Espacios */
+        .dashboard-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 25px; align-items: stretch; }
         
-        .main-grid { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 25px; }
-        .panel { background: var(--panel); border-radius: 16px; padding: 25px; margin-bottom: 25px; box-shadow: var(--shadow); overflow: hidden; }
-        h3 { font-size: 0.9rem; margin: 0 0 20px 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; font-weight: 900; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .panel { background: var(--panel); border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: var(--shadow); height: fit-content; }
+        h3 { font-size: 0.9rem; margin: 0 0 20px 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; font-weight: 900; display: flex; align-items: center; gap: 10px; color: #1e293b; }
 
-        #map { height: 500px; width: 100%; border-radius: 12px; border: 1px solid #e2e8f0; }
+        #map { height: 500px; width: 100%; border-radius: 15px; border: 1px solid #e2e8f0; }
 
-        .scroll { max-height: 480px; overflow-y: auto; padding-right: 5px; }
-        .scroll::-webkit-scrollbar { width: 6px; }
-        .scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
+        /* Tablas Profesionales */
+        .scroll { max-height: 480px; overflow-y: auto; scrollbar-width: thin; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 14px; text-align: left; font-size: 0.7rem; color: #64748b; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10; cursor: pointer; }
+        th { background: #f8fafc; padding: 15px; text-align: left; font-size: 0.75rem; color: #64748b; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10; cursor: pointer; }
         th:hover { background: #f1f5f9; color: var(--accent); }
-        td { padding: 14px; border-bottom: 1px solid #f8fafc; font-size: 0.8rem; font-weight: 700; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 700; }
 
-        .row-comuna { background: #f8fafc; cursor: pointer; }
-        .row-puesto { background: #ffffff; cursor: pointer; display: none; border-left: 5px solid var(--accent); }
-        .row-mesa { background: #fafafa; display: none; border-left: 10px solid #e2e8f0; font-size: 0.75rem; }
-        
-        .alert-box { padding: 14px; border-radius: 10px; margin-bottom: 12px; font-size: 0.75rem; font-weight: 900; border-left: 6px solid; display: flex; justify-content: space-between; align-items: center; }
-        .alert-red { background: #fff1f2; color: #9f1239; border-color: #be123c; box-shadow: 0 2px 4px rgba(190,18,60,0.1); }
+        /* Filas Jerárquicas */
+        .row-comuna { background: #f8fafc; cursor: pointer; transition: 0.2s; }
+        .row-comuna:hover { background: #f1f5f9; }
+        .row-puesto { display: none; border-left: 5px solid var(--accent); }
+        .row-mesa { display: none; border-left: 10px solid #cbd5e1; font-size: 0.8rem; background: #fafafa; }
+
+        /* Alertas y Actividad */
+        .alert-box { padding: 15px; border-radius: 12px; margin-bottom: 12px; font-size: 0.75rem; font-weight: 900; border-left: 6px solid; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .alert-red { background: #fff1f2; color: #9f1239; border-color: #be123c; }
         .alert-orange { background: #fff7ed; color: #9a3412; border-color: #f59e0b; }
 
-        .legend-item { display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.75rem; font-weight: 800; border-bottom: 1px solid #f1f5f9; }
-        .progress-bar { height: 8px; background: #e2e8f0; border-radius: 10px; margin: 4px 0 12px 0; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--accent); border-radius: 10px; }
-
-        .search-input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #e2e8f0; margin-bottom: 20px; font-weight: 700; transition: border 0.3s; }
-        .search-input:focus { border-color: var(--accent); outline: none; }
+        .search-input { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #e2e8f0; margin-bottom: 20px; font-weight: 700; box-sizing: border-box; transition: 0.3s; }
+        .search-input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
     <header class="master-header">
-        <h1><i class="fas fa-shield-alt"></i> ESTRATEGIA CALI 2026</h1>
-        <div id="reloj" style="font-family: monospace; font-size: 1.1rem; background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 8px;"></div>
+        <h1><i class="fas fa-satellite-dish"></i> CENTER COMMAND | ESTRATEGIA 2026</h1>
+        <div id="reloj" style="font-weight: 900; font-family: monospace; letter-spacing: 1px;"></div>
     </header>
 
     <div class="stats-grid">
         <div class="stat-card">
-            <span class="stat-label">CENSO TOTAL</span>
+            <span class="stat-label">POTENCIAL TOTAL</span>
             <span class="stat-val" id="tV">0</span>
         </div>
-        <div class="stat-card" style="border-bottom-color: var(--danger)">
-            <span class="stat-label">ZONAS CRÍTICAS (ALERTA)</span>
+        <div class="stat-card" style="border-top-color: var(--danger)">
+            <span class="stat-label">CRITICAL ZONES</span>
             <span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span>
         </div>
-        <div class="stat-card" style="border-bottom-color: var(--success)">
-            <span class="stat-label">LÍDERES ACTIVOS</span>
+        <div class="stat-card" style="border-top-color: var(--success)">
+            <span class="stat-label">REGISTROS ROSSMERY</span>
             <span class="stat-val" id="tLideresActivos" style="color:var(--success)">0</span>
         </div>
-        <div class="stat-card" style="border-bottom-color: #be185d">
-            <span class="stat-label">GÉNERO (BALANCE %)</span>
-            <div style="height: 40px; margin-top: 10px;"><canvas id="chartGenero"></canvas></div>
+        <div class="stat-card" style="border-top-color: #be185d">
+            <span class="stat-label">GÉNERO BALANCE</span>
+            <div style="height: 45px; margin-top: 10px;"><canvas id="chartGenero"></canvas></div>
         </div>
     </div>
 
-    <div class="main-grid">
-        <div class="col-left">
+    <div class="dashboard-grid">
+        <div class="col-main">
             <div class="panel">
-                <h3><i class="fas fa-map-marker-alt"></i> COBERTURA TERRITORIAL</h3>
+                <h3><i class="fas fa-map-marked-alt"></i> GEOLOCALIZACIÓN ESTRATÉGICA</h3>
                 <div id="map"></div>
             </div>
 
             <div class="panel">
-                <h3><i class="fas fa-sitemap"></i> EXPLORADOR JERÁRQUICO</h3>
+                <h3><i class="fas fa-stream"></i> EXPLORADOR DE REGISTROS (COMUNA > PUESTO > MESA)</h3>
                 <div class="scroll">
                     <table>
                         <thead>
                             <tr>
-                                <th onclick="sortTable('bodyJerarquia', 0)">ESTRUCTURA <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable('bodyJerarquia', 0)">UBICACIÓN <i class="fas fa-sort"></i></th>
                                 <th onclick="sortTable('bodyJerarquia', 1)" style="text-align:center">VOTOS <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('bodyJerarquia', 2)" style="text-align:center">% COBERTURA <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable('bodyJerarquia', 2)" style="text-align:center">% <i class="fas fa-sort"></i></th>
                             </tr>
                         </thead>
                         <tbody id="bodyJerarquia"></tbody>
@@ -112,22 +113,29 @@
             </div>
         </div>
 
-        <div class="col-right">
+        <div class="col-side">
             <div class="panel">
                 <h3><i class="fas fa-chart-pie"></i> DISTRIBUCIÓN PORCENTUAL</h3>
                 <div style="height: 250px;"><canvas id="chartDona"></canvas></div>
-                <div id="donaLegend" class="scroll" style="max-height: 200px; margin-top: 15px;"></div>
+                <div id="donaLegend" style="margin-top: 20px;"></div>
             </div>
 
             <div class="panel">
-                <h3><i class="fas fa-bullhorn"></i> ACCIONES RECOMENDADAS</h3>
+                <h3><i class="fas fa-exclamation-circle"></i> ALERTAS DE INTERVENCIÓN</h3>
                 <div id="alertasContainer"></div>
             </div>
 
             <div class="panel">
-                <h3><i class="fas fa-sync-alt"></i> ÚLTIMA ACTIVIDAD (10)</h3>
-                <div class="scroll" style="max-height: 280px;">
+                <h3><i class="fas fa-history"></i> ÚLTIMA ACTIVIDAD (10 RECIENTES)</h3>
+                <div class="scroll" style="max-height: 350px;">
                     <table>
+                        <thead>
+                            <tr>
+                                <th>VOTANTE</th>
+                                <th>PUESTO</th>
+                                <th style="text-align:right">HORA</th>
+                            </tr>
+                        </thead>
                         <tbody id="bodyActividad"></tbody>
                     </table>
                 </div>
@@ -136,12 +144,12 @@
     </div>
 
     <div class="panel" style="margin-top: 25px;">
-        <h3><i class="fas fa-users-cog"></i> RANKING DE LIDERAZGO</h3>
-        <div class="scroll" style="max-height: 350px;">
+        <h3><i class="fas fa-trophy"></i> RENDIMIENTO DE LIDERAZGO</h3>
+        <div class="scroll" style="max-height: 300px;">
             <table>
                 <thead>
                     <tr>
-                        <th onclick="sortTable('bodyLid', 0)">NOMBRE DEL LÍDER <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable('bodyLid', 0)">LÍDER <i class="fas fa-sort"></i></th>
                         <th onclick="sortTable('bodyLid', 1)" style="text-align:center">VOLUMEN <i class="fas fa-sort"></i></th>
                         <th onclick="sortTable('bodyLid', 2)" style="text-align:center">PESO % <i class="fas fa-sort"></i></th>
                     </tr>
@@ -153,16 +161,16 @@
 
     <div class="panel" style="margin-top: 25px;">
         <h3><i class="fas fa-database"></i> CONSOLIDADO GENERAL DE REGISTROS</h3>
-        <input type="text" id="busG" onkeyup="filtrarG()" placeholder="FILTRAR POR CÉDULA, NOMBRE O PUESTO..." class="search-input">
-        <div class="scroll" style="max-height: 600px;">
+        <input type="text" id="busG" onkeyup="filtrarG()" placeholder="BUSCAR POR NOMBRE, CÉDULA O PUESTO..." class="search-input">
+        <div class="scroll" style="max-height: 500px;">
             <table id="tablaGeneral">
                 <thead>
                     <tr>
-                        <th onclick="sortTable('bodyGeneral', 0)">CIUDADANO <i class="fas fa-sort"></i></th>
-                        <th onclick="sortTable('bodyGeneral', 1)">IDENTIFICACIÓN <i class="fas fa-sort"></i></th>
-                        <th onclick="sortTable('bodyGeneral', 2)">CONTACTO <i class="fas fa-sort"></i></th>
-                        <th onclick="sortTable('bodyGeneral', 3)">LUGAR VOTACIÓN <i class="fas fa-sort"></i></th>
-                        <th onclick="sortTable('bodyGeneral', 4)" style="text-align:center">COM <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable('bodyGeneral', 0)">NOMBRE <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable('bodyGeneral', 1)">CÉDULA <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable('bodyGeneral', 2)">TELÉFONO <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable('bodyGeneral', 3)">PUESTO <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable('bodyGeneral', 4)" style="text-align:center">COMUNA <i class="fas fa-sort"></i></th>
                     </tr>
                 </thead>
                 <tbody id="bodyGeneral"></tbody>
@@ -178,11 +186,10 @@
 
     let votantes = [], puestosOficiales = [], map, capaBurbujas, chartGen, chartDona;
     const ROSS_KEYWORDS = ["ROSSMERY", "ROSSE MARY"];
-    const EXCLUIDOS = [...ROSS_KEYWORDS, "ANGIE", "ANGIE CABAL"];
     const GPS = { "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],"6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],"11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],"16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],"21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510],"25":[3.370,-76.570],"33":[3.480,-76.570] };
 
     async function login() {
-        const { value: p } = await Swal.fire({ title: 'ACCESO ADMINISTRATIVO', input: 'password', allowOutsideClick: false, confirmButtonColor: '#0f172a' });
+        const { value: p } = await Swal.fire({ title: 'ACCESO RESTRINGIDO', input: 'password', allowOutsideClick: false, confirmButtonColor: '#0f172a' });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
             initMap(); 
@@ -205,25 +212,6 @@
         renderUI();
     }
 
-    function toggleLevel(targetId) {
-        const elements = document.getElementsByClassName(targetId);
-        const isOpening = elements[0] && elements[0].style.display !== 'table-row';
-        for (let el of elements) {
-            el.style.display = isOpening ? 'table-row' : 'none';
-            const subId = el.getAttribute('data-id');
-            if (!isOpening && subId) toggleLevelClose(subId);
-        }
-    }
-
-    function toggleLevelClose(id) {
-        const elements = document.getElementsByClassName(id);
-        for (let el of elements) {
-            el.style.display = 'none';
-            const subId = el.getAttribute('data-id');
-            if (subId) toggleLevelClose(subId);
-        }
-    }
-
     function renderUI() {
         const total = votantes.length || 1;
         document.getElementById('tV').innerText = votantes.length;
@@ -235,34 +223,39 @@
             const n = (v["Nombres y apellidos"] || "").toUpperCase();
             if(n.endsWith('A') || n.includes('MARIA')) m++; else h++;
             const lid = (v.lider || "DIRECTO").toUpperCase();
-            if(!EXCLUIDOS.some(e => lid.includes(e))) cLid[lid] = (cLid[lid]||0) + 1;
+            cLid[lid] = (cLid[lid]||0) + 1;
 
             const pInfo = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
             if(pInfo) {
-                const com = pInfo.comuna, pue = v.puesto.toUpperCase(), mes = v.mesa || "0";
+                const com = pInfo.comuna;
                 cCom[com] = (cCom[com]||0) + 1;
-                cPue[com] = cPue[com] || {}; cPue[com][pue] = (cPue[com][pue]||0) + 1;
-                cMesa[pue] = cMesa[pue] || {}; cMesa[pue][mes] = (cMesa[pue][mes]||0) + 1;
+                cPue[com] = cPue[com] || {}; cPue[com][v.puesto] = (cPue[com][v.puesto]||0) + 1;
+                cMesa[v.puesto] = cMesa[v.puesto] || {}; cMesa[v.puesto][v.mesa||"0"] = (cMesa[v.puesto][v.mesa||"0"]||0) + 1;
             }
         });
 
-        // Actividad Reciente
-        document.getElementById('bodyActividad').innerHTML = votantes.slice(0, 10).map(v => `<tr><td><i class="fas fa-user-circle" style="color:#cbd5e1"></i> ${v["Nombres y apellidos"]}</td><td align="right" style="color:#64748b">${new Date(v.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td></tr>`).join('');
+        // Actividad Reciente (Restaurada con todas las columnas)
+        document.getElementById('bodyActividad').innerHTML = votantes.slice(0, 10).map(v => `
+            <tr>
+                <td>${v["Nombres y apellidos"].substring(0,20)}</td>
+                <td><small>${(v.puesto || 'N/A').substring(0,15)}</small></td>
+                <td align="right" style="color:var(--accent)">${new Date(v.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
+            </tr>
+        `).join('');
 
         // Tabla Jerárquica
         let htmlJer = "";
         Object.keys(GPS).sort((a,b)=>a-b).forEach(com => {
             const vCom = cCom[com] || 0;
-            const pct = ((vCom/total)*100).toFixed(1);
             const idCom = `c-${com}`;
-            htmlJer += `<tr class="row-comuna" onclick="toggleLevel('${idCom}')"><td><i class="fas fa-folder folder-icon"></i> COMUNA ${com}</td><td align="center">${vCom}</td><td align="center">${pct}%</td></tr>`;
+            htmlJer += `<tr class="row-comuna" onclick="toggleLevel('${idCom}')"><td><i class="fas fa-folder"></i> COMUNA ${com}</td><td align="center">${vCom}</td><td align="center">${((vCom/total)*100).toFixed(1)}%</td></tr>`;
             if(cPue[com]) {
                 Object.entries(cPue[com]).forEach(([pue, vPue]) => {
                     const idPue = `p-${pue.replace(/[^a-zA-Z0-9]/g, '')}`;
                     htmlJer += `<tr class="${idCom} row-puesto" data-id="${idPue}" onclick="toggleLevel('${idPue}')"><td>&nbsp;&nbsp;<i class="fas fa-folder-open"></i> ${pue}</td><td align="center">${vPue}</td><td align="center">${((vPue/total)*100).toFixed(1)}%</td></tr>`;
                     if(cMesa[pue]) {
-                        Object.entries(cMesa[pue]).sort((a,b)=>a[0]-b[0]).forEach(([mesa, vMesa]) => {
-                            htmlJer += `<tr class="${idCom} ${idPue} row-mesa"><td>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-inbox"></i> MESA ${mesa}</td><td align="center">${vMesa}</td><td align="center">${((vMesa/total)*100).toFixed(1)}%</td></tr>`;
+                        Object.entries(cMesa[pue]).forEach(([mesa, vMesa]) => {
+                            htmlJer += `<tr class="${idCom} ${idPue} row-mesa"><td>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-file-alt"></i> MESA ${mesa}</td><td align="center">${vMesa}</td><td align="center">${((vMesa/total)*100).toFixed(1)}%</td></tr>`;
                         });
                     }
                 });
@@ -279,7 +272,7 @@
         // Ranking Líderes
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/total)*100).toFixed(1)}%</td></tr>`).join('');
 
-        // Alertas (REGLA: 0 votos + 5 menores)
+        // Alertas (0 y últimas 5)
         const rankingC = Object.keys(GPS).map(c => ({ id: c, v: cCom[c] || 0 })).sort((a,b) => a.v - b.v);
         const alertas = [...rankingC.filter(x => x.v === 0), ...rankingC.filter(x => x.v > 0).slice(0, 5)];
         document.getElementById('tZonasCriticas').innerText = alertas.length;
@@ -296,8 +289,7 @@
             const v = cCom[c] || 0;
             const pct = ((v/total)*100).toFixed(1);
             const color = v === 0 ? '#be123c' : '#2563eb';
-            const marker = L.circle(GPS[c], { color: color, fillColor: color, fillOpacity: 0.5, radius: 450 + (v*15) }).addTo(capaBurbujas);
-            marker.bindTooltip(`<b>COMUNA ${c}</b><br>VOTOS: ${v}<br>PESO: ${pct}%`);
+            L.circle(GPS[c], { color: color, fillColor: color, fillOpacity: 0.5, radius: 450 + (v*12) }).addTo(capaBurbujas).bindTooltip(`<b>COMUNA ${c}</b><br>VOTOS: ${v}<br>PESO: ${pct}%`);
         });
     }
 
@@ -307,18 +299,28 @@
         if(chartDona) chartDona.destroy();
         chartDona = new Chart(document.getElementById('chartDona'), {
             type: 'doughnut', 
-            data: { labels: labels, datasets:[{data:data, backgroundColor:['#0f172a','#2563eb','#3b82f6','#64748b','#94a3b8','#cbd5e1']}] },
-            options: { maintainAspectRatio:false, plugins:{legend:{display:false}}, cutout: '70%' }
+            data: { labels, datasets:[{data, backgroundColor:['#0f172a','#2563eb','#3b82f6','#64748b','#94a3b8','#cbd5e1']}] },
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '75%' }
         });
-        document.getElementById('donaLegend').innerHTML = labels.map((l, i) => {
-            const p = ((data[i]/total)*100).toFixed(1);
-            return `<div class="legend-item"><span>COMUNA ${l}</span><span>${data[i]} (${p}%)</span></div><div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div>`;
-        }).join('');
+        document.getElementById('donaLegend').innerHTML = labels.map((l,i) => `<div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:8px; font-weight:800;"><span>COMUNA ${l}</span><span>${data[i]} (${((data[i]/total)*100).toFixed(1)}%)</span></div>`).join('');
     }
 
     function renderChartGenero(h, m) {
         if(chartGen) chartGen.destroy();
         chartGen = new Chart(document.getElementById('chartGenero'), { type:'bar', data:{labels:['H','M'], datasets:[{data:[h,m], backgroundColor:['#2563eb','#be185d']}]}, options:{indexAxis:'y', maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false},y:{display:false}}} });
+    }
+
+    function toggleLevel(id) {
+        const els = document.getElementsByClassName(id);
+        const isOp = els[0] && els[0].style.display !== 'table-row';
+        for(let e of els) {
+            e.style.display = isOp ? 'table-row' : 'none';
+            if(!isOp && e.getAttribute('data-id')) toggleLevelClose(e.getAttribute('data-id'));
+        }
+    }
+    function toggleLevelClose(id) {
+        const els = document.getElementsByClassName(id);
+        for(let e of els) { e.style.display = 'none'; if(e.getAttribute('data-id')) toggleLevelClose(e.getAttribute('data-id')); }
     }
 
     function sortTable(tableId, col) {
