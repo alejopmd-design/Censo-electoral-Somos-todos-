@@ -33,7 +33,7 @@
         .stat-card { background: var(--panel); border-radius: 12px; padding: 22px; border-top: 5px solid var(--accent); box-shadow: var(--shadow); position: relative; }
         .stat-val { font-size: 3.5rem; font-weight: 900; display: block; line-height: 1; margin-bottom: 8px; color: var(--primary); }
         .stat-label { font-size: 0.75rem; font-weight: 800; color: #64748b; margin-bottom: 15px; display: block; }
-        .stat-pct { position: absolute; top: 22px; right: 22px; font-weight: 900; font-size: 0.8rem; color: #64748b; }
+        .stat-pct { position: absolute; top: 22px; right: 22px; font-weight: 900; font-size: 0.9rem; color: #64748b; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; }
 
         .main-layout { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 25px; }
         .panel { background: var(--panel); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: var(--shadow); }
@@ -55,6 +55,8 @@
         
         .progress-mini { height: 6px; background: #e2e8f0; border-radius: 10px; margin-top: 4px; overflow: hidden; }
         .progress-mini-fill { height: 100%; background: var(--accent); }
+
+        .gender-pbox { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 900; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -84,8 +86,12 @@
             <span class="stat-val" id="tLideresActivos" style="color:var(--success)">0</span>
         </div>
         <div class="stat-card" style="border-top-color: #be185d">
-            <span class="stat-label">BALANCE GÉNERO (H / M)</span>
-            <div style="height: 50px;"><canvas id="chartGenero"></canvas></div>
+            <span class="stat-label">BALANCE GÉNERO</span>
+            <div style="height: 40px;"><canvas id="chartGenero"></canvas></div>
+            <div class="gender-pbox">
+                <span style="color:var(--accent)" id="pctH">H: 0%</span>
+                <span style="color:#be185d" id="pctM">M: 0%</span>
+            </div>
         </div>
     </div>
 
@@ -93,7 +99,7 @@
         <div class="col-left">
             <div class="panel">
                 <h3><i class="fas fa-map-marked-alt"></i> GEOLOCALIZACIÓN Y DISTRIBUCIÓN POR COMUNA</h3>
-                <div style="display: grid; grid-template-columns: 1fr 340px; gap: 25px;">
+                <div style="display: grid; grid-template-columns: 1fr 360px; gap: 25px;">
                     <div id="map"></div>
                     <div>
                         <div style="height: 280px;"><canvas id="chartDona"></canvas></div>
@@ -214,6 +220,9 @@
             if(po) cCom[po.comuna] = (cCom[po.comuna]||0) + 1;
         });
 
+        document.getElementById('pctH').innerText = `H: ${((h/total)*100).toFixed(1)}%`;
+        document.getElementById('pctM').innerText = `M: ${((m/total)*100).toFixed(1)}%`;
+
         // TABLA FLUJO RECIENTE (VOTANTE, LIDER, FECHA, PUESTO)
         document.getElementById('bodyFlujo').innerHTML = limpios.slice(0, 15).map(v => {
             const f = v.created_at ? new Date(v.created_at).toLocaleDateString('es-CO') : '-';
@@ -279,7 +288,7 @@
 
     function exportTable() {
         const wb = XLSX.utils.table_to_book(document.getElementById('tablaG'));
-        XLSX.writeFile(wb, "DATOS_ESTRATEGIA_CALI.xlsx");
+        XLSX.writeFile(wb, "REPORTE_ESTRATEGICO_CALI.xlsx");
     }
 
     window.onload = login;
