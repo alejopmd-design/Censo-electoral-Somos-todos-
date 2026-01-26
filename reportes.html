@@ -2,74 +2,722 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>COMMAND CENTER CALI 2026</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GESTIÓN 2026 | UNIDAD DE MANDO</title>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@500;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <style>
-        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; text-transform: uppercase; margin: 0; }
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
-        .card { background: white; padding: 20px; border-radius: 12px; border-top: 5px solid #2563eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
-        .val { font-size: 2.5rem; font-weight: bold; color: #0f172a; display: block; }
-        #map { height: 450px; border-radius: 12px; border: 1px solid #ccc; }
-        .alert-box { background: #fee2e2; color: #991b1b; padding: 10px; border-radius: 8px; margin-top: 10px; font-weight: bold; border-left: 5px solid #ef4444; text-align: left; font-size: 0.8rem; }
+        /* =============================================================================================
+           ESTILOS MAESTROS (ARQUITECTURA DE DISEÑO)
+           ============================================================================================= */
+        :root {
+            --primary: #2563eb;
+            --primary-glow: rgba(37, 99, 235, 0.4);
+            --dark-core: #0f172a;
+            --dark-accent: #1e293b;
+            --bg-interface: #f8fafc;
+            --panel-bg: #ffffff;
+            --border-std: #e2e8f0;
+            --text-h1: #1e293b;
+            --text-p: #64748b;
+            --danger: #e11d48;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            outline: none; -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-interface);
+            color: var(--dark-core);
+            line-height: 1.5;
+            overflow-x: hidden;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+
+        /* SISTEMA DE CARGA (BOOT SEQUENCE) */
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark-core);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 10000; transition: opacity 0.8s ease;
+        }
+
+        .loader-ring {
+            width: 100px; height: 100px;
+            border: 10px solid rgba(255,255,255,0.05);
+            border-top: 10px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            filter: drop-shadow(0 0 15px var(--primary-glow));
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* HEADER DE GESTIÓN */
+        .main-header {
+            background: linear-gradient(135deg, var(--dark-core) 0%, #1e293b 100%);
+            padding: 35px 50px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 12px solid var(--primary);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+            position: sticky; top: 0; z-index: 999;
+        }
+
+        .brand-unit { display: flex; align-items: center; gap: 20px; }
+        .brand-unit i { font-size: 3.5rem; color: var(--primary); }
+        .brand-unit .title-group h1 {
+            color: white; font-size: 2.8rem; font-weight: 900;
+            letter-spacing: 12px; line-height: 0.9;
+        }
+        .brand-unit .title-group span {
+            color: var(--primary); font-weight: 800; font-size: 0.9rem;
+            letter-spacing: 5px; margin-top: 5px; display: block;
+        }
+
+        .system-status { text-align: right; }
+        .digital-clock {
+            font-family: 'JetBrains Mono', monospace; font-size: 1.6rem;
+            color: white; background: rgba(255,255,255,0.08);
+            padding: 12px 25px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            letter-spacing: 2px;
+        }
+
+        /* APLICACIÓN PRINCIPAL */
+        .app-container {
+            display: none; padding: 30px;
+            max-width: 1900px; margin: 0 auto;
+        }
+
+        /* KPI DASHBOARD */
+        .kpi-row {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 25px; margin-bottom: 30px;
+        }
+
+        .kpi-widget {
+            background: var(--panel-bg); padding: 30px;
+            border-radius: 20px; border: 1px solid var(--border-std);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            border-top: 8px solid var(--primary);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .kpi-widget:hover { transform: translateY(-8px); }
+        .kpi-widget.alert { border-top-color: var(--danger); }
+        .kpi-widget.success { border-top-color: var(--success); }
+
+        .kpi-info { font-size: 0.85rem; font-weight: 800; color: var(--text-p); display: block; margin-bottom: 12px; }
+        .kpi-data { font-size: 3.8rem; font-weight: 900; color: var(--dark-core); line-height: 0.8; }
+
+        /* GRID ESTRATÉGICO */
+        .strategic-layout {
+            display: grid; grid-template-columns: 1.25fr 0.75fr;
+            gap: 30px; align-items: start; /* ELIMINA EL ESPACIO MUERTO AL FINAL */
+        }
+
+        .module-card {
+            background: var(--panel-bg); border-radius: 25px;
+            padding: 30px; border: 1px solid var(--border-std);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .module-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px; padding-bottom: 20px;
+            border-bottom: 4px solid var(--bg-interface);
+        }
+
+        .module-title {
+            font-size: 1.3rem; font-weight: 900; color: var(--dark-core);
+            display: flex; align-items: center; gap: 15px;
+        }
+
+        /* MAPA OPERATIVO */
+        #map-canvas {
+            height: 600px; width: 100%; border-radius: 18px;
+            z-index: 10; border: 8px solid var(--bg-interface);
+        }
+
+        /* SISTEMA DE TABLAS AVANZADO */
+        .data-table-wrapper { width: 100%; overflow-x: auto; border-radius: 15px; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        
+        th {
+            background-color: #f1f5f9; padding: 20px; text-align: left;
+            font-weight: 900; color: var(--text-p);
+            border-bottom: 5px solid var(--border-std);
+            cursor: pointer; position: relative;
+            transition: all 0.3s ease;
+        }
+
+        th:hover { background-color: var(--primary); color: white; }
+        th.sort-active::after {
+            content: "\f0dc"; font-family: "Font Awesome 6 Free";
+            position: absolute; right: 10px; opacity: 0.5;
+        }
+
+        td { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; font-weight: 700; }
+
+        /* ESTILOS DE FILA JERÁRQUICA */
+        .row-level-1 { background-color: #f8fafc; cursor: pointer; border-left: 12px solid var(--dark-core); }
+        .row-level-2 { display: none; background-color: #ffffff; cursor: pointer; border-left: 35px solid var(--primary); }
+        .row-level-3 { display: none; background-color: #fafafa; border-left: 65px solid #cbd5e1; font-size: 0.9em; }
+
+        /* ACCIONES Y BOTONES */
+        .btn-group { display: flex; gap: 12px; }
+        
+        .btn-core {
+            padding: 14px 24px; border-radius: 12px; border: none;
+            font-weight: 800; cursor: pointer; display: flex;
+            align-items: center; gap: 12px; transition: all 0.4s;
+        }
+
+        .btn-excel { background-color: var(--success); color: white; }
+        .btn-dark { background-color: var(--dark-core); color: white; }
+        .btn-core:hover { transform: translateY(-3px) scale(1.02); filter: brightness(1.1); }
+
+        /* ALERTAS DE INTERVENCIÓN (REGLA 24/01) */
+        .alert-container { display: flex; flex-direction: column; gap: 15px; }
+        
+        .alert-entry {
+            padding: 20px; border-radius: 15px; display: flex;
+            justify-content: space-between; align-items: center;
+            font-weight: 900; border-left: 18px solid;
+            animation: pulse 2s infinite;
+        }
+
+        .critical { background: #fff1f2; color: #9f1239; border-color: var(--danger); }
+        .warning { background: #fffbeb; color: #92400e; border-color: var(--warning); }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+
+        /* BUSCADOR DE AUDITORÍA */
+        .search-box {
+            width: 100%; padding: 22px 30px; border-radius: 18px;
+            border: 4px solid var(--border-std); font-size: 1.2rem;
+            font-weight: 800; margin-bottom: 25px; transition: border-color 0.3s;
+        }
+        .search-box:focus { border-color: var(--primary); background: white; }
+
+        /* SCROLLBAR CUSTOM */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-interface); }
+        ::-webkit-scrollbar-thumb { background: var(--text-p); border-radius: 10px; }
+
     </style>
 </head>
 <body>
-    <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h1>COMMAND CENTER CALI</h1>
-        <div id="reloj" style="background:#0f172a; color:white; padding:10px; border-radius:8px;">00:00:00</div>
-    </header>
 
-    <div class="grid">
-        <div class="card">TOTAL VOTANTES<span class="val" id="tV">0</span></div>
-        <div class="card" style="border-top-color:#10b981">ROSSE MARY<span class="val" id="tRM">0</span></div>
-        <div class="card" style="border-top-color:#ef4444">COMUNAS 0<span class="val" id="tA">0</span></div>
+    <div id="loader" class="loading-overlay">
+        <div class="loader-ring"></div>
+        <h2 style="color: white; letter-spacing: 12px; margin-top: 30px; font-weight: 900;">GESTIÓN 2026</h2>
+        <p style="color: var(--primary); font-weight: 700; margin-top: 10px;">INICIALIZANDO PROTOCOLOS TERRITORIALES...</p>
     </div>
 
-    <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:20px;">
-        <div id="map"></div>
-        <div class="card">
-            <h3>ALERTAS DE INTERVENCIÓN</h3>
-            <div id="alertas"></div>
+    <div id="app" class="app-container">
+        
+        <header class="main-header">
+            <div class="brand-unit">
+                <i class="fas fa-satellite-dish"></i>
+                <div class="title-group">
+                    <h1>GESTIÓN 2026</h1>
+                    <span>CONTROL TERRITORIAL DE ALTA PRECISIÓN</span>
+                </div>
+            </div>
+            <div class="system-status">
+                <div id="clock" class="digital-clock">00:00:00</div>
+                <div style="margin-top: 8px; font-weight: 900; color: var(--success); font-size: 0.7rem;">
+                    <i class="fas fa-circle" style="font-size: 8px; margin-right: 5px;"></i> SERVIDOR ACTIVO
+                </div>
+            </div>
+        </header>
+
+        <div class="kpi-row">
+            <div class="kpi-widget">
+                <span class="kpi-info"><i class="fas fa-id-card"></i> CENSO DEPOSITADO (REGLA 16/01)</span>
+                <span id="kpi-total" class="kpi-data">0</span>
+            </div>
+            <div class="kpi-widget alert">
+                <span class="kpi-info"><i class="fas fa-triangle-exclamation"></i> ALERTAS DE INTERVENCIÓN</span>
+                <span id="kpi-alerts" class="kpi-data" style="color: var(--danger);">0</span>
+            </div>
+            <div class="kpi-widget success">
+                <span class="kpi-info"><i class="fas fa-user-tie"></i> LÍDERES OPERATIVOS</span>
+                <span id="kpi-leaders" class="kpi-data" style="color: var(--success);">0</span>
+            </div>
+            <div class="kpi-widget">
+                <span class="kpi-info"><i class="fas fa-chart-line"></i> BALANCE DE GÉNERO</span>
+                <div style="height: 60px; margin-top: 10px;">
+                    <canvas id="chart-mini-gender"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="strategic-layout">
+            
+            <div class="col-main">
+                <div class="module-card">
+                    <div class="module-header">
+                        <span class="module-title"><i class="fas fa-map-marked-alt"></i> DESPLIEGUE GEOGRÁFICO</span>
+                    </div>
+                    <div id="map-canvas"></div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-header">
+                        <span class="module-title"><i class="fas fa-layer-group"></i> JERARQUÍA TERRITORIAL</span>
+                        <div class="btn-group">
+                            <button class="btn-core btn-excel" onclick="exportHierarchicalData()">
+                                <i class="fas fa-file-excel"></i> DESCARGAR ESTRUCTURA
+                            </button>
+                        </div>
+                    </div>
+                    <div class="data-table-wrapper">
+                        <table id="hierarchy-table">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortDataTable('hierarchy-table', 0)">NIVEL TERRITORIAL</th>
+                                    <th onclick="sortDataTable('hierarchy-table', 1)" style="text-align:center;">VOTOS</th>
+                                    <th onclick="sortDataTable('hierarchy-table', 2)" style="text-align:center;">PESO (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hierarchy-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-side">
+                <div class="module-card">
+                    <div class="module-header">
+                        <span class="module-title"><i class="fas fa-chart-pie"></i> DISTRIBUCIÓN COMUNAS</span>
+                    </div>
+                    <div style="height: 380px;">
+                        <canvas id="chart-main-dona"></canvas>
+                    </div>
+                    <div id="custom-legend" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px;"></div>
+                </div>
+
+                <div class="module-card" style="border-top: 8px solid var(--danger);">
+                    <div class="module-header" style="color: var(--danger);">
+                        <span class="module-title"><i class="fas fa-bullhorn"></i> FOCOS DE ACCIÓN (REGLA 24/01)</span>
+                    </div>
+                    <div id="alert-zone" class="alert-container">
+                        </div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-header">
+                        <span class="module-title"><i class="fas fa-clipboard-check"></i> AUDITORÍA MAESTRA</span>
+                        <button class="btn-core btn-dark" onclick="exportMasterTable()">
+                            <i class="fas fa-file-download"></i>
+                        </button>
+                    </div>
+                    <input type="text" id="global-filter" class="search-box" placeholder="BUSCAR POR CÉDULA, NOMBRE O LÍDER..." onkeyup="runMasterFilter()">
+                    <div class="data-table-wrapper" style="max-height: 500px;">
+                        <table id="master-table">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortDataTable('master-table', 0)">IDENTIDAD</th>
+                                    <th onclick="sortDataTable('master-table', 1)">IDENTIFICACIÓN</th>
+                                    <th onclick="sortDataTable('master-table', 2)">LÍDER ASIGNADO</th>
+                                </tr>
+                            </thead>
+                            <tbody id="master-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-<script>
-    const _s = supabase.createClient('https://pmwlkdariynhaqbqursp.supabase.co', 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv');
-    let vots = [], pts = [], map;
+    <script>
+        /**
+         * CONFIGURACIÓN DE NÚCLEO Y CREDENCIALES
+         */
+        const CONFIG = {
+            SB_URL: 'https://pmwlkdariynhaqbqursp.supabase.co',
+            SB_KEY: 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv',
+            COLORS: ['#2563eb', '#10b981', '#f59e0b', '#d946ef', '#06b6d4', '#f43f5e', '#8b5cf6', '#14b8a6', '#f97316', '#475569', '#ec4899', '#6366f1']
+        };
 
-    async function init() {
-        const {data: p} = await _s.from('PUESTOS_VOTACION').select('*');
-        const {data: v} = await _s.from('VOTANTES').select('*');
-        vots = v || []; pts = p || [];
-        
-        if(!map) {
-            map = L.map('map').setView([3.42, -76.52], 12);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+        const SUPA_CLIENT = supabase.createClient(CONFIG.SB_URL, CONFIG.SB_KEY);
+
+        /**
+         * MEMORIA DE TRABAJO VOLÁTIL
+         */
+        let RAW_VOTANTES = [];
+        let RAW_PUESTOS = [];
+        let MAP_INST;
+        let MARKER_COLLECTION;
+        let DONA_CHART_INST;
+        let GENDER_CHART_INST;
+
+        /**
+         * CARTOGRAFÍA ESTRATÉGICA (COORDENADAS CALI)
+         */
+        const CALI_GEO = {
+            "1": [3.450, -76.550], "2": [3.475, -76.525], "3": [3.452, -76.533], "4": [3.468, -76.508], "5": [3.478, -76.492],
+            "6": [3.485, -76.485], "7": [3.458, -76.488], "8": [3.445, -76.500], "9": [3.440, -76.515], "10": [3.428, -76.520],
+            "11": [3.415, -76.510], "12": [3.428, -76.495], "13": [3.410, -76.485], "14": [3.415, -76.470], "15": [3.400, -76.475],
+            "16": [3.410, -76.500], "17": [3.385, -76.520], "18": [3.375, -76.545], "19": [3.425, -76.545], "20": [3.415, -76.555],
+            "21": [3.425, -76.465], "22": [3.355, -76.535], "24": [3.350, -76.510], "25": [3.370, -76.570], "33": [3.480, -76.570]
+        };
+
+        /**
+         * ARRANQUE DEL SISTEMA (BOOT PROCEDURE)
+         */
+        window.onload = async () => {
+            const { value: pass } = await Swal.fire({
+                title: 'NÚCLEO DE GESTIÓN 2026',
+                input: 'password',
+                inputPlaceholder: 'INGRESE LLAVE DE MANDO',
+                confirmButtonColor: '#0f172a',
+                allowOutsideClick: false
+            });
+
+            if (pass === 'ADMIN2026') {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    document.getElementById('app').style.display = 'block';
+                    initializeEngine();
+                }, 800);
+            } else {
+                location.reload();
+            }
+        };
+
+        /**
+         * INICIALIZACIÓN DE COMPONENTES
+         */
+        function initializeEngine() {
+            // Setup Mapa
+            MAP_INST = L.map('map-canvas').setView([3.42, -76.52], 12);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(MAP_INST);
+            MARKER_COLLECTION = L.layerGroup().addTo(MAP_INST);
+
+            // Reloj
+            setInterval(() => {
+                document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+            }, 1000);
+
+            syncData();
         }
-        render();
-    }
 
-    function render() {
-        document.getElementById('tV').innerText = vots.length;
-        const vR = vots.filter(x => (x.lider||"").toUpperCase().includes("ROSSE MARY"));
-        document.getElementById('tRM').innerText = vR.length;
+        /**
+         * SINCRONIZACIÓN CON SUPABASE (APLICACIÓN REGLA 16/01)
+         */
+        async function syncData() {
+            try {
+                const [pData, vData] = await Promise.all([
+                    SUPA_CLIENT.from('PUESTOS_VOTACION').select('*'),
+                    SUPA_CLIENT.from('VOTANTES').select('*').order('created_at', { ascending: false })
+                ]);
 
-        let cC = {};
-        vots.forEach(x => {
-            const p = pts.find(y => (y.nombre_puesto||"").trim().toUpperCase() === (x.puesto||"").trim().toUpperCase());
-            if(p) cC[p.comuna] = (cC[p.comuna]||0) + 1;
-        });
+                RAW_PUESTOS = pData.data || [];
+                
+                // REGLA 16/01: Solo pasan registros con Cédula, Nombre y Teléfono
+                RAW_VOTANTES = (vData.data || []).filter(v => {
+                    return v.cedula && v["Nombres y apellidos"] && v.telefono;
+                });
 
-        const todas = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","24"];
-        const ceros = todas.filter(c => !cC[c]);
-        document.getElementById('tA').innerText = ceros.length;
-        document.getElementById('alertas').innerHTML = ceros.map(c => `<div class="alert-box">COMUNA ${c}: SIN REGISTROS</div>`).join('');
-    }
+                processAnalytics();
+            } catch (error) {
+                Swal.fire('ERROR DE CONEXIÓN', 'No se pudo sincronizar con la base de datos central.', 'error');
+            }
+        }
 
-    init();
-    setInterval(() => { document.getElementById('reloj').innerText = new Date().toLocaleTimeString(); }, 1000);
-</script>
+        /**
+         * PROCESAMIENTO ANALÍTICO DE ALTA PRECISIÓN
+         */
+        function processAnalytics() {
+            const total = RAW_VOTANTES.length || 1;
+            document.getElementById('kpi-total').innerText = RAW_VOTANTES.length;
+
+            const analytics = {
+                comunas: {},
+                puestos: {},
+                mesas: {},
+                lideres: {},
+                gender: { h: 0, m: 0 }
+            };
+
+            RAW_VOTANTES.forEach(v => {
+                // Cálculo de Género fonético
+                const n = (v["Nombres y apellidos"] || "").toUpperCase();
+                if(n.endsWith('A') || n.includes('MARIA') || n.includes('ANA') || n.includes('LUZ')) analytics.gender.m++; else analytics.gender.h++;
+
+                // Conteo de Líderes
+                const l = (v.lider || "DIRECTO").toUpperCase();
+                analytics.lideres[l] = (analytics.lideres[l] || 0) + 1;
+
+                // Estructura Geográfica
+                const pInfo = RAW_PUESTOS.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
+                if(pInfo) {
+                    const c = pInfo.comuna;
+                    analytics.comunas[c] = (analytics.comunas[c] || 0) + 1;
+
+                    analytics.puestos[c] = analytics.puestos[c] || {};
+                    analytics.puestos[c][v.puesto] = (analytics.puestos[c][v.puesto] || 0) + 1;
+
+                    analytics.mesas[v.puesto] = analytics.mesas[v.puesto] || {};
+                    const m = v.mesa || "PND";
+                    analytics.mesas[v.puesto][m] = (analytics.mesas[v.puesto][m] || 0) + 1;
+                }
+            });
+
+            document.getElementById('kpi-leaders').innerText = Object.keys(analytics.lideres).length;
+
+            renderHierarchy(analytics, total);
+            renderAlerts(analytics);
+            renderCharts(analytics, total);
+            renderMap(analytics, total);
+            renderMasterTable();
+        }
+
+        /**
+         * RENDERIZADO DE JERARQUÍA TERRITORIAL (EXPANDIBLE)
+         */
+        function renderHierarchy(data, total) {
+            const body = document.getElementById('hierarchy-body');
+            let html = "";
+            const idsComunas = Object.keys(CALI_GEO).sort((a,b) => a-b);
+
+            idsComunas.forEach(id => {
+                const votos = data.comunas[id] || 0;
+                const perc = ((votos/total)*100).toFixed(1);
+
+                html += `
+                    <tr class="row-level-1" onclick="toggleRows('c-${id}')">
+                        <td><i class="fas fa-folder-open" style="margin-right:10px;"></i> COMUNA ${id}</td>
+                        <td align="center">${votos}</td>
+                        <td align="center">${perc}%</td>
+                    </tr>
+                `;
+
+                if(data.puestos[id]) {
+                    Object.entries(data.puestos[id]).forEach(([nomP, vP]) => {
+                        const pid = `p-${nomP.replace(/\s+/g, '')}`;
+                        html += `
+                            <tr class="row-level-2 c-${id}" data-child="${pid}" onclick="toggleRows('${pid}')">
+                                <td><i class="fas fa-map-pin" style="margin-right:10px;"></i> ${nomP}</td>
+                                <td align="center">${vP}</td>
+                                <td align="center">${((vP/total)*100).toFixed(1)}%</td>
+                            </tr>
+                        `;
+
+                        if(data.mesas[nomP]) {
+                            Object.entries(data.mesas[nomP]).forEach(([mId, vM]) => {
+                                html += `
+                                    <tr class="row-level-3 c-${id} ${pid}">
+                                        <td>MESA NÚMERO ${mId}</td>
+                                        <td align="center">${vM}</td>
+                                        <td align="center">${((vM/total)*100).toFixed(2)}%</td>
+                                    </tr>
+                                `;
+                            });
+                        }
+                    });
+                }
+            });
+            body.innerHTML = html;
+        }
+
+        function toggleRows(cls) {
+            const els = document.getElementsByClassName(cls);
+            if(!els.length) return;
+            const status = els[0].style.display === 'table-row';
+            
+            for(let e of els) {
+                e.style.display = status ? 'none' : 'table-row';
+                if(status && e.dataset.child) {
+                    const children = document.getElementsByClassName(e.dataset.child);
+                    for(let c of children) c.style.display = 'none';
+                }
+            }
+        }
+
+        /**
+         * MOTOR DE ALERTAS ESTRATÉGICAS (REGLA 24/01)
+         */
+        function renderAlerts(data) {
+            const zone = document.getElementById('alert-zone');
+            const metrics = Object.keys(CALI_GEO).map(id => ({ id, v: data.comunas[id] || 0 }));
+            
+            const zeros = metrics.filter(x => x.v === 0);
+            const lows = metrics.filter(x => x.v > 0).sort((a,b) => a.v - b.v).slice(0, 5);
+            
+            document.getElementById('kpi-alerts').innerText = zeros.length + lows.length;
+
+            let h = "";
+            zeros.forEach(z => h += `<div class="alert-entry critical"><span>COMUNA ${z.id}</span><span><i class="fas fa-skull-crossbones"></i> 0 REGISTROS</span></div>`);
+            lows.forEach(l => h += `<div class="alert-entry warning"><span>COMUNA ${l.id}</span><span><i class="fas fa-exclamation-triangle"></i> ${l.v} VOTOS</span></div>`);
+            
+            zone.innerHTML = h || `<p style="text-align:center; padding:20px; opacity:0.4;">TODOS LOS TERRITORIOS ACTIVOS</p>`;
+        }
+
+        /**
+         * VISUALIZACIONES GRÁFICAS
+         */
+        function renderCharts(data, total) {
+            // Dona Principal
+            const ctxD = document.getElementById('chart-main-dona').getContext('2d');
+            const labs = Object.keys(data.comunas).sort((a,b) => a-b);
+            const vals = labs.map(l => data.comunas[l]);
+
+            if(DONA_CHART_INST) DONA_CHART_INST.destroy();
+            DONA_CHART_INST = new Chart(ctxD, {
+                type: 'doughnut',
+                data: {
+                    labels: labs.map(x => `C-${x}`),
+                    datasets: [{ data: vals, backgroundColor: CONFIG.COLORS }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '70%' }
+            });
+
+            document.getElementById('custom-legend').innerHTML = labs.map((l, i) => `
+                <div style="font-size:11px; font-weight:800; border-left:5px solid ${CONFIG.COLORS[i%CONFIG.COLORS.length]}; padding-left:8px;">
+                    COMUNA ${l}: ${((data.comunas[l]/total)*100).toFixed(1)}%
+                </div>
+            `).join('');
+
+            // Mini Gender Bar
+            const ctxG = document.getElementById('chart-mini-gender').getContext('2d');
+            if(GENDER_CHART_INST) GENDER_CHART_INST.destroy();
+            GENDER_CHART_INST = new Chart(ctxG, {
+                type: 'bar',
+                data: {
+                    labels: ['H', 'M'],
+                    datasets: [{ data: [data.gender.h, data.gender.m], backgroundColor: ['#2563eb', '#ec4899'] }]
+                },
+                options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+            });
+        }
+
+        /**
+         * CARTOGRAFÍA OPERATIVA
+         */
+        function renderMap(data, total) {
+            MARKER_COLLECTION.clearLayers();
+            Object.keys(CALI_GEO).forEach(id => {
+                const v = data.comunas[id] || 0;
+                const r = 280 + (v * 14);
+                L.circle(CALI_GEO[id], {
+                    color: v === 0 ? '#e11d48' : '#2563eb',
+                    fillColor: v === 0 ? '#f43f5e' : '#60a5fa',
+                    fillOpacity: 0.6,
+                    radius: r
+                }).addTo(MARKER_COLLECTION).bindTooltip(`COMUNA ${id}: ${v} REGISTROS`);
+            });
+        }
+
+        /**
+         * MOTOR DE ORDENAMIENTO DE TABLAS
+         */
+        function sortDataTable(tableId, col) {
+            const table = document.getElementById(tableId);
+            const tbody = table.tBodies[0];
+            const rows = Array.from(tbody.rows);
+            const header = table.querySelectorAll('th')[col];
+            const isAsc = header.classList.contains('sort-asc');
+
+            table.querySelectorAll('th').forEach(th => th.classList.remove('sort-asc', 'sort-desc', 'sort-active'));
+            header.classList.add('sort-active');
+
+            const sortedRows = rows.sort((a, b) => {
+                let tA = a.cells[col].innerText.trim();
+                let tB = b.cells[col].innerText.trim();
+                
+                // Limpieza para números
+                const nA = parseFloat(tA.replace('%', ''));
+                const nB = parseFloat(tB.replace('%', ''));
+
+                if (!isNaN(nA) && !isNaN(nB)) return isAsc ? nB - nA : nA - nB;
+                return isAsc ? tB.localeCompare(tA) : tA.localeCompare(tB);
+            });
+
+            header.classList.toggle('sort-asc', !isAsc);
+            header.classList.toggle('sort-desc', isAsc);
+            tbody.append(...sortedRows);
+        }
+
+        /**
+         * EXPORTACIÓN DE DATOS (JERARQUÍA INDENTADA)
+         */
+        function exportHierarchicalData() {
+            const wb = XLSX.utils.book_new();
+            const dataMatrix = [["CATEGORÍA", "IDENTIFICADOR", "REGISTROS VÁLIDOS", "PESO ELECTORAL"]];
+            
+            const tableRows = document.getElementById('hierarchy-body').rows;
+            for(let r of tableRows) {
+                let indent = "";
+                let tipo = "COMUNA";
+                
+                if(r.classList.contains('row-level-2')) { indent = "   "; tipo = "PUESTO"; }
+                if(r.classList.contains('row-level-3')) { indent = "      "; tipo = "MESA"; }
+
+                dataMatrix.push([
+                    tipo,
+                    indent + r.cells[0].innerText.trim(),
+                    r.cells[1].innerText,
+                    r.cells[2].innerText
+                ]);
+            }
+
+            const ws = XLSX.utils.aoa_to_sheet(dataMatrix);
+            XLSX.utils.book_append_sheet(wb, ws, "ESTRUCTURA_2026");
+            XLSX.writeFile(wb, `ESTRUCTURA_JERARQUICA_CALI_${new Date().getTime()}.xlsx`);
+        }
+
+        function exportMasterTable() {
+            const wb = XLSX.utils.table_to_book(document.getElementById('master-table'));
+            XLSX.writeFile(wb, "AUDITORIA_MAESTRA_CENSO.xlsx");
+        }
+
+        /**
+         * AUDITORÍA Y FILTROS
+         */
+        function renderMasterTable() {
+            const b = document.getElementById('master-body');
+            b.innerHTML = RAW_VOTANTES.slice(0, 400).map(v => `
+                <tr>
+                    <td>${v["Nombres y apellidos"]}</td>
+                    <td>${v.cedula}</td>
+                    <td>${v.lider || 'DIRECTO'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function runMasterFilter() {
+            const q = document.getElementById('global-filter').value.toUpperCase();
+            const rows = document.getElementById('master-body').rows;
+            for(let r of rows) {
+                r.style.display = r.innerText.toUpperCase().includes(q) ? '' : 'none';
+            }
+        }
+    </script>
 </body>
 </html>
