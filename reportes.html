@@ -34,7 +34,6 @@
         .stat-val { font-size: 3.5rem; font-weight: 900; display: block; line-height: 1; margin-bottom: 8px; color: var(--primary); }
         .stat-label { font-size: 0.75rem; font-weight: 800; color: #64748b; margin-bottom: 15px; display: block; }
         
-        /* Porcentaje de género se mantiene en su sitio */
         .gender-pbox { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 900; margin-top: 10px; }
 
         .main-layout { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 25px; }
@@ -249,6 +248,7 @@
         Object.keys(GPS).forEach(c => {
             const t = cCom[c] || 0;
             const marker = L.circle(GPS[c], { color: t===0?'#be123c':'#1e293b', fillColor: t===0?'#be123c':'#1e293b', fillOpacity: 0.6, radius: 450 + (t*15) }).addTo(capaBurbujas);
+            // RESTAURADO: Leyenda detallada al pasar el mouse
             marker.bindTooltip(`<b>COMUNA ${c}</b><br>VOTOS: ${t}`, { permanent: false, sticky: true });
         });
     }
@@ -262,6 +262,7 @@
             data: { labels: labels.map(l => "COMUNA " + l), datasets: [{ data: data, backgroundColor: ['#1e293b','#334155','#475569','#2563eb','#3b82f6','#60a5fa','#93c5fd'] }] },
             options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: true } } }
         });
+        // RESTAURADO: Porcentajes y barras en la leyenda de la dona
         document.getElementById('donaLegend').innerHTML = labels.map((l, i) => `<div class="legend-item"><span>COMUNA ${l}</span><span>${data[i]} (${((data[i]/total)*100).toFixed(1)}%)</span></div><div class="progress-mini"><div class="progress-mini-fill" style="width:${(data[i]/total)*100}%"></div></div>`).join('');
     }
 
