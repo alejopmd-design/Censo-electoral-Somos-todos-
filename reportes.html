@@ -13,8 +13,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
         :root { 
@@ -108,10 +106,10 @@
         </div>
 
         <div class="stat-card" style="border-left-color: var(--success)">
-            <span class="stat-label">LÍDERES ACTIVOS</span>
+            <span class="stat-label">LÍDERES ACTIVOS (ROSSMERY)</span>
             <span class="stat-val" id="tLideresActivos" style="color:var(--success)">0</span>
             <div class="meta-container">
-                <div class="meta-info"><span>FUERZA DE TRABAJO</span><span style="color:var(--success)">ACTIVA</span></div>
+                <div class="meta-info"><span>ESTRUCTURA DIRECTA</span><span style="color:var(--success)">ACTIVA</span></div>
             </div>
         </div>
 
@@ -219,11 +217,7 @@
 
     async function login() {
         const { value: p } = await Swal.fire({ 
-            title: 'AUTENTICACIÓN REQUERIDA', 
-            input: 'password', 
-            confirmButtonColor: '#0f172a',
-            background: '#ffffff',
-            allowOutsideClick: false
+            title: 'AUTENTICACIÓN REQUERIDA', input: 'password', confirmButtonColor: '#0f172a', background: '#ffffff', allowOutsideClick: false
         });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
@@ -246,10 +240,13 @@
             const { data: vData } = await _supabase.from('VOTANTES').select('*').order('created_at', { ascending: false });
             votantes = vData || [];
             renderUI();
-        } catch (error) { console.error("Error cargando base:", error); }
+        } catch (error) { console.error("Error:", error); }
     }
 
     function renderUI() {
+        // Filtrar a ROSSMERY de la data general para las tablas
+        const votantesSinRoss = votantes.filter(v => (v["Nombres y apellidos"] || "").toUpperCase() !== "ROSSMERY");
+        
         const totalReg = votantes.length;
         document.getElementById('tV').innerText = totalReg;
         
@@ -258,55 +255,95 @@
         document.getElementById('barAvance').style.width = porc + '%';
 
         let m = 0, f = 0, cCom = {}, cLid = {}, jerarquia = {};
+        let lideresRossmery = new Set();
 
         votantes.forEach(v => {
+            // Lógica Género
             const primerNombre = (v["Nombres y apellidos"] || "").split(" ")[0].toUpperCase();
             if(primerNombre.endsWith('A') || primerNombre === 'MARIA' || primerNombre === 'ELENA' || primerNombre === 'LADY') f++; else m++;
             
+            // Lógica Líderes (Excluir a Rossmery del conteo de votos de líderes si ella se inscribió a sí misma, pero contar sus inscritos)
             const lid = (v.lider || "DIRECTO").toUpperCase();
-            cLid[lid] = (cLid[lid] || 0) + 1;
+            const esDeRossmery = (v.lider || "").toUpperCase() === "ROSSMERY";
+            
+            // Solo sumamos al ranking de líderes si no es la propia cabeza de lista
+            if(lid !== "ROSSMERY") {
+                cLid[lid] = (cLid[lid] || 0) + 1;
+            }
 
+            // Un líder activo es cualquiera que fue inscrito POR Rossmery
+            if(esDeRossmery) {
+                lideresRossmery.add((v["Nombres y apellidos"] || "").toUpperCase());
+            }
+
+            // Lógica Geográfica
             const po = puestosOficiales.find(p => p.nombre_puesto.toLowerCase().trim() === (v.puesto||"").toLowerCase().trim());
             const com = po ? po.comuna : "OTRA";
             const pto = po ? po.nombre_puesto : (v.puesto || "PENDIENTE");
             const msa = v.mesa || "0";
 
             if(com !== "OTRA") cCom[com] = (cCom[com] || 0) + 1;
-
             if(!jerarquia[com]) jerarquia[com] = { t: 0, p: {} };
             if(!jerarquia[com].p[pto]) jerarquia[com].p[pto] = { t: 0, m: {} };
             if(!jerarquia[com].p[pto].m[msa]) jerarquia[com].p[pto].m[msa] = 0;
-            
             jerarquia[com].t++; 
             jerarquia[com].p[pto].t++; 
             jerarquia[com].p[pto].m[msa]++;
         });
 
-        document.getElementById('tLideresActivos').innerText = Object.keys(cLid).length;
+        // Cantidad de líderes activos (los que Rossmery inscribió directamente)
+        document.getElementById('tLideresActivos').innerText = lideresRossmery.size;
         document.getElementById('txtH').innerText = `H: ${m}`;
         document.getElementById('txtM').innerText = `M: ${f}`;
         renderChartGenero(m, f);
 
+        // Alertas Comunas
         const enCero = Object.keys(GPS).filter(c => !cCom[c]);
         document.getElementById('tZonasCriticas').innerText = enCero.length;
-        
         let hAlert = enCero.map(c => `<div class="alert-box alert-red"><span>COMUNA ${c}</span> <b>CERO REGISTROS</b></div>`).join('');
         const bajas = Object.entries(cCom).sort((a,b)=>a[1]-b[1]).slice(0, 5);
         hAlert += bajas.map(([c,t]) => `<div class="alert-box alert-orange"><span>COMUNA ${c}</span> <b>BAJO RENDIMIENTO (${t})</b></div>`).join('');
         document.getElementById('alertasContainer').innerHTML = hAlert;
 
-        // MAPA CON PORCENTAJES EN TOOLTIP
+        // Mapa y Dona (Igual que antes pero con porcentajes)
+        renderBurbujas(cCom, totalReg);
+        renderDona(cCom, totalReg);
+
+        // Tabla Jerárquica
+        renderJerarquia(jerarquia);
+
+        // Flujo Reciente (Excluyendo a Rossmery)
+        document.getElementById('ultimosRegistrosContainer').innerHTML = votantesSinRoss.slice(0, 8).map(v => `
+            <div class="row-recent">
+                <div><b>${v["Nombres y apellidos"]}</b><br><span style="font-size:0.65rem; color:#64748b;">LÍDER: ${v.lider || 'DIRECTO'}</span></div>
+                <div style="text-align:right"><span style="color:var(--accent); font-weight:900;">${v.puesto}</span></div>
+            </div>`).join('');
+
+        // Ranking Líderes (Excluyendo a Rossmery)
+        document.getElementById('bodyLid').innerHTML = Object.entries(cLid)
+            .filter(([nombre]) => nombre !== "ROSSMERY")
+            .sort((a,b)=>b[1]-a[1])
+            .map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/totalReg)*100).toFixed(1)}%</td></tr>`).join('');
+
+        // Tabla General (Excluyendo a Rossmery)
+        document.getElementById('bodyM').innerHTML = votantesSinRoss.map(v => {
+            const po = puestosOficiales.find(p => p.nombre_puesto.toLowerCase().trim() === (v.puesto||"").toLowerCase().trim());
+            return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.puesto || '---'}</td><td align="center">${v.mesa || '0'}</td><td align="center">${po ? po.comuna : '---'}</td></tr>`;
+        }).join('');
+    }
+
+    function renderBurbujas(cCom, total) {
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
             const t = cCom[c] || 0;
-            const pMap = totalReg > 0 ? ((t / totalReg) * 100).toFixed(1) : 0;
+            const p = total > 0 ? ((t / total) * 100).toFixed(1) : 0;
             const colorB = t === 0 ? "#ef4444" : (t < 20 ? "#f59e0b" : "#10b981");
-            L.circle(GPS[c], { 
-                color: colorB, fillColor: colorB, fillOpacity: 0.6, radius: 400 + (t * 15) 
-            }).addTo(capaBurbujas).bindTooltip(`<b>COMUNA ${c}</b><br>REGISTROS: ${t}<br>PARTICIPACIÓN: ${pMap}%`);
+            L.circle(GPS[c], { color: colorB, fillColor: colorB, fillOpacity: 0.6, radius: 400 + (t * 15) })
+            .addTo(capaBurbujas).bindTooltip(`<b>COMUNA ${c}</b><br>REGISTROS: ${t}<br>PARTICIPACIÓN: ${p}%`);
         });
+    }
 
-        // DONA CON PORCENTAJES EN TOOLTIP
+    function renderDona(cCom, total) {
         const eti = Object.keys(cCom).sort((a,b)=>a-b);
         const colDona = ['#2563eb','#8b5cf6','#06b6d4','#d946ef','#f97316','#a3e635','#2dd4bf','#fbbf24','#475569','#0f172a'];
         if(chartDona) chartDona.destroy();
@@ -316,41 +353,16 @@
             options: { 
                 plugins: { 
                     legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const val = context.raw;
-                                const porcIdx = totalReg > 0 ? ((val / totalReg) * 100).toFixed(1) : 0;
-                                return ` REGISTROS: ${val} (${porcIdx}%)`;
-                            }
-                        }
-                    }
+                    tooltip: { callbacks: { label: (c) => ` REGISTROS: ${c.raw} (${(total>0?(c.raw/total*100):0).toFixed(1)}%)` } }
                 }, 
                 cutout: '70%' 
             }
         });
-
         document.getElementById('donaLegend').innerHTML = eti.map((c, i) => `
             <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee; font-size:0.75rem;">
                 <span><i class="fas fa-circle" style="color:${colDona[i%colDona.length]}"></i> COMUNA ${c}</span>
                 <b>${cCom[c]}</b>
             </div>`).join('');
-
-        renderJerarquia(jerarquia);
-
-        document.getElementById('ultimosRegistrosContainer').innerHTML = votantes.slice(0, 8).map(v => `
-            <div class="row-recent">
-                <div><b>${v["Nombres y apellidos"]}</b><br><span style="font-size:0.65rem; color:#64748b;">LÍDER: ${v.lider || 'DIRECTO'}</span></div>
-                <div style="text-align:right"><span style="color:var(--accent); font-weight:900;">${v.puesto}</span></div>
-            </div>`).join('');
-
-        document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v]) => `
-            <tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/totalReg)*100).toFixed(1)}%</td></tr>`).join('');
-
-        document.getElementById('bodyM').innerHTML = votantes.map(v => {
-            const po = puestosOficiales.find(p => p.nombre_puesto.toLowerCase().trim() === (v.puesto||"").toLowerCase().trim());
-            return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.puesto || '---'}</td><td align="center">${v.mesa || '0'}</td><td align="center">${po ? po.comuna : '---'}</td></tr>`;
-        }).join('');
     }
 
     function renderJerarquia(data) {
