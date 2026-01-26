@@ -15,8 +15,8 @@
 
     <style>
         :root { 
-            --primary: #0f172a; --accent: #2563eb; --success: #10b981; 
-            --danger: #ef4444; --warning: #f59e0b; --bg: #cbd5e1; --panel: #ffffff;
+            --primary: #0f172a; --accent: #1e40af; --success: #065f46; 
+            --danger: #991b1b; --warning: #92400e; --bg: #cbd5e1; --panel: #ffffff;
             --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
         
@@ -26,37 +26,37 @@
         .master-header { 
             display: flex; justify-content: space-between; align-items: center; 
             background: var(--primary); padding: 20px; border-radius: 15px; 
-            color: white; margin-bottom: 25px; border-bottom: 4px solid var(--accent);
+            color: white; margin-bottom: 25px; border-bottom: 4px solid #2563eb;
         }
 
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px; }
-        .stat-card { background: var(--panel); border-radius: 15px; padding: 22px; border-left: 10px solid var(--accent); box-shadow: var(--shadow); }
+        .stat-card { background: var(--panel); border-radius: 15px; padding: 22px; border-left: 10px solid #2563eb; box-shadow: var(--shadow); }
         .stat-val { font-size: 3rem; font-weight: 900; display: block; line-height: 1; margin-bottom: 8px; }
         .stat-label { font-size: 0.75rem; font-weight: 800; color: #64748b; margin-bottom: 15px; display: block; }
 
         .progress-bar { height: 12px; background: #e2e8f0; border-radius: 20px; overflow: hidden; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #2563eb, #10b981); width: 0%; transition: width 1.5s ease; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #1e40af, #059669); width: 0%; transition: width 1.5s ease; }
 
         .main-layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 25px; }
         .panel { background: var(--panel); border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: var(--shadow); }
         h3 { font-size: 1rem; margin-bottom: 20px; border-bottom: 3px solid #f1f5f9; padding-bottom: 12px; font-weight: 900; }
 
         .visual-container { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
-        #map { height: 500px; width: 100%; border-radius: 12px; border: 2px solid #94a3b8; }
+        #map { height: 500px; width: 100%; border-radius: 12px; border: 2px solid #64748b; }
 
         .scroll { max-height: 450px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 10px; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 15px; text-align: left; font-size: 0.75rem; position: sticky; top: 0; border-bottom: 4px solid #cbd5e1; }
+        th { background: #f8fafc; padding: 15px; text-align: left; font-size: 0.75rem; position: sticky; top: 0; border-bottom: 4px solid #cbd5e1; z-index: 5; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 700; }
 
-        .fila-comuna { background: #eef2ff !important; font-weight: 900; cursor: pointer; border-left: 6px solid var(--accent); }
-        .fila-puesto { display: none; background: #ffffff !important; padding-left: 30px !important; border-left: 4px solid #94a3b8; }
+        .fila-comuna { background: #f1f5f9 !important; font-weight: 900; cursor: pointer; border-left: 6px solid #1e40af; }
+        .fila-puesto { display: none; background: #ffffff !important; padding-left: 30px !important; border-left: 4px solid #64748b; }
 
         .alert-box { padding: 15px; border-radius: 10px; margin-bottom: 10px; font-size: 0.8rem; font-weight: 900; border-left: 8px solid; }
-        .alert-red { background: #fee2e2; color: #991b1b; border-color: var(--danger); }
-        .alert-orange { background: #ffedd5; color: #9a3412; border-color: var(--warning); }
+        .alert-red { background: #fee2e2; color: #7f1d1d; border-color: #b91c1c; }
+        .alert-orange { background: #ffedd5; color: #7c2d12; border-color: #c2410c; }
 
-        .btn-exp { padding: 10px 15px; border-radius: 8px; border: none; font-weight: 900; cursor: pointer; color: white; background: #16a34a; }
+        .btn-exp { padding: 10px 15px; border-radius: 8px; border: none; font-weight: 900; cursor: pointer; color: white; background: #15803d; }
     </style>
 </head>
 <body>
@@ -65,7 +65,7 @@
     <header class="master-header">
         <div>
             <h1 style="margin:0; letter-spacing:2px;">SISTEMA ESTRATÉGICO CALI 2026</h1>
-            <span style="font-weight: 800; opacity: 0.8;">AUDITORÍA Y CONTROL DE CAMPAÑA</span>
+            <span style="font-weight: 800; opacity: 0.8;">PANEL DE CONTROL REAL-TIME</span>
         </div>
         <div id="reloj" style="font-size: 1.2rem; font-weight: 900;"></div>
     </header>
@@ -80,23 +80,23 @@
             <div class="progress-bar"><div id="barAvance" class="progress-fill"></div></div>
         </div>
         
-        <div class="stat-card" style="border-left-color: var(--danger)">
+        <div class="stat-card" style="border-left-color: #991b1b">
             <span class="stat-label">COMUNAS SIN REGISTROS</span>
-            <span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span>
+            <span class="stat-val" id="tZonasCriticas" style="color:#991b1b">0</span>
         </div>
 
-        <div class="stat-card" style="border-left-color: var(--success)">
+        <div class="stat-card" style="border-left-color: #065f46">
             <span class="stat-label">FUERZA OPERATIVA ACTIVA</span>
-            <span class="stat-val" id="tLideresActivos" style="color:var(--success)">0</span>
+            <span class="stat-val" id="tLideresActivos" style="color:#065f46">0</span>
             <span style="font-size:0.6rem; font-weight:800;">INSCRITOS POR ROSSMERY</span>
         </div>
 
-        <div class="stat-card" style="border-left-color: #e91e63">
+        <div class="stat-card" style="border-left-color: #be185d">
             <span class="stat-label">BALANCE GÉNERO</span>
             <div style="height: 50px;"><canvas id="chartGenero"></canvas></div>
-            <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:900; margin-top:5px;">
-                <span id="txtH" style="color:#2563eb">H: 0</span>
-                <span id="txtM" style="color:#e91e63">M: 0</span>
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:900; margin-top:8px;">
+                <div style="color:#1e40af">H: <span id="txtH">0</span> (<span id="perH">0%</span>)</div>
+                <div style="color:#be185d">M: <span id="txtM">0</span> (<span id="perM">0%</span>)</div>
             </div>
         </div>
     </div>
@@ -129,7 +129,7 @@
             <div class="panel">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                     <h3><i class="fas fa-database"></i> BASE DE DATOS</h3>
-                    <button class="btn-exp" onclick="exportTable()">DESCARGAR EXCEL</button>
+                    <button class="btn-exp" onclick="exportTable()">EXCEL</button>
                 </div>
                 <input type="text" id="bus" onkeyup="filtrar()" placeholder="BUSCAR..." style="width:100%; padding:12px; border-radius:10px; border:2px solid #e2e8f0; font-weight:800; margin-bottom:15px;">
                 <div class="scroll">
@@ -176,14 +176,13 @@
 
     let votantes = [], puestosOficiales = [], map, capaBurbujas, chartDona, chartGen;
     
-    // Nombres que identifican a la cabeza de lista
     const CABEZA_LISTA = ["ROSSMERY", "ROSSE MARY", "ROSSMERY CABAL", "ROSSE MARY CABAL FRANCO"];
     const EXCLUIDOS = [...CABEZA_LISTA, "ANGIE", "ANGIE CABAL"];
 
     const GPS = { "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],"6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],"11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],"16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],"21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510],"25":[3.370,-76.570],"33":[3.480,-76.570] };
 
     async function login() {
-        const { value: p } = await Swal.fire({ title: 'CONTROL DE ACCESO', input: 'password', allowOutsideClick: false });
+        const { value: p } = await Swal.fire({ title: 'ACCESO RESTRINGIDO', input: 'password', allowOutsideClick: false });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
             initMap(); cargarBase();
@@ -206,13 +205,11 @@
     }
 
     function renderUI() {
-        // AJUSTE: Filtrar quiénes tienen como líder a Rossmery (en cualquiera de sus nombres)
         const inscritosPorRossmery = votantes.filter(v => {
-            const liderNombre = (v.lider || "").toUpperCase();
-            return CABEZA_LISTA.some(nombre => liderNombre.includes(nombre));
+            const lidNom = (v.lider || "").toUpperCase();
+            return CABEZA_LISTA.some(n => lidNom.includes(n));
         });
 
-        // Filtrar para tablas (Sin los nombres prohibidos)
         const votantesLimpios = votantes.filter(v => {
             const nom = (v["Nombres y apellidos"] || "").toUpperCase();
             return !EXCLUIDOS.some(e => nom.includes(e));
@@ -226,9 +223,8 @@
         let m=0, f=0, cCom={}, cLid={}, jerarquia={};
 
         votantes.forEach(v => {
-            const nomComp = (v["Nombres y apellidos"] || "").toUpperCase();
-            const pNom = nomComp.split(" ")[0];
-            if(pNom.endsWith('A') || pNom === 'MARIA' || pNom === 'LADY') f++; else m++;
+            const pNom = (v["Nombres y apellidos"] || "").split(" ")[0].toUpperCase();
+            if(pNom.endsWith('A') || pNom === 'MARIA') f++; else m++;
             
             const lid = (v.lider || "DIRECTO").toUpperCase();
             if(!EXCLUIDOS.some(e => lid.includes(e))) cLid[lid] = (cLid[lid]||0) + 1;
@@ -243,22 +239,23 @@
             jerarquia[com].t++; jerarquia[com].p[pto].t++;
         });
 
-        // Actualizar indicadores
-        document.getElementById('tLideresActivos').innerText = inscritosPorRossmery.length;
-        document.getElementById('txtH').innerText = `H: ${m}`;
-        document.getElementById('txtM').innerText = `M: ${f}`;
+        // Actualizar Género con Porcentajes
+        document.getElementById('txtH').innerText = m;
+        document.getElementById('txtM').innerText = f;
+        document.getElementById('perH').innerText = total > 0 ? ((m/total)*100).toFixed(1) + '%' : '0%';
+        document.getElementById('perM').innerText = total > 0 ? ((f/total)*100).toFixed(1) + '%' : '0%';
         renderChartGenero(m, f);
 
-        // Alertas y Visuales
+        document.getElementById('tLideresActivos').innerText = inscritosPorRossmery.length;
+
         const enCero = Object.keys(GPS).filter(c => !cCom[c]);
         document.getElementById('tZonasCriticas').innerText = enCero.length;
-        document.getElementById('alertasContainer').innerHTML = enCero.map(c => `<div class="alert-box alert-red">COMUNA ${c}: SIN REGISTROS</div>`).join('');
+        document.getElementById('alertasContainer').innerHTML = enCero.map(c => `<div class="alert-box alert-red">COMUNA ${c}: INTERVENCIÓN URGENTE</div>`).join('');
 
         renderMapa(cCom, total);
-        renderDona(cCom, total); // Esto actualiza la leyenda detallada
+        renderDona(cCom, total);
         renderJerarquia(jerarquia, total);
 
-        // Tablas
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1])
             .map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/total)*100).toFixed(1)}%</td></tr>`).join('');
 
@@ -268,32 +265,46 @@
         }).join('');
 
         document.getElementById('ultimosRegistrosContainer').innerHTML = votantesLimpios.slice(0, 5).map(v => `
-            <div style="background:#f8fafc; padding:10px; border-radius:8px; margin-bottom:5px; border-left:4px solid var(--accent);">
+            <div style="background:#f1f5f9; padding:10px; border-radius:8px; margin-bottom:5px; border-left:4px solid #1e40af;">
                 <b>${v["Nombres y apellidos"]}</b><br><small>LÍDER: ${v.lider || 'DIRECTO'}</small>
             </div>`).join('');
     }
 
+    // AJUSTE: Colores más oscuros en el mapa
     function renderMapa(cCom, total) {
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
             const t = cCom[c] || 0;
-            const col = t === 0 ? "#ef4444" : "#10b981";
-            L.circle(GPS[c], { color: col, radius: 400 + (t*10) }).addTo(capaBurbujas)
+            const col = t === 0 ? "#7f1d1d" : "#064e3b"; // Rojo oscuro y Verde oscuro
+            L.circle(GPS[c], { color: col, fillColor: col, fillOpacity: 0.5, radius: 450 + (t*12) }).addTo(capaBurbujas)
             .bindTooltip(`C${c}: ${t} (${(total>0?(t/total*100):0).toFixed(1)}%)`);
         });
     }
 
+    // AJUSTE: Dona con porcentaje en el Tooltip
     function renderDona(cCom, total) {
         const eti = Object.keys(cCom).sort((a,b)=>a-b);
-        const colores = ['#2563eb','#8b5cf6','#06b6d4','#d946ef','#f97316','#a3e635','#2dd4bf','#fbbf24','#475569','#0f172a'];
+        const colores = ['#1e40af','#6d28d9','#0e7490','#be185d','#c2410c','#4d7c0f','#0f766e','#a16207','#334155','#0f172a'];
         if(chartDona) chartDona.destroy();
         chartDona = new Chart(document.getElementById('donaComunas'), {
             type: 'doughnut',
             data: { labels: eti.map(e=>'C'+e), datasets: [{ data: eti.map(e=>cCom[e]), backgroundColor: colores }] },
-            options: { plugins: { legend:{display:false} } }
+            options: { 
+                plugins: { 
+                    legend:{display:false},
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let val = context.raw;
+                                let per = ((val/total)*100).toFixed(1);
+                                return ` ${val} Votos (${per}%)`;
+                            }
+                        }
+                    }
+                } 
+            }
         });
 
-        // AJUSTE: Mantener descripción con número de votos y porcentaje
         document.getElementById('donaLegend').innerHTML = eti.map((c, i) => {
             const v = cCom[c];
             const p = ((v/total)*100).toFixed(1);
@@ -324,14 +335,14 @@
     function renderChartGenero(m, f) {
         if(chartGen) chartGen.destroy();
         chartGen = new Chart(document.getElementById('chartGenero'), {
-            type: 'bar', data: { labels: ['H','M'], datasets: [{ data:[m,f], backgroundColor:['#2563eb','#e91e63'] }] },
+            type: 'bar', data: { labels: ['H','M'], datasets: [{ data:[m,f], backgroundColor:['#1e40af','#be185d'] }] },
             options: { indexAxis:'y', maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false},y:{display:false}} }
         });
     }
 
     function exportTable() {
         const wb = XLSX.utils.table_to_book(document.getElementById('tablaG'));
-        XLSX.writeFile(wb, "REPORTE_ESTRATEGICO_2026.xlsx");
+        XLSX.writeFile(wb, "DATOS_ESTRATEGICOS_CALI_2026.xlsx");
     }
 
     function filtrar() {
