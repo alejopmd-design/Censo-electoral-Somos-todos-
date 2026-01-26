@@ -354,7 +354,11 @@
 
         <div class="activity-grid">
             <div class="panel">
-                <div class="panel-header"><h3><i class="fas fa-ranking-star"></i> RANKING LIDERAZGO</h3></div>
+                <div class="panel-header"><h3><i class="fas fa-ranking-star"></i> RANKING LIDERAZGO</h3>
+                <button class="btn-action" onclick="exportExcel('tblLid', 'Ranking_Liderazgo')" style="background: #217346; color: white; border-color: #217346;">
+                    <i class="fas fa-file-excel"></i> EXCEL
+                </button>
+                </div>
                 <div class="scroll" style="height: 450px;">
                     <table id="tblLid">
                         <thead>
@@ -370,7 +374,9 @@
             </div>
 
             <div class="panel">
-                <div class="panel-header"><h3><i class="fas fa-magnifying-glass"></i> CONSOLIDADO GENERAL</h3></div>
+                <div class="panel-header"><h3><i class="fas fa-magnifying-glass"></i> CONSOLIDADO GENERAL</h3><button class="btn-action" onclick="exportExcel('tblGen', 'Consolidado_General')" style="background: #217346; color: white; border-color: #217346;">
+    <i class="fas fa-file-excel"></i> EXCEL
+</button></div>
                 <input type="text" id="busG" onkeyup="filtrarG()" placeholder="BUSCAR POR NOMBRE O CÉDULA..." class="search-input">
                 <div class="scroll" style="height: 385px;">
                     <table id="tblGen">
@@ -427,7 +433,7 @@
         console.group("AUDITORÍA DE COMANDO");
         const report = {
             registros_totales: data.length,
-            validos: data.filter(v => v.cedula && v["Nombres y apellidos"]).length,
+            validos: data.filter(v => v.cedula && v["Nombres y apellidos"] && v.telefono).length,
             incompletos: data.filter(v => !v.cedula).length,
             con_telefono: data.filter(v => v.telefono).length,
             timestamp: new Date().toISOString()
@@ -574,10 +580,13 @@
         const total = votantes.length || 1;
         
         // Mapeo único de líderes para el KPI
-        const totalLideresActivos = new Set(votantes.map(v => (v.lider||"").toUpperCase())).size;
+       // Contamos solo los registros que tienen a Rosse Mary como líder
+        const registrosRosse = votantes.filter(v => 
+            (v.lider || "").trim().toUpperCase().includes("ROSSE") || (v.lider || "").trim().toUpperCase().includes("ROSSMERY")
+        ).length;
         
         document.getElementById('tV').innerText = votantes.length.toLocaleString();
-        document.getElementById('tLideresActivos').innerText = totalLideresActivos.toLocaleString();
+        document.getElementById('tLideresActivos').innerText = registrosRosse.toLocaleString();
 
         let h=0, m=0, cCom={}, cPue={}, cMesa={}, cLid={};
         
@@ -587,8 +596,11 @@
             const nom = (v["Nombres y apellidos"] || "").trim().toUpperCase();
             if(nom.endsWith('A') || nom.includes('MARIA') || nom.includes('ANA')) m++; else h++;
             
-            // Agrupación por Líder
-            const lid = (v.lider || "DIRECTO").toUpperCase();
+            // Agrupación por Líder con Normalización
+            let lid = (v.lider || "DIRECTO").toUpperCase().trim();
+            if (lid.includes("ROSSE") || lid.includes("ROSSMERY")) {
+                lid = "ROSSE MARY CABAL FRANCO";
+            }
             cLid[lid] = (cLid[lid]||0) + 1;
 
             // Cruce de información territorial
@@ -607,6 +619,22 @@
                 cMesa[v.puesto][mesa] = (cMesa[v.puesto][mesa]||0) + 1;
             }
         });
+// ---- AJUSTE: INCLUIR LÍDERES DE ROSSE MARY AUN CON 0 ----
+votantes.forEach(v => {
+    const reg = (v.registrado_por || "").toUpperCase().trim();
+    const lid = (v.lider || "").toUpperCase().trim();
+
+    if (
+        reg.includes("ROSSE") ||
+        reg.includes("ROSSMERY") ||
+        lid.includes("ROSSE")
+    ) {
+        const nombre = (v.lider || "ROSSE MARY CABAL FRANCO").toUpperCase().trim();
+        if (!cLid[nombre]) {
+            cLid[nombre] = 0;
+        }
+    }
+});
 
         // 1. RENDER: ACTIVIDAD RECIENTE
         document.getElementById('bodyActividad').innerHTML = votantes.slice(0, 30).map(v => `
@@ -661,9 +689,26 @@
                 <td align="center">${p ? p.comuna : '-'}</td>
             </tr>`;
         }).join('');
+// ---- INYECCIÓN FINAL: LÍDERES DE ROSSE MARY CON 0 ----
+votantes.forEach(v => {
+    const reg = (v.registrado_por || "").toUpperCase().trim();
+    const lid = (v.lider || "").toUpperCase().trim();
+
+    if (
+        reg.includes("ROSSE") ||
+        reg.includes("ROSSMERY") ||
+        lid.includes("ROSSE")
+    ) {
+        const nombre = (v.lider || "ROSSE MARY CABAL FRANCO").toUpperCase().trim();
+        if (!(nombre in cLid)) {
+            cLid[nombre] = 0;
+        }
+    }
+});
 
         // 4. RENDER: RANKING LÍDERES
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid)
+        .filter(([k,v]) => v > 0 || k.includes("ROSSE"))
             .sort((a,b)=>b[1]-a[1])
             .map(([l,v]) => `
                 <tr>
@@ -673,7 +718,7 @@
                 </tr>
             `).join('');
 
-        // 5. RENDER: ALERTAS DE INTERVENCIÓN (COLA DE 0 Y BOTTOM 5)
+        // 5. RENDER: ALERTAS DE INTERVENCIÓN (COMUNAS EN 0 Y ÚLTIMAS 5 CON MENOS VOTOS)
         const rC = Object.keys(GPS).map(c => ({ id: c, v: cCom[c] || 0 })).sort((a,b) => a.v - b.v);
         const alerts = [...rC.filter(x => x.v === 0), ...rC.filter(x => x.v > 0).slice(0, 5)];
         document.getElementById('tZonasCriticas').innerText = alerts.length;
@@ -778,16 +823,66 @@
     /* ---------------------------------------------------------
        UTILIDADES DE EXPORTACIÓN Y FILTRADO
     --------------------------------------------------------- */
-    function exportExcel(tableId, fileName) {
-        try {
-            const table = document.getElementById(tableId);
-            const wb = XLSX.utils.table_to_book(table, { sheet: "CommandCenterData" });
-            XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`);
-            Swal.fire({ icon: 'success', title: 'Exportación Exitosa', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
-        } catch (e) {
-            console.error("Error en exportación:", e);
-            Swal.fire({ icon: 'error', title: 'Error de Exportación' });
+   function exportExcel(tableId, fileName) {
+        // MOTOR PROFESIONAL: COMUNA > PUESTO > MESA
+        if (tableId === 'tblJer') {
+            const wb = XLSX.utils.book_new();
+            const dataMatrix = [
+                ["REPORTE JERÁRQUICO TOTAL - CALI 2026"],
+                ["GENERADO:", new Date().toLocaleString()],
+                [""],
+                ["JERARQUÍA", "DETALLE UBICACIÓN", "MESA", "TOTAL VOTOS"]
+            ];
+
+            // Usamos GPS para el orden numérico de comunas (1-22)
+            const comunasOrdenadas = Object.keys(GPS).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            // Calculamos la estructura real de los datos
+            let cCom={}, cPue={}, cMesa={};
+            votantes.forEach(v => {
+                const pInfo = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
+                if(pInfo) {
+                    const com = pInfo.comuna;
+                    cCom[com] = (cCom[com]||0) + 1;
+                    cPue[com] = cPue[com] || {}; 
+                    cPue[com][v.puesto] = (cPue[com][v.puesto]||0) + 1;
+                    cMesa[v.puesto] = cMesa[v.puesto] || {};
+                    const mesa = v.mesa || "0"; 
+                    cMesa[v.puesto][mesa] = (cMesa[v.puesto][mesa]||0) + 1;
+                }
+            });
+
+            comunasOrdenadas.forEach(com => {
+                // NIVEL 1: COMUNA
+                dataMatrix.push([`COMUNA ${com}`, `COMUNA ${com}`, "-", cCom[com] || 0]);
+
+                if(cPue[com]) {
+                    Object.keys(cPue[com]).sort().forEach(pue => {
+                        // NIVEL 2: PUESTO
+                        dataMatrix.push(["   > PUESTO", `      ${pue}`, "-", cPue[com][pue]]);
+
+                        if(cMesa[pue]) {
+                            Object.keys(cMesa[pue]).sort((a,b)=>parseInt(a)-parseInt(b)).forEach(mesa => {
+                                // NIVEL 3: MESA
+                                dataMatrix.push(["      >> MESA", `         ${pue}`, `MESA ${mesa}`, cMesa[pue][mesa]]);
+                            });
+                        }
+                    });
+                }
+                dataMatrix.push(["", "", "", ""]); // Espacio de separación
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(dataMatrix);
+            ws['!cols'] = [{wch:15}, {wch:50}, {wch:15}, {wch:20}];
+            XLSX.utils.book_append_sheet(wb, ws, "ESTRUCTURA_COMPLETA");
+            XLSX.writeFile(wb, `REPORTE_JERARQUIA_CALI_${new Date().getTime()}.xlsx`);
+            return;
         }
+
+        // Exportación normal para Ranking y Consolidado
+        const table = document.getElementById(tableId);
+        const wb = XLSX.utils.table_to_book(table);
+        XLSX.writeFile(wb, `${fileName}.xlsx`);
     }
 
     function filtrarG() {
