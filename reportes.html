@@ -17,7 +17,7 @@
 
     <style>
         /* ==========================================================================================
-        ARQUITECTURA VISUAL CSS (MANTENIENDO TODA LA IDENTIDAD)
+        ARQUITECTURA VISUAL CSS
         ========================================================================================== */
         :root { 
             --primary: #0f172a; 
@@ -524,6 +524,7 @@
 
     async function syncSupabaseData() {
         try {
+            showLoader(true);
             const [respPuestos, respVotantes] = await Promise.all([
                 _supabase.from('PUESTOS_VOTACION').select('*'),
                 _supabase.from('VOTANTES').select('*').order('created_at', { ascending: false })
@@ -531,19 +532,20 @@
             puestosOficiales = respPuestos.data || [];
             votantes = respVotantes.data || [];
             refreshInterface();
+            showLoader(false);
         } catch (err) { 
             console.error("Sync Error:", err);
+            showLoader(false);
             setTimeout(syncSupabaseData, 5000); 
         }
     }
 
     /* ==========================================================================================
-    FUNCIONES OPTIMIZADAS PARA EVITAR BLOQUEOS AL HACER CLICK EN FILTROS
+    FUNCIONES OPTIMIZADAS PARA EVITAR BLOQUEOS
     ========================================================================================== */
     function toggleNivel(clase) {
-        showLoader(true); // Mostrar loader
+        showLoader(true);
         
-        // Usar setTimeout para liberar el hilo principal
         setTimeout(() => {
             const elementos = document.getElementsByClassName(clase);
             if(!elementos.length) {
@@ -553,27 +555,23 @@
             
             const estaAbierto = elementos[0].style.display === 'table-row';
             
-            // Usar requestAnimationFrame para mejor rendimiento
             requestAnimationFrame(() => {
                 for (let el of elementos) {
                     el.style.display = estaAbierto ? 'none' : 'table-row';
                     
-                    // Cerrar recursivamente si se cierra el padre
                     if (estaAbierto && el.getAttribute('data-sub')) {
                         const subniveles = document.getElementsByClassName(el.getAttribute('data-sub'));
                         for(let sub of subniveles) sub.style.display = 'none';
                     }
                 }
-                
-                showLoader(false); // Ocultar loader
+                showLoader(false);
             });
-        }, 50); // Pequeño delay para mejorar percepción de respuesta
+        }, 50);
     }
 
     function refreshInterface() {
         const globalTotal = votantes.length || 1;
         
-        // FILTRO LÍDER ESPECÍFICO (ROSSE MARY)
         const inscritosRosse = votantes.filter(v => 
             (v.lider || "").toUpperCase().trim() === "ROSSE MARY CABAL FRANCO"
         ).length;
@@ -585,15 +583,12 @@
         let logActividad = "";
 
         votantes.forEach((v, index) => {
-            // Lógica de Género (Basada en terminación)
             const nom = (v["Nombres y apellidos"] || "").toUpperCase().trim();
             if(nom.endsWith('A') || nom.includes('MARIA') || nom.endsWith('S')) mujeres++; else hombres++;
             
-            // Lógica de Líderes
             const lid = (v.lider || "DIRECTO").toUpperCase().trim();
             contLid[lid] = (contLid[lid]||0) + 1;
 
-            // Relación Geográfica
             const pRef = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
             if(pRef) {
                 const c = pRef.comuna;
@@ -607,7 +602,6 @@
                 contMesa[v.puesto][m] = (contMesa[v.puesto][m]||0) + 1;
             }
 
-            // Actividad Reciente (Ultimos 10)
             if(index < 10) {
                 logActividad += `<tr><td><i class="fas fa-circle-check" style="color:var(--success)"></i> ${nom}</td><td align="right">${new Date(v.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td></tr>`;
             }
@@ -615,7 +609,6 @@
 
         document.getElementById('bodyActividad').innerHTML = logActividad;
 
-        // CONSTRUCCIÓN JERÁRQUICA (TABLA PRINCIPAL) - OPTIMIZADA
         let jerHtml = "";
         const comKeys = Object.keys(GPS).sort((a,b)=>parseInt(a)-parseInt(b));
         
@@ -657,7 +650,6 @@
         }
         document.getElementById('bodyJerarquia').innerHTML = jerHtml;
 
-        // CONSOLIDADO GENERAL (BÚSQUEDA)
         const generalHtml = votantes.map(v => {
             const p = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
             return `<tr>
@@ -670,13 +662,11 @@
         }).join('');
         document.getElementById('bodyGeneral').innerHTML = generalHtml;
 
-        // RANKING LÍDERES
         const lideresEntries = Object.entries(contLid);
         lideresEntries.sort((a,b) => b[1] - a[1]);
         const lideresHtml = lideresEntries.map(([l,v]) => `<tr><td>${l}</td><td>${v}</td><td>${((v/globalTotal)*100).toFixed(1)}%</td></tr>`).join('');
         document.getElementById('bodyLid').innerHTML = lideresHtml;
 
-        // GESTIÓN DE ALERTAS (Regla: Comunas en 0 y las 5 más bajas)
         const rankingAlertas = Object.keys(GPS).map(c => ({ id: c, v: contCom[c] || 0 })).sort((a,b) => a.v - b.v);
         const alertas = [...rankingAlertas.filter(x => x.v === 0), ...rankingAlertas.filter(x => x.v > 0).slice(0, 5)];
         
@@ -688,12 +678,10 @@
             </div>`
         ).join('');
 
-        // CALCULAR PORCENTAJES DE GÉNERO
         const totalGenero = hombres + mujeres;
         const pctHombres = totalGenero > 0 ? ((hombres/totalGenero)*100).toFixed(1) : "0.0";
         const pctMujeres = totalGenero > 0 ? ((mujeres/totalGenero)*100).toFixed(1) : "0.0";
 
-        // ACTUALIZAR CONTENEDOR DE PORCENTAJES DE GÉNERO
         document.getElementById('genderPercentContainer').innerHTML = `
             <div class="gender-percent">
                 <div class="gender-percent-label">HOMBRES</div>
@@ -709,7 +697,6 @@
     }
 
     function updateVisuals(contCom, total, h, m) {
-        // MAPA ACTUALIZACIÓN
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
             const v = contCom[c] || 0;
@@ -724,7 +711,6 @@
             }).addTo(capaBurbujas).bindTooltip(`COMUNA ${c}<br><b>${v} VOTOS</b><br>${((v/total)*100).toFixed(1)}%`, { sticky: true });
         });
 
-        // CHART DONA (PORCENTAJES SOLO EN HOVER)
         const labels = Object.keys(contCom).sort((a,b) => parseInt(a)-parseInt(b));
         const data = labels.map(l => contCom[l]);
         
@@ -754,4 +740,34 @@
                         callbacks: {
                             label: function(context) {
                                 let val = context.parsed;
-                               
+                                let pct = ((val/total)*100).toFixed(1);
+                                return ` REGISTROS: ${val} (${pct}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+
+        document.getElementById('donaLegend').innerHTML = labels.slice(0, 10).map((l, idx) => `
+            <div class="legend-item">
+                <span class="legend-color" style="background:${PALETA_MASTER[idx]}"></span>
+                C-${l} (${contCom[l]||0})
+            </div>
+        `).join('');
+
+        if(chartGen) chartGen.destroy();
+        chartGen = new Chart(document.getElementById('chartGenero'), {
+            type: 'bar',
+            data: {
+                labels: ['H', 'M'],
+                datasets: [{
+                    data: [h, m],
+                    backgroundColor: ['#2563eb', '#db2777'],
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                maintainAspectRatio: false,
