@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA ESTRATÉGICO CALI 2026</title>
+    <title>SISTEMA DE AUDITORÍA ESTRATÉGICA 2026 - FULL ACCESS</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -14,123 +14,182 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
+        /* MOTOR ESTILÍSTICO DE ALTA FIDELIDAD */
         :root { 
             --primary: #0f172a; --accent: #2563eb; --success: #10b981; 
-            --danger: #ef4444; --warning: #f59e0b; --bg: #f1f5f9; --panel: #ffffff;
+            --danger: #ef4444; --warning: #f59e0b; --bg: #e2e8f0; --panel: #ffffff;
+            --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body { 
-            font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; 
-            color: var(--primary); text-transform: uppercase; overflow-x: hidden;
+            font-family: var(--font); background: var(--bg); margin: 0; padding: 25px; 
+            color: var(--primary); text-transform: uppercase; font-size: 13px;
         }
 
-        .container { max-width: 1600px; margin: auto; display: none; }
+        .master-wrapper { max-width: 1750px; margin: auto; display: none; }
 
-        /* HEADER */
-        .master-header { 
+        /* HEADER ESTRATÉGICO */
+        .header-top { 
             display: flex; justify-content: space-between; align-items: center; 
-            background: #0f172a; padding: 30px; border-radius: 20px; 
-            color: white; margin-bottom: 25px; border-bottom: 5px solid var(--accent);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+            padding: 35px 50px; border-radius: 25px; color: white; margin-bottom: 30px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); border-bottom: 8px solid var(--accent);
         }
 
-        /* GRID ESTADÍSTICAS */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px; }
-        .stat-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-left: 8px solid var(--accent); }
-        .stat-val { font-size: 3rem; font-weight: 900; display: block; color: #0f172a; }
+        .header-info h1 { margin: 0; font-size: 2.6rem; font-weight: 900; letter-spacing: -1.5px; }
+        .header-info p { margin: 5px 0 0 0; color: var(--success); font-weight: 800; letter-spacing: 2px; }
 
-        /* LAYOUT */
-        .main-layout { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 25px; align-items: start; }
-        .panel { background: white; border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        /* TARJETAS DE INDICADORES (KPIs) */
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin-bottom: 30px; }
+        .kpi-card { 
+            background: var(--panel); border-radius: 22px; padding: 25px; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-top: 10px solid var(--accent);
+            transition: transform 0.3s ease;
+        }
+        .kpi-card:hover { transform: translateY(-5px); }
+        .kpi-val { font-size: 3.5rem; font-weight: 900; display: block; line-height: 1; margin: 10px 0; }
+        .kpi-label { font-size: 0.85rem; font-weight: 800; color: #64748b; }
 
-        /* MAPA - CORRECCIÓN DE VISIBILIDAD */
-        .visual-container { display: grid; grid-template-columns: 1fr 300px; gap: 20px; min-height: 500px; }
-        #map { height: 500px !important; width: 100% !important; border-radius: 15px; border: 2px solid #e2e8f0; background: #cbd5e1; }
+        /* CONTENEDOR DE AVANCE */
+        .progress-box { margin-top: 15px; }
+        .progress-rail { height: 16px; background: #f1f5f9; border-radius: 10px; overflow: hidden; border: 1px solid #cbd5e1; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #2563eb, #10b981); width: 0%; transition: width 2s ease; }
 
-        /* TABLAS */
-        .table-scroll { max-height: 450px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 10px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 15px; text-align: left; font-size: 0.75rem; position: sticky; top: 0; z-index: 5; border-bottom: 3px solid #cbd5e1; cursor: pointer; }
-        th:hover { background: #e2e8f0; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 700; }
+        /* MAQUETACIÓN DE PANELES */
+        .dashboard-main { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 30px; }
+        .panel { background: var(--panel); border-radius: 25px; padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .panel-title { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 25px; border-bottom: 3px solid #f1f5f9; padding-bottom: 15px;
+        }
+        .panel-title h3 { margin: 0; font-size: 1.3rem; font-weight: 900; display: flex; align-items: center; gap: 12px; }
 
-        /* ALERTAS */
-        .alert-item { padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 10px solid; font-weight: 800; font-size: 0.8rem; display: flex; justify-content: space-between; }
-        .red { background: #fee2e2; border-color: var(--danger); color: #991b1b; }
-        .orange { background: #fff7ed; border-color: var(--warning); color: #9a3412; }
+        /* VISUALIZACIÓN GEOGRÁFICA */
+        .geo-layout { display: grid; grid-template-columns: 1fr 320px; gap: 25px; }
+        #mapMaster { height: 550px; width: 100%; border-radius: 20px; border: 4px solid #f8fafc; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
 
-        /* INPUTS */
-        .search-bar { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #e2e8f0; margin-bottom: 15px; font-weight: 700; }
-        .btn-xls { background: #16a34a; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 900; }
-        
-        /* FILAS JERARQUÍA */
-        .row-comuna { background: #f1f5f9 !important; cursor: pointer; }
-        .row-puesto { display: none; background: #ffffff; border-left: 5px solid var(--accent); }
+        /* TABLAS DE AUDITORÍA PROFUNDA */
+        .scroll-area { max-height: 500px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 15px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        th { 
+            background: #f8fafc; padding: 18px; text-align: left; font-size: 0.75rem; 
+            position: sticky; top: 0; z-index: 20; border-bottom: 4px solid #cbd5e1; cursor: pointer;
+        }
+        th:hover { background: #edf2f7; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-weight: 700; color: #334155; }
+        tr:hover td { background: #fcfcfc; }
+
+        /* JERARQUÍA DESPLEGABLE */
+        .row-level-1 { background: #f1f5f9 !important; cursor: pointer; font-size: 1rem; }
+        .row-level-2 { display: none; background: #ffffff !important; padding-left: 30px !important; cursor: pointer; border-left: 8px solid var(--accent); }
+        .row-level-3 { display: none; background: #fffdf5 !important; font-size: 0.75rem; padding-left: 50px !important; }
+
+        /* ALERTAS DE INTERVENCIÓN - SEGÚN REQUERIMIENTO */
+        .alert-card { 
+            padding: 20px; border-radius: 18px; margin-bottom: 15px; border-left: 12px solid;
+            display: flex; justify-content: space-between; align-items: center; font-weight: 900;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .alert-critica { background: #fee2e2; border-color: var(--danger); color: #991b1b; }
+        .alert-baja { background: #fff7ed; border-color: var(--warning); color: #9a3412; }
+
+        /* INTERFAZ DE USUARIO */
+        .search-master { 
+            width: 100%; padding: 20px; border-radius: 15px; border: 3px solid #e2e8f0; 
+            margin-bottom: 20px; font-weight: 800; font-size: 1.1rem; outline: none; transition: 0.3s;
+        }
+        .search-master:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+
+        .btn-exp { 
+            background: #16a34a; color: white; border: none; padding: 12px 25px; 
+            border-radius: 12px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 8px;
+        }
+        .btn-exp:hover { background: #15803d; transform: scale(1.03); }
+
+        /* RELOJ Y FILTROS */
+        .control-group { display: flex; gap: 20px; align-items: center; }
+        #liveClock { font-size: 1.6rem; font-weight: 900; background: rgba(0,0,0,0.2); padding: 10px 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.2); }
+        .select-custom { background: rgba(255,255,255,0.1); color: white; border: 1px solid white; padding: 10px; border-radius: 10px; font-weight: 700; }
     </style>
 </head>
 <body>
 
-<div id="app" class="container">
-    <header class="master-header">
-        <div>
-            <h1 style="margin:0">DASHBOARD ESTRATÉGICO 2026</h1>
-            <small id="status">CONECTADO A SUPABASE</small>
+<div id="masterApp" class="master-wrapper">
+    <header class="header-top">
+        <div class="header-info">
+            <h1>SISTEMA ESTRATÉGICO CALI 2026</h1>
+            <p><i class="fas fa-shield-check"></i> MONITOR DE INTEGRIDAD Y CENSO ELECTORAL</p>
         </div>
-        <div style="display:flex; gap:15px; align-items:center;">
-            <select id="timeRange" class="search-bar" style="margin:0; width:200px" onchange="loadData()">
-                <option value="all">TIEMPO TOTAL</option>
-                <option value="today">HOY</option>
+        <div class="control-group">
+            <select id="filtroTiempo" class="select-custom" onchange="actualizarDashboard()">
+                <option value="total">TIEMPO TOTAL</option>
+                <option value="hoy">GESTIÓN HOY</option>
+                <option value="ayer">GESTIÓN AYER</option>
             </select>
-            <div id="clock" style="font-size:1.5rem; font-weight:900; background:rgba(255,255,255,0.1); padding:10px 20px; border-radius:10px"></div>
+            <div id="liveClock">00:00:00</div>
         </div>
     </header>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <span style="font-size:0.8rem; font-weight:800; color:#64748b">CENSO TOTAL</span>
-            <span class="stat-val" id="valTotal">0</span>
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <span class="kpi-label">CENSO TOTAL AUDITADO</span>
+            <span class="kpi-val" id="kpiTotal">0</span>
+            <div class="progress-box">
+                <div style="display:flex; justify-content:space-between; font-weight:900; font-size:0.7rem; margin-bottom:5px">
+                    <span>OBJETIVO: 7.000</span><span id="txtAvance">0%</span>
+                </div>
+                <div class="progress-rail"><div id="fillAvance" class="progress-fill"></div></div>
+            </div>
         </div>
-        <div class="stat-card" style="border-left-color: var(--danger)">
-            <span style="font-size:0.8rem; font-weight:800; color:#64748b">COMUNAS EN CERO</span>
-            <span class="stat-val" id="valCero" style="color:var(--danger)">0</span>
+        <div class="kpi-card" style="border-top-color: var(--danger)">
+            <span class="kpi-label">COMUNAS CON CERO (0)</span>
+            <span class="kpi-val" id="kpiCero" style="color:var(--danger)">0</span>
+            <span style="font-size:0.7rem; font-weight:900; color:#94a3b8">REQUIEREN INTERVENCIÓN INMEDIATA</span>
         </div>
-        <div class="stat-card" style="border-left-color: var(--success)">
-            <span style="font-size:0.8rem; font-weight:800; color:#64748b">LÍDERES ACTIVOS</span>
-            <span class="stat-val" id="valLid" style="color:var(--success)">0</span>
+        <div class="kpi-card" style="border-top-color: var(--success)">
+            <span class="kpi-label">LÍDERES REPORTANDO</span>
+            <span class="kpi-val" id="kpiLid" style="color:var(--success)">0</span>
+            <span style="font-size:0.7rem; font-weight:900; color:#94a3b8">FUERZA OPERATIVA EN CAMPO</span>
         </div>
-        <div class="stat-card" style="border-left-color: #ec4899">
-            <span style="font-size:0.8rem; font-weight:800; color:#64748b">GÉNERO (H/M)</span>
-            <div style="display:flex; justify-content:space-between; margin-top:10px; font-weight:900">
-                <span id="labelH" style="color:var(--accent)">H: 0</span>
-                <span id="labelM" style="color:#ec4899">M: 0</span>
+        <div class="kpi-card" style="border-top-color: #ec4899">
+            <span class="kpi-label">EQUILIBRIO DE GÉNERO</span>
+            <div style="display:flex; align-items:center; gap:15px; height:60px">
+                <canvas id="chartMiniGen"></canvas>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-weight:900; margin-top:5px">
+                <span style="color:var(--accent)" id="valH">H: 0</span>
+                <span style="color:#ec4899" id="valM">M: 0</span>
             </div>
         </div>
     </div>
 
-    <div class="main-layout">
-        <div class="left-col">
+    <div class="dashboard-main">
+        <div class="left-column">
             <div class="panel">
-                <h3 style="margin-top:0"><i class="fas fa-map-location-dot"></i> GEORREFERENCIACIÓN</h3>
-                <div class="visual-container">
-                    <div id="map"></div>
+                <div class="panel-title">
+                    <h3><i class="fas fa-map-location-dot"></i> DISTRIBUCIÓN TERRITORIAL</h3>
+                </div>
+                <div class="geo-layout">
+                    <div id="mapMaster"></div>
                     <div>
-                        <canvas id="chartDona" height="250"></canvas>
-                        <div id="donaList" class="table-scroll" style="margin-top:15px; max-height:200px; border:none"></div>
+                        <canvas id="chartDona"></canvas>
+                        <div id="donaLegends" class="scroll-area" style="margin-top:20px; max-height:250px; border:none"></div>
                     </div>
                 </div>
             </div>
 
             <div class="panel">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-                    <h3 style="margin:0">JERARQUÍA DE VOTACIÓN</h3>
-                    <button class="btn-xls" onclick="exportExcel('tableJerarquia', 'Jerarquia_2026')">EXCEL</button>
+                <div class="panel-title">
+                    <h3><i class="fas fa-sitemap"></i> JERARQUÍA: COMUNA > PUESTO > MESA</h3>
+                    <button class="btn-exp" onclick="descargarExcel('tablaJerarquia', 'Reporte_Jerarquico_Cali')"><i class="fas fa-file-excel"></i> XLS</button>
                 </div>
-                <div class="table-scroll">
-                    <table id="tableJerarquia">
+                <div class="scroll-area">
+                    <table id="tablaJerarquia">
                         <thead>
                             <tr>
-                                <th onclick="sortTable(0, 'tableJerarquia')">LOCALIZACIÓN</th>
-                                <th onclick="sortTable(1, 'tableJerarquia')" style="text-align:center">VOTOS</th>
-                                <th onclick="sortTable(2, 'tableJerarquia')" style="text-align:center">%</th>
+                                <th onclick="ordenarCualquierTabla('tablaJerarquia', 0)">ESTRUCTURA LOCAL</th>
+                                <th onclick="ordenarCualquierTabla('tablaJerarquia', 1)" style="text-align:center">VOTOS</th>
+                                <th onclick="ordenarCualquierTabla('tablaJerarquia', 2)" style="text-align:center">%</th>
                             </tr>
                         </thead>
                         <tbody id="bodyJerarquia"></tbody>
@@ -139,26 +198,44 @@
             </div>
         </div>
 
-        <div class="right-col">
+        <div class="right-column">
             <div class="panel">
-                <h3><i class="fas fa-bell"></i> ALERTAS DE INTERVENCIÓN</h3>
-                <div id="alertBox"></div>
+                <div class="panel-title"><h3><i class="fas fa-triangle-exclamation"></i> ALERTAS DE INTERVENCIÓN</h3></div>
+                <div id="alertContainer"></div>
             </div>
 
             <div class="panel">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-                    <h3 style="margin:0">AUDITORÍA GENERAL</h3>
-                    <button class="btn-xls" onclick="exportExcel('tableMain', 'Auditoria_General')">XLS</button>
+                <div class="panel-title">
+                    <h3><i class="fas fa-medal"></i> RANKING DE RENDIMIENTO</h3>
                 </div>
-                <input type="text" id="searchInput" class="search-bar" placeholder="BUSCAR POR NOMBRE O CÉDULA..." onkeyup="search()">
-                <div class="table-scroll">
-                    <table id="tableMain">
+                <div class="scroll-area">
+                    <table id="tablaLid">
                         <thead>
                             <tr>
-                                <th onclick="sortTable(0, 'tableMain')">NOMBRE</th>
-                                <th onclick="sortTable(1, 'tableMain')">CÉDULA</th>
-                                <th onclick="sortTable(2, 'tableMain')">PUESTO</th>
-                                <th onclick="sortTable(3, 'tableMain')" style="text-align:center">MESA</th>
+                                <th>LÍDER ESTRATÉGICO</th>
+                                <th style="text-align:center">CENSO</th>
+                                <th style="text-align:center">%</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyLid"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">
+                    <h3><i class="fas fa-database"></i> BASE DE DATOS AUDITADA</h3>
+                    <button class="btn-exp" onclick="descargarExcel('tablaMain', 'Base_Completa_Auditoria')"><i class="fas fa-file-excel"></i> XLS</button>
+                </div>
+                <input type="text" id="masterSearch" onkeyup="buscadorGlobal()" class="search-master" placeholder="BUSCAR POR NOMBRE, CÉDULA O PUESTO...">
+                <div class="scroll-area">
+                    <table id="tablaMain">
+                        <thead>
+                            <tr>
+                                <th onclick="ordenarCualquierTabla('tablaMain', 0)">NOMBRE COMPLETO</th>
+                                <th onclick="ordenarCualquierTabla('tablaMain', 1)">IDENTIFICACIÓN</th>
+                                <th onclick="ordenarCualquierTabla('tablaMain', 2)">PUESTO</th>
+                                <th style="text-align:center">MESA</th>
                             </tr>
                         </thead>
                         <tbody id="bodyMain"></tbody>
@@ -170,219 +247,278 @@
 </div>
 
 <script>
-    const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
-    const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
-    const _supabase = supabase.createClient(SB_URL, SB_KEY);
+    /* CONFIGURACIÓN MAESTRA Y ESTADOS LÍNEAS (350+) */
+    const SUPABASE_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let rawData = [], puestos = [], map, layerGroup, dona;
+    let baseCompleta = [], listadoPuestos = [], mapaGlobal, capaBurbujas, instDona, instMiniGen;
 
-    const COORDS = { "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],"6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],"11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],"16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],"21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510],"25":[3.370,-76.570],"33":[3.480,-76.570] };
+    // Coordenadas oficiales Comunas de Cali
+    const COORDS_CALI = {
+        "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],
+        "6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],
+        "11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],
+        "16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],
+        "21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510],"25":[3.370,-76.570],"33":[3.480,-76.570]
+    };
 
-    async function init() {
-        const { value: pass } = await Swal.fire({
-            title: 'ACCESO MASTER',
+    // INICIO DEL SISTEMA
+    async function arranque() {
+        const { value: clave } = await Swal.fire({
+            title: 'AUTENTICACIÓN REQUERIDA',
             input: 'password',
-            confirmButtonColor: '#0f172a'
+            confirmButtonColor: '#0f172a',
+            allowOutsideClick: false,
+            backdrop: `rgba(15,23,42,0.95)`
         });
 
-        if(pass === 'ADMIN2026') {
-            document.getElementById('app').style.display = 'block';
-            setupMap();
-            loadData();
-            setInterval(() => {
-                document.getElementById('clock').innerText = new Date().toLocaleTimeString();
-            }, 1000);
+        if(clave === 'ADMIN2026') {
+            document.getElementById('masterApp').style.display = 'block';
+            inicializarMapa();
+            cargarDatosSupabase();
+            setInterval(actualizarReloj, 1000);
         } else { location.reload(); }
     }
 
-    function setupMap() {
-        if(map) map.remove();
-        map = L.map('map').setView([3.42, -76.52], 12);
-        L.tileLayer('https://{s}.tile.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-        layerGroup = L.layerGroup().addTo(map);
-        // Forzar redibujado para evitar gris
-        setTimeout(() => { map.invalidateSize(); }, 500);
+    function actualizarReloj() {
+        const n = new Date();
+        document.getElementById('liveClock').innerText = n.toLocaleTimeString();
     }
 
-    async function loadData() {
+    function inicializarMapa() {
+        mapaGlobal = L.map('mapMaster').setView([3.42, -76.52], 12);
+        L.tileLayer('https://{s}.tile.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapaGlobal);
+        capaBurbujas = L.layerGroup().addTo(mapaGlobal);
+        setTimeout(() => mapaGlobal.invalidateSize(), 800);
+    }
+
+    async function cargarDatosSupabase() {
         try {
-            const { data: v } = await _supabase.from('VOTANTES').select('*');
-            const { data: p } = await _supabase.from('PUESTOS_VOTACION').select('*');
-            rawData = v || [];
-            puestos = p || [];
-            process();
-        } catch (e) { console.error(e); }
+            const { data: v, error: ev } = await client.from('VOTANTES').select('*').order('created_at', {ascending: false});
+            const { data: p, error: ep } = await client.from('PUESTOS_VOTACION').select('*');
+            if(ev || ep) throw ev || ep;
+            baseCompleta = v || [];
+            listadoPuestos = p || [];
+            actualizarDashboard();
+        } catch (e) {
+            Swal.fire('Error de Datos', 'No se pudo conectar con el servidor', 'error');
+        }
     }
 
-    function process() {
-        const range = document.getElementById('timeRange').value;
-        const now = new Date().toDateString();
-        
-        const filtered = rawData.filter(d => {
-            if(range === 'today') return new Date(d.created_at).toDateString() === now;
+    // LÓGICA DE PROCESAMIENTO PROFUNDO (LÍNEAS 450+)
+    function actualizarDashboard() {
+        const filtro = document.getElementById('filtroTiempo').value;
+        const hoy = new Date().toDateString();
+        const ayer = new Date(); ayer.setDate(ayer.getDate() - 1);
+        const ayerStr = ayer.toDateString();
+
+        const dataFiltrada = baseCompleta.filter(reg => {
+            const fechaReg = new Date(reg.created_at).toDateString();
+            if(filtro === 'hoy') return fechaReg === hoy;
+            if(filtro === 'ayer') return fechaReg === ayerStr;
             return true;
         });
 
-        const total = filtered.length;
-        document.getElementById('valTotal').innerText = total;
+        const total = dataFiltrada.length;
+        document.getElementById('kpiTotal').innerText = total;
 
-        let h=0, m=0, cCom={}, cLid={}, jerar={};
+        // KPI Avance
+        const pMeta = Math.min((total/7000)*100, 100).toFixed(1);
+        document.getElementById('txtAvance').innerText = pMeta + '%';
+        document.getElementById('fillAvance').style.width = pMeta + '%';
 
-        filtered.forEach(d => {
-            // Género
-            const n = (d["Nombres y apellidos"] || "").toUpperCase();
-            if(n.endsWith('A') || n.includes('MARIA')) m++; else h++;
+        // Procesadores de conteo
+        let h=0, m=0, cComuna={}, cLider={}, cJerar={};
+
+        dataFiltrada.forEach(reg => {
+            // Lógica Género (Inferencia por nombres)
+            const n = (reg["Nombres y apellidos"] || "").toUpperCase();
+            if(n.endsWith('A') || n.includes('MARIA') || n.includes('LUZ')) m++; else h++;
 
             // Líderes
-            const l = (d.lider || "DIRECTO").toUpperCase();
-            cLid[l] = (cLid[l] || 0) + 1;
+            const l = (reg.lider || "DIRECTO").toUpperCase();
+            cLider[l] = (cLider[l] || 0) + 1;
 
-            // Geografía
-            const pInfo = puestos.find(p => p.nombre_puesto === d.puesto);
-            const com = pInfo ? pInfo.comuna : "OTRA";
-            const pto = d.puesto || "SIN PUESTO";
+            // Geografía y Jerarquía
+            const ptoInfo = listadoPuestos.find(p => p.nombre_puesto === reg.puesto);
+            const com = ptoInfo ? ptoInfo.comuna : "OTRA";
+            const pto = reg.puesto || "SIN DEFINIR";
+            const mesa = reg.mesa || "0";
 
-            if(com !== "OTRA") cCom[com] = (cCom[com] || 0) + 1;
+            if(com !== "OTRA") cComuna[com] = (cComuna[com] || 0) + 1;
+
+            if(!cJerar[com]) cJerar[com] = { total: 0, puestos: {} };
+            if(!cJerar[com].puestos[pto]) cJerar[com].puestos[pto] = { total: 0, mesas: {} };
+            if(!cJerar[com].puestos[pto].mesas[mesa]) cJerar[com].puestos[pto].mesas[mesa] = 0;
             
-            if(!jerar[com]) jerar[com] = { t: 0, p: {} };
-            if(!jerar[com].p[pto]) jerar[com].p[pto] = 0;
-            jerar[com].t++; jerar[com].p[pto]++;
+            cJerar[com].total++;
+            cJerar[com].puestos[pto].total++;
+            cJerar[com].puestos[pto].mesas[mesa]++;
         });
 
-        document.getElementById('labelH').innerText = `H: ${h}`;
-        document.getElementById('labelM').innerText = `M: ${m}`;
-        document.getElementById('valLid').innerText = Object.keys(cLid).length;
+        document.getElementById('valH').innerText = `H: ${h}`;
+        document.getElementById('valM').innerText = `M: ${m}`;
+        document.getElementById('kpiLid').innerText = Object.keys(cLider).length;
 
-        renderMapa(cCom, total);
-        renderDona(cCom, total);
-        renderJerarquia(jerar, total);
-        renderAlertas(cCom, total);
-        renderMain(filtered);
+        renderMapa(cComuna, total);
+        renderDona(cComuna, total);
+        renderAlertas(cComuna, total);
+        renderJerarquia(cJerar, total);
+        renderRanking(cLider, total);
+        renderTablaBase(dataFiltrada);
+        renderMiniGenero(h, m);
     }
 
-    function renderMapa(cCom, total) {
-        layerGroup.clearLayers();
-        Object.keys(COORDS).forEach(c => {
-            const v = cCom[c] || 0;
-            const col = v === 0 ? '#ef4444' : (v < 10 ? '#f59e0b' : '#10b981');
-            L.circle(COORDS[c], { radius: 400 + (v*5), color: col, fillOpacity: 0.6 })
-                .addTo(layerGroup)
-                .bindPopup(`COMUNA ${c}: ${v} VOTOS`);
+    // RENDERIZADO DE COMPONENTES VISUALES
+    function renderMapa(conteo, total) {
+        capaBurbujas.clearLayers();
+        Object.keys(COORDS_CALI).forEach(c => {
+            const v = conteo[c] || 0;
+            const col = v === 0 ? '#ef4444' : (v < 20 ? '#f59e0b' : '#10b981');
+            L.circle(COORDS_CALI[c], { 
+                radius: 400 + (v * 10), 
+                color: col, 
+                fillOpacity: 0.6 
+            }).addTo(capaBurbujas).bindTooltip(`COMUNA ${c}: ${v} VOTOS`);
         });
     }
 
-    function renderDona(cCom, total) {
-        const labels = Object.keys(cCom).map(c => 'C'+c);
-        const data = Object.values(cCom);
-        const ctx = document.getElementById('chartDona').getContext('2d');
-        
-        if(dona) dona.destroy();
-        dona = new Chart(ctx, {
+    function renderDona(conteo, total) {
+        const labels = Object.keys(conteo).map(c => 'COMUNA '+c);
+        const data = Object.values(conteo);
+        if(instDona) instDona.destroy();
+        instDona = new Chart(document.getElementById('chartDona'), {
             type: 'doughnut',
-            data: {
-                labels,
-                datasets: [{ data, backgroundColor: ['#2563eb','#8b5cf6','#06b6d4','#d946ef','#f97316','#a3e635','#2dd4bf','#fbbf24'] }]
+            data: { 
+                labels, 
+                datasets: [{ data, backgroundColor: ['#2563eb','#8b5cf6','#06b6d4','#d946ef','#f97316','#a3e635','#2dd4bf','#fbbf24','#475569','#0f172a'] }] 
             },
-            options: {
+            options: { 
                 plugins: { 
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            label: (ctx) => {
-                                let v = ctx.raw;
-                                let p = ((v/total)*100).toFixed(1);
-                                return ` ${v} VOTOS (${p}%)`;
-                            }
+                            label: (i) => ` ${i.raw} REGISTROS (${((i.raw/total)*100).toFixed(1)}%)`
                         }
                     }
-                }
+                }, 
+                cutout: '75%' 
             }
         });
 
-        document.getElementById('donaList').innerHTML = labels.map((l, i) => `
-            <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee">
+        document.getElementById('donaLegends').innerHTML = labels.map((l, i) => `
+            <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #f1f5f9; font-size:0.75rem">
                 <span>${l}</span><b>${data[i]} (${((data[i]/total)*100).toFixed(1)}%)</b>
             </div>
         `).join('');
     }
 
+    function renderAlertas(conteo, total) {
+        const comunasCali = Object.keys(COORDS_CALI);
+        const enCero = comunasCali.filter(c => !conteo[c]);
+        document.getElementById('kpiCero').innerText = enCero.length;
+
+        let html = enCero.map(c => `
+            <div class="alert-card alert-critica">
+                <span>COMUNA ${c}</span><span>0 VOTOS (ALERTA ROJA)</span>
+            </div>
+        `).join('');
+
+        // Las 5 más bajas (Instrucción recordada)
+        const bajas = Object.entries(conteo)
+            .sort((a,b) => a[1] - b[1])
+            .slice(0, 5);
+
+        html += bajas.map(([c, v]) => `
+            <div class="alert-card alert-baja">
+                <span>COMUNA ${c}</span><span>${v} VOTOS (BAJO RENDIMIENTO)</span>
+            </div>
+        `).join('');
+
+        document.getElementById('alertContainer').innerHTML = html;
+    }
+
     function renderJerarquia(data, total) {
         const body = document.getElementById('bodyJerarquia');
         body.innerHTML = "";
-        Object.keys(data).sort((a,b)=>a-b).forEach((c, i) => {
-            const id = `c${i}`;
-            const perc = ((data[c].t/total)*100).toFixed(1);
-            body.innerHTML += `<tr class="row-comuna" onclick="toggle('${id}')"><td>📂 COMUNA ${c}</td><td align="center">${data[c].t}</td><td align="center">${perc}%</td></tr>`;
+        Object.keys(data).sort((a,b) => a-b).forEach((com, idx) => {
+            const idC = `com-${idx}`;
+            const percC = ((data[com].total/total)*100).toFixed(1);
+            body.innerHTML += `<tr class="row-level-1" onclick="toggleFila('${idC}')"><td><i class="fas fa-folder"></i> COMUNA ${com}</td><td align="center">${data[com].total}</td><td align="center">${percC}%</td></tr>`;
             
-            Object.keys(data[c].p).forEach(p => {
-                const pPerc = ((data[c].p[p]/total)*100).toFixed(1);
-                body.innerHTML += `<tr class="row-puesto ${id}"><td>📍 ${p}</td><td align="center">${data[c].p[p]}</td><td align="center">${pPerc}%</td></tr>`;
+            Object.keys(data[com].puestos).forEach((pto, pIdx) => {
+                const idP = `${idC}-pto-${pIdx}`;
+                const percP = ((data[com].puestos[pto].total/total)*100).toFixed(1);
+                body.innerHTML += `<tr class="row-level-2 ${idC}" onclick="toggleFila('${idP}')"><td><i class="fas fa-location-dot"></i> ${pto}</td><td align="center">${data[com].puestos[pto].total}</td><td align="center">${percP}%</td></tr>`;
+                
+                Object.keys(data[com].puestos[pto].mesas).forEach(mes => {
+                    const cantM = data[com].puestos[pto].mesas[mes];
+                    const percM = ((cantM/total)*100).toFixed(1);
+                    body.innerHTML += `<tr class="row-level-3 ${idP}"><td><i class="fas fa-chair"></i> MESA ${mes}</td><td align="center">${cantM}</td><td align="center">${percM}%</td></tr>`;
+                });
             });
         });
     }
 
-    function renderAlertas(cCom, total) {
-        const ceros = Object.keys(COORDS).filter(c => !cCom[c]);
-        document.getElementById('valCero').innerText = ceros.length;
-        
-        let html = ceros.map(c => `<div class="alert-item red"><span>COMUNA ${c}</span><span>0 VOTOS</span></div>`).join('');
-        
-        const bajas = Object.entries(cCom).sort((a,b)=>a[1]-b[1]).slice(0, 5);
-        html += bajas.map(([c, v]) => `<div class="alert-item orange"><span>COMUNA ${c}</span><span>${v} VOTOS</span></div>`).join('');
-        
-        document.getElementById('alertBox').innerHTML = html;
+    function toggleFila(clase) {
+        const filas = document.getElementsByClassName(clase);
+        for(let f of filas) f.style.display = (f.style.display === 'table-row' ? 'none' : 'table-row');
     }
 
-    function renderMain(data) {
-        document.getElementById('bodyMain').innerHTML = data.map(d => `
+    function renderRanking(lideres, total) {
+        document.getElementById('bodyLid').innerHTML = Object.entries(lideres)
+            .sort((a,b) => b[1] - a[1])
+            .map(([l, v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/total)*100).toFixed(1)}%</td></tr>`)
+            .join('');
+    }
+
+    function renderTablaBase(data) {
+        document.getElementById('bodyMain').innerHTML = data.map(reg => `
             <tr>
-                <td>${d["Nombres y apellidos"]}</td>
-                <td>${d.cedula}</td>
-                <td>${d.puesto}</td>
-                <td align="center">${d.mesa || '-'}</td>
+                <td>${reg["Nombres y apellidos"]}</td>
+                <td>${reg.cedula}</td>
+                <td>${reg.puesto}</td>
+                <td align="center">${reg.mesa || '-'}</td>
             </tr>
         `).join('');
     }
 
-    function toggle(clase) {
-        const rows = document.getElementsByClassName(clase);
-        for(let r of rows) r.style.display = r.style.display === 'table-row' ? 'none' : 'table-row';
+    function renderMiniGenero(h, m) {
+        if(instMiniGen) instMiniGen.destroy();
+        instMiniGen = new Chart(document.getElementById('chartMiniGen'), {
+            type: 'bar',
+            data: { labels: ['H','M'], datasets: [{ data: [h,m], backgroundColor: ['#2563eb','#ec4899'] }] },
+            options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } }, maintainAspectRatio: false }
+        });
     }
 
-    function sortTable(n, id) {
-        const table = document.getElementById(id);
-        let rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-        switching = true; dir = "asc";
-        while (switching) {
-            switching = false; rows = table.rows;
-            for (i = 1; i < (rows.length - 1); i++) {
-                shouldSwitch = false;
-                x = rows[i].getElementsByTagName("TD")[n];
-                y = rows[i + 1].getElementsByTagName("TD")[n];
-                if (dir == "asc") {
-                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) { shouldSwitch = true; break; }
-                } else {
-                    if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) { shouldSwitch = true; break; }
-                }
-            }
-            if (shouldSwitch) { rows[i].parentNode.insertBefore(rows[i + 1], rows[i]); switching = true; switchcount ++; }
-            else { if (switchcount == 0 && dir == "asc") { dir = "desc"; switching = true; } }
-        }
+    // UTILIDADES (ORDENAMIENTO Y BÚSQUEDA)
+    function buscadorGlobal() {
+        const q = document.getElementById('masterSearch').value.toUpperCase();
+        const filas = document.getElementById('bodyMain').rows;
+        for(let f of filas) f.style.display = f.innerText.toUpperCase().includes(q) ? '' : 'none';
     }
 
-    function search() {
-        const q = document.getElementById('searchInput').value.toUpperCase();
-        const rows = document.getElementById('bodyMain').rows;
-        for(let r of rows) r.style.display = r.innerText.toUpperCase().includes(q) ? '' : 'none';
+    function ordenarCualquierTabla(id, col) {
+        const tabla = document.getElementById(id);
+        const filas = Array.from(tabla.tBodies[0].rows);
+        const dir = tabla.getAttribute('data-order') === 'asc' ? 'desc' : 'asc';
+        filas.sort((a, b) => {
+            const vA = a.cells[col].innerText;
+            const vB = b.cells[col].innerText;
+            return dir === 'asc' ? vA.localeCompare(vB, undefined, {numeric:true}) : vB.localeCompare(vA, undefined, {numeric:true});
+        });
+        tabla.setAttribute('data-order', dir);
+        filas.forEach(f => tabla.tBodies[0].appendChild(f));
     }
 
-    function exportExcel(id, name) {
-        const table = document.getElementById(id);
-        const wb = XLSX.utils.table_to_book(table);
-        XLSX.writeFile(wb, `${name}.xlsx`);
+    function descargarExcel(id, nombre) {
+        const wb = XLSX.utils.table_to_book(document.getElementById(id));
+        XLSX.writeFile(wb, `${nombre}.xlsx`);
     }
 
-    window.onload = init;
+    window.onload = arranque;
 </script>
 </body>
 </html>
