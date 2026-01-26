@@ -3,21 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COMMAND CENTER CALI 2026 | ESTRATEGIA MASTER TOTAL ULTRA</title>
+    <title>COMMAND CENTER CALI 2026 | ESTRATEGIA MASTER TOTAL ULTRA COMPLETE</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
-        /* ========================================================================
-        SISTEMA DE DISEÑO Y VARIABLES DINÁMICAS
-        ========================================================================
+        /* ==========================================================================================
+        SECCIÓN 2: ARQUITECTURA DE ESTILOS CSS (DISEÑO INDUSTRIAL)
+        ==========================================================================================
         */
         :root { 
             --primary: #0f172a; 
@@ -30,12 +36,13 @@
             --border: #e2e8f0;
             --text-main: #1e293b;
             --text-muted: #64748b;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        /* RESET MAESTRO */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        /* Reset de Estilos y Normalización */
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
         
         body { 
             font-family: 'Inter', sans-serif; 
@@ -55,14 +62,11 @@
         }
 
         @keyframes fadeInSystem { 
-            from { opacity: 0; transform: scale(0.98); } 
+            from { opacity: 0; transform: scale(0.99); } 
             to { opacity: 1; transform: scale(1); } 
         }
 
-        /* ========================================================================
-        HEADER ESTRATÉGICO DE CONTROL
-        ========================================================================
-        */
+        /* Diseño del Header Principal */
         .master-header { 
             display: flex; 
             justify-content: space-between; 
@@ -97,10 +101,7 @@
             letter-spacing: 1px;
         }
 
-        /* ========================================================================
-        GRID DE INDICADORES (KPIs)
-        ========================================================================
-        */
+        /* Grid de Tarjetas de Indicadores (KPIs) */
         .stats-grid { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
@@ -137,7 +138,7 @@
             gap: 6px;
         }
 
-        /* ETIQUETA DE PORCENTAJE (OCULTA EN LOS QUE PEDISTE) */
+        /* Etiquetas de Porcentaje Flotantes */
         .stat-pct { 
             position: absolute; 
             top: 15px; 
@@ -151,10 +152,7 @@
             border: 1px solid var(--border);
         }
 
-        /* ========================================================================
-        ARQUITECTURA DE PANELES (LAYOUT)
-        ========================================================================
-        */
+        /* Estructura del Layout Principal */
         .dashboard-main { 
             display: grid; 
             grid-template-columns: 1.15fr 0.85fr; 
@@ -170,12 +168,19 @@
             border: 1px solid var(--border);
             height: auto;
         }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--bg); 
+            padding-bottom: 10px; 
+            margin-bottom: 12px;
+        }
         
         h3 { 
             font-size: 0.8rem; 
-            margin: 0 0 12px 0; 
-            border-bottom: 2px solid var(--bg); 
-            padding-bottom: 8px; 
+            margin: 0;
             font-weight: 900; 
             display: flex; 
             align-items: center; 
@@ -184,32 +189,48 @@
             letter-spacing: 0.5px;
         }
 
-        /* ========================================================================
-        MAPA Y VISUALIZACIÓN TERRITORIAL
-        ========================================================================
-        */
+        /* Botones de Acción Globales */
+        .btn-action {
+            padding: 6px 12px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: #f8fafc;
+            color: var(--text-main);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-action:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Estilos del Mapa */
         #map { 
             height: 480px; 
             width: 100%; 
             border-radius: 10px; 
             border: 1px solid var(--border); 
             z-index: 1;
-            background: #f8fafc;
         }
 
-        /* ========================================================================
-        SISTEMA DE TABLAS Y SCROLL
-        ========================================================================
-        */
+        /* Scrollbars Personalizados */
         .scroll { 
             overflow-y: auto; 
             scrollbar-width: thin; 
             scrollbar-color: var(--accent) var(--bg);
         }
-        .scroll::-webkit-scrollbar { width: 5px; }
+        .scroll::-webkit-scrollbar { width: 6px; }
+        .scroll::-webkit-scrollbar-track { background: var(--bg); }
         .scroll::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
 
-        table { width: 100%; border-collapse: collapse; }
+        /* Estilos de Tabla Avanzados */
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { 
             background: #f8fafc; 
             padding: 12px; 
@@ -220,15 +241,25 @@
             position: sticky; 
             top: 0; 
             z-index: 10; 
+            cursor: pointer;
+            transition: background 0.2s;
         }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.78rem; font-weight: 700; }
+        th:hover { background: #f1f5f9; color: var(--accent); }
+        th i { font-size: 0.6rem; opacity: 0.5; }
 
-        /* LÓGICA DE JERARQUÍA (VISTA ÁRBOL) */
-        .row-comuna { background: #f8fafc; cursor: pointer; transition: background 0.2s; }
+        td { 
+            padding: 12px; 
+            border-bottom: 1px solid #f1f5f9; 
+            font-size: 0.78rem; 
+            font-weight: 700; 
+            word-wrap: break-word; 
+        }
+
+        /* Filas Especiales para Jerarquía */
+        .row-comuna { background: #f8fafc; cursor: pointer; border-left: 4px solid #cbd5e1; }
         .row-comuna:hover { background: #f1f5f9; }
-        .row-puesto { display: none; border-left: 5px solid var(--accent); background: #ffffff; cursor: pointer; }
-        .row-puesto:hover { background: #fdfdfd; }
-        .row-mesa { display: none; border-left: 10px solid #cbd5e1; font-size: 0.72rem; background: #fafafa; }
+        .row-puesto { display: none; border-left: 6px solid var(--accent); background: #ffffff; cursor: pointer; }
+        .row-mesa { display: none; border-left: 10px solid #94a3b8; font-size: 0.72rem; background: #fafafa; }
 
         .tag-lider { 
             background: #dbeafe; 
@@ -242,10 +273,7 @@
             font-weight: 800;
         }
         
-        /* ========================================================================
-        PANELES DE ALERTAS Y GÉNERO
-        ========================================================================
-        */
+        /* Contenedores de Alertas */
         .alert-box { 
             padding: 12px 15px; 
             border-radius: 10px; 
@@ -256,14 +284,12 @@
             display: flex; 
             justify-content: space-between; 
             align-items: center;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-            animation: pulseAlert 2s infinite;
+            box-shadow: var(--shadow-sm);
         }
-        @keyframes pulseAlert { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
-        
         .alert-red { background: #fff1f2; color: #9f1239; border-color: #be123c; }
         .alert-orange { background: #fff7ed; color: #9a3412; border-color: #f59e0b; }
 
+        /* Buscador */
         .search-input { 
             width: 100%; 
             padding: 12px 18px; 
@@ -271,13 +297,11 @@
             border: 2px solid var(--border); 
             margin-bottom: 15px; 
             font-weight: 700; 
-            box-sizing: border-box; 
-            outline: none;
-            transition: var(--transition);
-            font-size: 0.82rem;
+            font-size: 0.82rem; 
             background: #f8fafc;
+            transition: var(--transition);
         }
-        .search-input:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+        .search-input:focus { border-color: var(--accent); background: white; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
         .activity-grid { 
             display: grid; 
@@ -287,9 +311,9 @@
         }
 
         .dona-legend-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 8px; 
             margin-top: 15px;
         }
         .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.65rem; font-weight: 800; }
@@ -300,50 +324,53 @@
 
 <div id="app" class="container">
     <header class="master-header">
-        <h1><i class="fas fa-microchip"></i> COMMAND CENTER CALI 2026 | MASTER TOTAL CONTROL</h1>
+        <h1><i class="fas fa-shield-halved"></i> COMMAND CENTER CALI 2026 | MASTER TOTAL CONTROL</h1>
         <div class="reloj-container" id="reloj">SINCRONIZANDO...</div>
     </header>
 
     <div class="stats-grid">
         <div class="stat-card">
-            <span class="stat-label"><i class="fas fa-users-viewfinder"></i> CENSO TOTAL REGISTRADO</span>
+            <span class="stat-label"><i class="fas fa-database"></i> CENSO REGISTRADO</span>
             <span class="stat-val" id="tV">0</span>
-            <span class="stat-pct" id="pctTotal">100%</span>
+            <span class="stat-pct">100%</span>
         </div>
-        
         <div class="stat-card" style="border-top-color: var(--danger)">
-            <span class="stat-label"><i class="fas fa-radiation"></i> COMUNAS EN ALERTA ROJA</span>
+            <span class="stat-label"><i class="fas fa-triangle-exclamation"></i> COMUNAS CRÍTICAS</span>
             <span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span>
         </div>
-        
         <div class="stat-card" style="border-top-color: var(--success)">
-            <span class="stat-label"><i class="fas fa-star"></i> LÍDER: ROSSE MARY CABAL</span>
+            <span class="stat-label"><i class="fas fa-medal"></i> LÍDER: ROSSE MARY</span>
             <span class="stat-val" id="tRossmery" style="color:var(--success)">0</span>
         </div>
-
         <div class="stat-card" style="border-top-color: #be185d">
-            <span class="stat-label"><i class="fas fa-venus-mars"></i> BALANCE DE GÉNERO</span>
+            <span class="stat-label"><i class="fas fa-venus-mars"></i> BALANCE GÉNERO</span>
             <div style="height: 45px; margin-top: 5px;"><canvas id="chartGenero"></canvas></div>
         </div>
     </div>
 
     <div class="dashboard-main">
-        
         <div class="left-col">
             <div class="panel">
-                <h3><i class="fas fa-map-marked-alt"></i> MAPA ESTRATÉGICO DE CALI (DINÁMICO)</h3>
+                <div class="panel-header">
+                    <h3><i class="fas fa-map-location-dot"></i> DESPLIEGUE GEOGRÁFICO</h3>
+                </div>
                 <div id="map"></div>
             </div>
             
             <div class="panel">
-                <h3><i class="fas fa-sitemap"></i> ESTRUCTURA TERRITORIAL DE VOTACIÓN (PUESTOS Y MESAS)</h3>
-                <div class="scroll" style="height: 520px;">
-                    <table id="tablaJerarquia">
+                <div class="panel-header">
+                    <h3><i class="fas fa-sitemap"></i> ESTRUCTURA TERRITORIAL DE VOTACIÓN</h3>
+                    <button class="btn-action" onclick="exportExcel('tblJer', 'Estructura_Territorial')">
+                        <i class="fas fa-file-excel"></i> DESCARGAR EXCEL
+                    </button>
+                </div>
+                <div class="scroll" style="height: 835px;">
+                    <table id="tblJer">
                         <thead>
                             <tr>
-                                <th>UBICACIÓN GEOGRÁFICA / NIVEL</th>
-                                <th style="text-align:center">REGISTROS</th>
-                                <th style="text-align:center">% PESO</th>
+                                <th onclick="sortTable('tblJer', 0)" style="width: 60%;">NIVEL / UBICACIÓN <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable('tblJer', 1)" style="text-align:center;">VOTOS <i class="fas fa-sort"></i></th>
+                                <th style="text-align:center;">% PESO</th>
                             </tr>
                         </thead>
                         <tbody id="bodyJerarquia"></tbody>
@@ -354,25 +381,30 @@
 
         <div class="right-col">
             <div class="panel">
-                <h3><i class="fas fa-chart-pie"></i> DISTRIBUCIÓN PORCENTUAL POR COMUNA</h3>
+                <div class="panel-header">
+                    <h3><i class="fas fa-chart-pie"></i> DISTRIBUCIÓN POR COMUNA</h3>
+                </div>
                 <div style="height: 250px;"><canvas id="chartDona"></canvas></div>
                 <div id="donaLegend" class="dona-legend-grid"></div>
             </div>
 
             <div class="panel">
-                <h3><i class="fas fa-exclamation-triangle"></i> ALERTAS DE INTERVENCIÓN INMEDIATA</h3>
-                <div id="alertasContainer">
-                    </div>
+                <div class="panel-header">
+                    <h3><i class="fas fa-fire"></i> ALERTAS DE INTERVENCIÓN</h3>
+                </div>
+                <div id="alertasContainer"></div>
             </div>
 
             <div class="panel">
-                <h3><i class="fas fa-history"></i> ÚLTIMA ACTIVIDAD DEL SISTEMA</h3>
+                <div class="panel-header">
+                    <h3><i class="fas fa-bolt"></i> ACTIVIDAD EN TIEMPO REAL</h3>
+                </div>
                 <div class="scroll" style="height: 420px;">
-                    <table id="tablaActividad">
+                    <table id="tblAct">
                         <thead>
                             <tr>
-                                <th>PERSONA / LÍDER</th>
-                                <th style="text-align:right">HORA</th>
+                                <th>REGISTRO</th>
+                                <th style="text-align:right;">HORA</th>
                             </tr>
                         </thead>
                         <tbody id="bodyActividad"></tbody>
@@ -383,14 +415,19 @@
 
         <div class="activity-grid">
             <div class="panel">
-                <h3><i class="fas fa-trophy"></i> RENDIMIENTO POR LIDERAZGO (RANKING)</h3>
+                <div class="panel-header">
+                    <h3><i class="fas fa-ranking-star"></i> RANKING DE LIDERAZGO</h3>
+                    <button class="btn-action" onclick="exportExcel('tblLid', 'Ranking_Lideres')">
+                        <i class="fas fa-file-excel"></i> EXCEL
+                    </button>
+                </div>
                 <div class="scroll" style="height: 450px;">
-                    <table>
+                    <table id="tblLid">
                         <thead>
                             <tr>
-                                <th>LÍDER RESPONSABLE</th>
-                                <th style="text-align:center">TOTAL</th>
-                                <th style="text-align:center">%</th>
+                                <th onclick="sortTable('tblLid', 0)">LÍDER RESPONSABLE <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable('tblLid', 1)" style="text-align:center;">VOTOS <i class="fas fa-sort"></i></th>
+                                <th style="text-align:center;">%</th>
                             </tr>
                         </thead>
                         <tbody id="bodyLid"></tbody>
@@ -399,17 +436,22 @@
             </div>
 
             <div class="panel">
-                <h3><i class="fas fa-database"></i> CONSOLIDADO GENERAL DE REGISTROS</h3>
-                <input type="text" id="busG" onkeyup="filtrarG()" placeholder="BUSCAR POR NOMBRE, CÉDULA, TELÉFONO O PUESTO..." class="search-input">
+                <div class="panel-header">
+                    <h3><i class="fas fa-magnifying-glass"></i> CONSOLIDADO GENERAL</h3>
+                    <button class="btn-action" onclick="exportExcel('tblGen', 'Consolidado_Votantes')">
+                        <i class="fas fa-file-excel"></i> EXCEL
+                    </button>
+                </div>
+                <input type="text" id="busG" onkeyup="filtrarG()" placeholder="FILTRAR POR NOMBRE, CÉDULA O PUESTO..." class="search-input">
                 <div class="scroll" style="height: 385px;">
-                    <table id="tablaGeneral">
+                    <table id="tblGen">
                         <thead>
                             <tr>
-                                <th>NOMBRE</th>
-                                <th>CÉDULA</th>
+                                <th onclick="sortTable('tblGen', 0)">NOMBRE <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable('tblGen', 1)">CÉDULA <i class="fas fa-sort"></i></th>
                                 <th>TELÉFONO</th>
-                                <th>PUESTO</th>
-                                <th style="text-align:center">C.</th>
+                                <th onclick="sortTable('tblGen', 3)">PUESTO <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable('tblGen', 4)" style="text-align:center;">C. <i class="fas fa-sort"></i></th>
                             </tr>
                         </thead>
                         <tbody id="bodyGeneral"></tbody>
@@ -417,23 +459,25 @@
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 
 <script>
-    /* ========================================================================
-    NÚCLEO DE DATOS Y CONFIGURACIÓN (SUPABASE)
-    ========================================================================
+    /* ==========================================================================================
+    SECCIÓN 3: LÓGICA DE PROGRAMACIÓN (MASTER ENGINE)
+    ==========================================================================================
     */
+    
+    // Configuración de Supabase
     const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
     Chart.register(ChartDataLabels);
 
+    // Variables de Estado Global
     let votantes = [], puestosOficiales = [], map, capaBurbujas, chartGen, chartDona;
 
-    // GEOPOSICIONES DE LAS COMUNAS DE CALI
+    // Diccionario Geográfico de Comunas Cali
     const GPS = { 
         "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],
         "6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],
@@ -442,161 +486,148 @@
         "21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510],"25":[3.370,-76.570],"33":[3.480,-76.570] 
     };
 
-    const PALETA = [
-        '#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', 
-        '#06b6d4', '#f43f5e', '#6366f1', '#14b8a6', '#f97316',
-        '#2dd4bf', '#a855f7', '#fb7185', '#34d399', '#60a5fa'
-    ];
+    const PALETA = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e', '#6366f1', '#14b8a6', '#f97316'];
 
-    /* ========================================================================
-    FUNCIONES DE SEGURIDAD E INICIO
-    ========================================================================
-    */
+    /* FUNCIONES DE ORDENAMIENTO DE TABLAS (NUMÉRICO Y ALFABÉTICO) */
+    function sortTable(tableId, n) {
+        let table = document.getElementById(tableId);
+        let switching = true, i, x, y, shouldSwitch, dir = "asc", switchcount = 0;
+        while (switching) {
+            switching = false;
+            let rows = table.rows;
+            for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("TD")[n];
+                y = rows[i + 1].getElementsByTagName("TD")[n];
+                let xContent = x.innerText.toLowerCase();
+                let yContent = y.innerText.toLowerCase();
+                
+                // Lógica para números
+                let xNum = parseFloat(xContent.replace(/,/g, ''));
+                let yNum = parseFloat(yContent.replace(/,/g, ''));
+                
+                if (!isNaN(xNum) && !isNaN(yNum)) {
+                    if (dir == "asc") { if (xNum > yNum) { shouldSwitch = true; break; } }
+                    else { if (xNum < yNum) { shouldSwitch = true; break; } }
+                } else {
+                    if (dir == "asc") { if (xContent > yContent) { shouldSwitch = true; break; } }
+                    else { if (xContent < yContent) { shouldSwitch = true; break; } }
+                }
+            }
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true; switchcount ++;
+            } else if (switchcount == 0 && dir == "asc") {
+                dir = "desc"; switching = true;
+            }
+        }
+    }
+
+    /* FUNCIÓN DE EXPORTACIÓN A EXCEL (.XLSX) */
+    function exportExcel(tableId, fileName) {
+        const table = document.getElementById(tableId);
+        const wb = XLSX.utils.table_to_book(table, { sheet: "Datos" });
+        XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+    /* INICIO Y LOGIN */
     async function login() {
         const { value: pass } = await Swal.fire({ 
-            title: 'AUTENTICACIÓN REQUERIDA', 
+            title: 'SISTEMA PROTEGIDO', 
             input: 'password', 
             confirmButtonColor: '#0f172a',
             allowOutsideClick: false 
         });
-        
         if(pass === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
             initMap(); 
-            initClock();
-            cargarBase(); 
-        } else {
-            login();
-        }
-    }
-
-    function initClock() {
-        setInterval(() => {
-            const ahora = new Date();
-            document.getElementById('reloj').innerHTML = `<i class="far fa-clock"></i> ${ahora.toLocaleString()}`;
-        }, 1000);
+            cargarDatosSupabase(); 
+            setInterval(() => { document.getElementById('reloj').innerHTML = new Date().toLocaleString(); }, 1000); 
+        } else login();
     }
 
     function initMap() {
         map = L.map('map').setView([3.42, -76.52], 12);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; Command Center Cali'
-        }).addTo(map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
         capaBurbujas = L.layerGroup().addTo(map);
     }
 
-    async function cargarBase() {
-        // Cargar Puestos
+    async function cargarDatosSupabase() {
         const { data: pData } = await _supabase.from('PUESTOS_VOTACION').select('*');
         puestosOficiales = pData || [];
-        
-        // Cargar Votantes
         const { data: vData } = await _supabase.from('VOTANTES').select('*').order('created_at', { ascending: false });
         votantes = vData || [];
-        
-        renderUI();
+        renderizarInterfaz();
     }
 
-    /* ========================================================================
-    LÓGICA DE EXPANSIÓN JERÁRQUICA (TABLA INTERACTIVA)
-    ========================================================================
-    */
-    function toggleLevel(id) {
-        const els = document.getElementsByClassName(id);
-        const isOp = els[0] && els[0].style.display !== 'table-row';
+    /* LÓGICA DE EXPANSIÓN DE FILAS */
+    function toggleNivel(clase) {
+        const els = document.getElementsByClassName(clase);
+        const estaAbierto = els[0] && els[0].style.display !== 'table-row';
         for (let el of els) {
-            el.style.display = isOp ? 'table-row' : 'none';
-            if (!isOp && el.getAttribute('data-id')) toggleLevelClose(el.getAttribute('data-id'));
+            el.style.display = estaAbierto ? 'table-row' : 'none';
+            if (!estaAbierto && el.getAttribute('data-sub')) cerrarSubniveles(el.getAttribute('data-sub'));
         }
     }
 
-    function toggleLevelClose(id) {
-        const els = document.getElementsByClassName(id);
+    function cerrarSubniveles(clase) {
+        const els = document.getElementsByClassName(clase);
         for (let el of els) {
             el.style.display = 'none';
-            if (el.getAttribute('data-id')) toggleLevelClose(el.getAttribute('data-id'));
+            if (el.getAttribute('data-sub')) cerrarSubniveles(el.getAttribute('data-sub'));
         }
     }
 
-    /* ========================================================================
-    PROCESAMIENTO Y RENDERIZADO (UI)
-    ========================================================================
-    */
-    function renderUI() {
+    /* PROCESAMIENTO Y RENDERIZADO GLOBAL */
+    function renderizarInterfaz() {
         const total = votantes.length || 1;
-        
-        // FILTRO ROSSE MARY CABAL FRANCO
         const rossCount = votantes.filter(v => (v.lider||"").toUpperCase() === "ROSSE MARY CABAL FRANCO").length;
         
         document.getElementById('tV').innerText = votantes.length.toLocaleString();
         document.getElementById('tRossmery').innerText = rossCount.toLocaleString();
 
-        let h = 0, m = 0, cComuna = {}, cPuesto = {}, cMesa = {}, cLider = {};
+        let h=0, m=0, cCom={}, cPue={}, cMesa={}, cLid={};
 
-        // PROCESAMIENTO ÚNICO DE DATOS
         votantes.forEach(v => {
-            const nombre = (v["Nombres y apellidos"] || "").toUpperCase();
-            if(nombre.endsWith('A') || nombre.includes('MARIA') || nombre.includes('LUCIA')) m++; else h++;
+            const nom = (v["Nombres y apellidos"] || "").toUpperCase();
+            if(nom.endsWith('A') || nom.includes('MARIA')) m++; else h++;
             
             const lid = (v.lider || "DIRECTO").toUpperCase();
-            cLider[lid] = (cLider[lid] || 0) + 1;
+            cLid[lid] = (cLid[lid]||0) + 1;
 
-            const puestoV = (v.puesto || "").toUpperCase();
-            const pInfo = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === puestoV);
-            
+            const pInfo = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
             if(pInfo) {
                 const com = pInfo.comuna;
-                cComuna[com] = (cComuna[com] || 0) + 1;
-                
-                cPuesto[com] = cPuesto[com] || {};
-                cPuesto[com][puestoV] = (cPuesto[com][puestoV] || 0) + 1;
-                
-                cMesa[puestoV] = cMesa[puestoV] || {};
-                const mNum = v.mesa || "0";
-                cMesa[puestoV][mNum] = (cMesa[puestoV][mNum] || 0) + 1;
+                cCom[com] = (cCom[com]||0) + 1;
+                cPue[com] = cPue[com] || {};
+                cPue[com][v.puesto] = (cPue[com][v.puesto]||0) + 1;
+                cMesa[v.puesto] = cMesa[v.puesto] || {};
+                const mesa = v.mesa || "0";
+                cMesa[v.puesto][mesa] = (cMesa[v.puesto][mesa]||0) + 1;
             }
         });
 
-        // 1. ACTIVIDAD RECIENTE (ULTIMOS 20)
+        // Actividad Reciente
         document.getElementById('bodyActividad').innerHTML = votantes.slice(0, 20).map(v => `
             <tr>
                 <td><b>${v["Nombres y apellidos"]}</b><br><span class="tag-lider">${v.lider || 'DIRECTO'}</span></td>
-                <td align="right" style="color:var(--accent)">${new Date(v.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
+                <td align="right" style="color:var(--accent)">${new Date(v.created_at).toLocaleTimeString()}</td>
             </tr>
         `).join('');
 
-        // 2. JERARQUÍA TERRITORIAL EXPANDIBLE
+        // Jerarquía Territorial
         let htmlJer = "";
-        Object.keys(GPS).sort((a,b) => a - b).forEach(com => {
-            const vCom = cComuna[com] || 0;
+        Object.keys(GPS).sort((a,b)=>a-b).forEach(com => {
+            const vCom = cCom[com] || 0;
             const idCom = `c-${com}`;
-            const pctCom = ((vCom / total) * 100).toFixed(1);
-            
-            htmlJer += `
-                <tr class="row-comuna" onclick="toggleLevel('${idCom}')">
-                    <td><i class="fas fa-layer-group"></i> COMUNA ${com}</td>
-                    <td align="center">${vCom}</td>
-                    <td align="center">${pctCom}%</td>
-                </tr>`;
-            
-            if(cPuesto[com]) {
-                Object.entries(cPuesto[com]).forEach(([pue, vPue]) => {
+            htmlJer += `<tr class="row-comuna" onclick="toggleNivel('${idCom}')"><td><i class="fas fa-folder"></i> COMUNA ${com}</td><td align="center">${vCom}</td><td align="center">${((vCom/total)*100).toFixed(1)}%</td></tr>`;
+            if(cPue[com]) {
+                Object.entries(cPue[com]).forEach(([pue, vPue]) => {
                     const idPue = `p-${pue.replace(/[^a-zA-Z0-9]/g, '')}`;
-                    htmlJer += `
-                        <tr class="${idCom} row-puesto" data-id="${idPue}" onclick="toggleLevel('${idPue}')">
-                            <td>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-building-columns"></i> ${pue}</td>
-                            <td align="center">${vPue}</td>
-                            <td align="center">${((vPue/total)*100).toFixed(1)}%</td>
-                        </tr>`;
-                    
+                    htmlJer += `<tr class="${idCom} row-puesto" data-sub="${idPue}" onclick="toggleNivel('${idPue}')"><td>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-building"></i> ${pue}</td><td align="center">${vPue}</td><td align="center">${((vPue/total)*100).toFixed(1)}%</td></tr>`;
                     if(cMesa[pue]) {
-                        Object.entries(cMesa[pue]).sort((a,b)=>a[0]-b[0]).forEach(([mesa, vMesa]) => {
-                            htmlJer += `
-                                <tr class="${idCom} ${idPue} row-mesa">
-                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-box-archive"></i> MESA ${mesa}</td>
-                                    <td align="center">${vMesa}</td>
-                                    <td align="center">${((vMesa/total)*100).toFixed(1)}%</td>
-                                </tr>`;
+                        Object.entries(cMesa[pue]).forEach(([mesa, vMesa]) => {
+                            htmlJer += `<tr class="${idCom} ${idPue} row-mesa"><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MESA ${mesa}</td><td align="center">${vMesa}</td><td align="center">${((vMesa/total)*100).toFixed(1)}%</td></tr>`;
                         });
                     }
                 });
@@ -604,127 +635,61 @@
         });
         document.getElementById('bodyJerarquia').innerHTML = htmlJer;
 
-        // 3. TABLA GENERAL CON TODOS LOS CAMPOS
+        // General
         document.getElementById('bodyGeneral').innerHTML = votantes.map(v => {
             const pInfo = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
-            return `
-                <tr>
-                    <td>${v["Nombres y apellidos"]}</td>
-                    <td>${v.cedula}</td>
-                    <td>${v.telefono || '-'}</td>
-                    <td>${v.puesto || '-'}</td>
-                    <td align="center"><span class="tag-lider" style="background:#f1f5f9; color:#1e293b; border:none">C-${pInfo ? pInfo.comuna : '-'}</span></td>
-                </tr>`;
+            return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.telefono||'-'}</td><td>${v.puesto || '-'}</td><td align="center">${pInfo ? pInfo.comuna : '-'}</td></tr>`;
         }).join('');
 
-        // 4. RANKING LIDERAZGO
-        document.getElementById('bodyLid').innerHTML = Object.entries(cLider)
-            .sort((a,b) => b[1] - a[1])
-            .map(([l,v]) => `
-                <tr>
-                    <td><i class="fas fa-user-check"></i> ${l}</td>
-                    <td align="center">${v}</td>
-                    <td align="center">${((v/total)*100).toFixed(1)}%</td>
-                </tr>`).join('');
+        // Ranking
+        document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/total)*100).toFixed(1)}%</td></tr>`).join('');
 
-        // 5. LÓGICA DE ALERTAS (COMUNAS 0 Y 5 MENORES)
-        const rankingC = Object.keys(GPS).map(c => ({ id: c, v: cComuna[c] || 0 })).sort((a,b) => a.v - b.v);
-        const alertas = [...rankingC.filter(x => x.v === 0), ...rankingC.filter(x => x.v > 0).slice(0, 5)];
-        
+        // Alertas (REGLA: 0 Y 5 MENORES)
+        const rankC = Object.keys(GPS).map(c => ({ id: c, v: cCom[c] || 0 })).sort((a,b) => a.v - b.v);
+        const alertas = [...rankC.filter(x => x.v === 0), ...rankC.filter(x => x.v > 0).slice(0, 5)];
         document.getElementById('tZonasCriticas').innerText = alertas.length;
-        
         document.getElementById('alertasContainer').innerHTML = alertas.map(c => `
             <div class="alert-box ${c.v === 0 ? 'alert-red' : 'alert-orange'}">
-                <span><i class="fas fa-map-pin"></i> COMUNA ${c.id}</span>
+                <span>COMUNA ${c.id}</span>
                 <span>${c.v} REGISTROS</span>
             </div>`).join('');
 
-        // LANZAR VISUALES COMPLEJOS
-        renderMapa(cComuna, total);
-        renderDona(cComuna, total);
-        renderChartGenero(h, m);
+        renderVisuales(cCom, total, h, m);
     }
 
-    function renderMapa(cComuna, total) {
+    function renderVisuales(cCom, total, h, m) {
+        // Mapa
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
-            const v = cComuna[c] || 0;
+            const v = cCom[c] || 0;
             const color = v === 0 ? '#be123c' : '#2563eb';
-            const radius = 400 + (v * 15);
-            
-            L.circle(GPS[c], { 
-                color: color, 
-                fillColor: color, 
-                fillOpacity: 0.5, 
-                weight: 2,
-                radius: radius 
-            }).addTo(capaBurbujas).bindTooltip(`<b>COMUNA ${c}</b><br>Votos: ${v}<br>Peso: ${((v/total)*100).toFixed(1)}%`);
+            L.circle(GPS[c], { color, fillColor: color, fillOpacity: 0.5, radius: 400 + (v*15) }).addTo(capaBurbujas).bindTooltip(`COMUNA ${c}: ${v} VOTOS`);
         });
-    }
 
-    function renderDona(cComuna, total) {
-        const labels = Object.keys(cComuna).sort((a,b) => a - b);
-        const data = labels.map(l => cComuna[l]);
-        
+        // Dona
+        const labels = Object.keys(cCom).sort((a,b)=>a-b);
+        const data = labels.map(l => cCom[l]);
         if(chartDona) chartDona.destroy();
         chartDona = new Chart(document.getElementById('chartDona'), {
             type: 'doughnut',
-            data: {
-                labels,
-                datasets: [{
-                    data,
-                    backgroundColor: PALETA,
-                    borderWidth: 2,
-                    borderColor: '#ffffff',
-                    hoverOffset: 15
-                }]
-            },
-            options: {
-                maintainAspectRatio: false,
-                cutout: '70%',
-                plugins: {
-                    legend: { display: false },
-                    datalabels: { display: false }
-                }
-            }
+            data: { labels, datasets: [{ data, backgroundColor: PALETA }] },
+            options: { maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
         });
-        
-        // Render Leyenda Dinámica
-        document.getElementById('donaLegend').innerHTML = labels.map((l, i) => `
-            <div class="legend-item">
-                <div class="legend-color" style="background:${PALETA[i % PALETA.length]}"></div>
-                <span>C-${l}: ${data[i]}</span>
-            </div>`).join('');
-    }
+        document.getElementById('donaLegend').innerHTML = labels.map((l,i) => `<div class="legend-item"><div class="legend-color" style="background:${PALETA[i%10]}"></div><span>C-${l}: ${data[i]}</span></div>`).join('');
 
-    function renderChartGenero(h, m) {
-        const tG = h + m || 1;
-        const pH = ((h/tG)*100).toFixed(1);
-        const pM = ((m/tG)*100).toFixed(1);
-        
+        // Género
         if(chartGen) chartGen.destroy();
         chartGen = new Chart(document.getElementById('chartGenero'), {
             type: 'bar',
-            data: {
-                labels: ['H', 'M'],
-                datasets: [{
-                    data: [h, m],
-                    backgroundColor: ['#2563eb', '#be185d'],
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    datalabels: {
-                        color: '#fff',
-                        font: { weight: 'bold', size: 10 },
-                        formatter: (v, ctx) => (ctx.dataIndex === 0 ? pH : pM) + '%'
-                    }
-                },
-                scales: { x: { display: false }, y: { display: false } }
+            data: { labels: ['H', 'M'], datasets: [{ data: [h, m], backgroundColor: ['#2563eb', '#be185d'] }] },
+            options: { 
+                indexAxis: 'y', 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { display: false }, 
+                    datalabels: { color: '#fff', formatter: v => ((v/(h+m||1))*100).toFixed(0)+'%' } 
+                }, 
+                scales: { x: { display: false }, y: { display: false } } 
             }
         });
     }
@@ -732,9 +697,7 @@
     function filtrarG() {
         const q = document.getElementById('busG').value.toUpperCase();
         const filas = document.getElementById('bodyGeneral').rows;
-        for (let i = 0; i < filas.length; i++) {
-            filas[i].style.display = filas[i].innerText.toUpperCase().includes(q) ? '' : 'none';
-        }
+        for (let i = 0; i < filas.length; i++) { filas[i].style.display = filas[i].innerText.toUpperCase().includes(q) ? '' : 'none'; }
     }
 
     window.onload = login;
