@@ -4,145 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COMMAND CENTER CALI 2026</title>
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
-        :root { --primary: #0f172a; --accent: #2563eb; --bg: #f1f5f9; --panel: #ffffff; }
+        :root { --p: #0f172a; --a: #2563eb; --bg: #f1f5f9; }
         * { box-sizing: border-box; margin: 0; padding: 0; text-transform: uppercase; font-family: sans-serif; }
         body { background: var(--bg); padding: 15px; color: #1e293b; }
-        .master-header { background: var(--primary); padding: 20px; border-radius: 12px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 5px solid var(--accent); }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: var(--panel); padding: 20px; border-radius: 12px; border-top: 5px solid var(--accent); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .stat-val { font-size: 2.2rem; font-weight: 900; display: block; color: var(--primary); }
-        .dashboard-main { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
-        .panel { background: var(--panel); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 15px rgba(0,0,0,0.05); }
-        #map { height: 450px; border-radius: 8px; border: 1px solid #ddd; }
+        .header { background: var(--p); padding: 20px; border-radius: 12px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 5px solid var(--a); }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; border-top: 5px solid var(--a); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .val { font-size: 2rem; font-weight: 900; display: block; color: var(--p); }
+        .main { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
+        .panel { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 15px rgba(0,0,0,0.05); }
+        #map { height: 400px; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 12px; font-size: 0.7rem; border-bottom: 2px solid #e2e8f0; text-align: left; }
+        th { background: #f8fafc; padding: 10px; font-size: 0.7rem; border-bottom: 2px solid #e2e8f0; text-align: left; }
         td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 700; }
-        .alert-box { padding: 12px; border-radius: 8px; margin-bottom: 8px; font-size: 0.75rem; font-weight: 800; display: flex; justify-content: space-between; border-left: 5px solid; }
-        .alert-red { background: #fee2e2; color: #991b1b; border-color: #ef4444; }
-        .alert-orange { background: #ffedd5; color: #9a3412; border-color: #f59e0b; }
-        .scroll { overflow-y: auto; max-height: 400px; }
+        .alert { padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.7rem; font-weight: 800; display: flex; justify-content: space-between; border-left: 5px solid; }
+        .red { background: #fee2e2; color: #991b1b; border-color: #ef4444; }
+        .orange { background: #ffedd5; color: #9a3412; border-color: #f59e0b; }
+        .scroll { overflow-y: auto; max-height: 350px; }
     </style>
 </head>
 <body>
-
-<div id="app">
-    <header class="master-header">
-        <h1>COMMAND CENTER CALI 2026</h1>
-        <div id="reloj" style="font-family: monospace; font-size: 1.2rem;">00:00:00</div>
+    <header class="header">
+        <h1>COMMAND CENTER 2026</h1>
+        <div id="reloj" style="font-family: monospace">00:00:00</div>
     </header>
 
-    <div class="stats-grid">
-        <div class="stat-card"><span>TOTAL VOTANTES</span><span class="stat-val" id="tV">0</span></div>
-        <div class="stat-card" style="border-top-color: #ef4444"><span>ALERTAS</span><span class="stat-val" id="tA">0</span></div>
-        <div class="stat-card" style="border-top-color: #10b981"><span>ROSSE MARY</span><span class="stat-val" id="tRM">0</span></div>
-        <div class="stat-card"><span>META 7.000</span><div style="height:15px; background:#eee; border-radius:10px; margin-top:10px;"><div id="metaBar" style="width:0%; height:100%; background:#10b981; border-radius:10px; transition:1s;"></div></div></div>
+    <div class="grid">
+        <div class="card"><span>TOTAL</span><span class="val" id="tV">0</span></div>
+        <div class="card" style="border-top-color:#ef4444"><span>ALERTAS</span><span class="val" id="tA">0</span></div>
+        <div class="card" style="border-top-color:#10b981"><span>ROSSE MARY</span><span class="val" id="tRM">0</span></div>
+        <div class="card"><span>META 7K</span><div style="height:15px;background:#eee;border-radius:10px;margin-top:10px;"><div id="mB" style="width:0%;height:100%;background:#10b981;border-radius:10px;transition:1s;"></div></div></div>
     </div>
 
-    <div class="dashboard-main">
-        <div class="left-col">
-            <div class="panel"><h3>MAPA OPERATIVO</h3><div id="map"></div></div>
-            <div class="panel">
-                <h3>REGISTROS RECIENTES</h3>
-                <input type="text" id="bus" onkeyup="filtrar()" placeholder="BUSCAR..." style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc;">
-                <div class="scroll">
-                    <table>
-                        <thead><tr><th>NOMBRE</th><th>CÉDULA</th><th>PUESTO</th></tr></thead>
-                        <tbody id="bodyG"></tbody>
-                    </table>
-                </div>
-            </div>
+    <div class="main">
+        <div class="col1">
+            <div class="panel"><h3>MAPA</h3><div id="map"></div></div>
+            <div class="panel"><h3>VOTANTES</h3><div class="scroll"><table><thead><tr><th>NOMBRE</th><th>CEDULA</th><th>PUESTO</th></tr></thead><tbody id="bG"></tbody></table></div></div>
         </div>
-        <div class="right-col">
-            <div class="panel"><h3>DISTRIBUCIÓN COMUNAS</h3><canvas id="chartDona"></canvas><div id="legend" style="margin-top:15px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px;"></div></div>
-            <div class="panel"><h3>ALERTAS DE INTERVENCIÓN</h3><div id="alertas"></div></div>
-            <div class="panel">
-                <h3>LIDERAZGO PRINCIPAL</h3>
-                <table>
-                    <thead><tr><th>NOMBRE</th><th>VOTOS</th><th>%</th></tr></thead>
-                    <tbody id="bodyL"></tbody>
-                </table>
-            </div>
+        <div class="col2">
+            <div class="panel"><h3>COMUNAS %</h3><canvas id="cD"></canvas><div id="leg" style="margin-top:10px; font-size:0.7rem; display:grid; grid-template-columns:1fr 1fr"></div></div>
+            <div class="panel"><h3>INTERVENCIÓN</h3><div id="als"></div></div>
+            <div class="panel"><h3>LIDERAZGO</h3><table><thead><tr><th>LIDER</th><th>VOTOS</th><th>%</th></tr></thead><tbody id="bL"></tbody></table></div>
         </div>
     </div>
-</div>
 
 <script>
-    // Configuración Supabase
-    const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
-    const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
-    const _supabase = supabase.createClient(SB_URL, SB_KEY);
-
-    let votantes = [], puestos = [], map, chartDona;
+    const _s = supabase.createClient('https://pmwlkdariynhaqbqursp.supabase.co', 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv');
+    let vots = [], pts = [], map, cD;
     const GPS = {"1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],"6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],"11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],"16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],"21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510]};
 
     async function init() {
-        try {
-            const {data: pData} = await _supabase.from('PUESTOS_VOTACION').select('*');
-            const {data: vData} = await _supabase.from('VOTANTES').select('*');
-            puestos = pData || []; votantes = vData || [];
-            
-            if(!map) {
-                map = L.map('map').setView([3.42, -76.52], 12);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-            }
-            render();
-        } catch (e) { console.error("Error en carga:", e); }
+        const {data: p} = await _s.from('PUESTOS_VOTACION').select('*');
+        const {data: v} = await _s.from('VOTANTES').select('*');
+        pts = p || []; vots = v || [];
+        if(!map) {
+            map = L.map('map').setView([3.42, -76.52], 12);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+        }
+        render();
     }
 
     function render() {
-        const total = votantes.length || 1;
-        const vRoss = votantes.filter(v => (v.lider||"").trim().toUpperCase() === "ROSSE MARY CABAL FRANCO");
-        
-        document.getElementById('tV').innerText = votantes.length;
-        document.getElementById('tRM').innerText = vRoss.length;
-        document.getElementById('metaBar').style.width = Math.min((vRoss.length/7000)*100, 100) + '%';
+        const t = vots.length || 1;
+        const vR = vots.filter(x => (x.lider||"").toUpperCase().includes("ROSSE MARY"));
+        document.getElementById('tV').innerText = vots.length;
+        document.getElementById('tRM').innerText = vRoss = vR.length;
+        document.getElementById('mB').style.width = Math.min((vR.length/7000)*100, 100) + '%';
 
-        let cCom = {};
-        votantes.forEach(v => {
-            const p = puestos.find(pt => pt.nombre_puesto.trim().toUpperCase() === (v.puesto||"").trim().toUpperCase());
-            if(p) cCom[p.comuna] = (cCom[p.comuna]||0) + 1;
+        let cC = {};
+        vots.forEach(x => {
+            const p = pts.find(y => y.nombre_puesto.trim().toUpperCase() === (x.puesto||"").trim().toUpperCase());
+            if(p) cC[p.comuna] = (cC[p.comuna]||0) + 1;
         });
 
-        // LÍDER
-        document.getElementById('bodyL').innerHTML = `<tr><td>ROSSE MARY CABAL FRANCO</td><td>${vRoss.length}</td><td>${((vRoss.length/total)*100).toFixed(1)}%</td></tr>`;
+        document.getElementById('bL').innerHTML = `<tr><td>ROSSE MARY CABAL FRANCO</td><td>${vR.length}</td><td>${((vR.length/t)*100).toFixed(1)}%</td></tr>`;
+        document.getElementById('bG').innerHTML = vots.slice(0,50).map(x => `<tr><td>${x["Nombres y apellidos"]}</td><td>${x.cedula}</td><td>${x.puesto}</td></tr>`).join('');
 
-        // TABLA
-        document.getElementById('bodyG').innerHTML = votantes.slice(0,50).map(v => `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.puesto}</td></tr>`).join('');
+        const rk = Object.keys(GPS).map(c => ({id: c, v: cC[c]||0})).sort((a,b)=>a.v - b.v);
+        const als = [...rk.filter(x=>x.v===0), ...rk.filter(x=>x.v>0).slice(0,5)];
+        document.getElementById('tA').innerText = als.length;
+        document.getElementById('als').innerHTML = als.map(a => `<div class="alert ${a.v===0?'red':'orange'}"><span>C-${a.id}</span><span>${a.v} VOTOS</span></div>`).join('');
 
-        // ALERTAS (COMUNAS 0 Y TOP 5 BAJAS)
-        const ranking = Object.keys(GPS).map(c => ({id: c, v: cCom[c]||0})).sort((a,b)=>a.v - b.v);
-        const alertas = [...ranking.filter(x=>x.v===0), ...ranking.filter(x=>x.v>0).slice(0,5)];
-        document.getElementById('tA').innerText = alertas.length;
-        document.getElementById('alertas').innerHTML = alertas.map(a => `<div class="alert-box ${a.v===0?'alert-red':'alert-orange'}"><span>COMUNA ${a.id}</span><span>${a.v} VOTOS</span></div>`).join('');
-
-        // DONA
-        const labels = Object.keys(cCom).sort((a,b)=>a-b);
-        const data = labels.map(l => cCom[l]);
-        if(chartDona) chartDona.destroy();
-        chartDona = new Chart(document.getElementById('chartDona'), {
+        const lab = Object.keys(cC).sort((a,b)=>a-b);
+        const dat = lab.map(l => cC[l]);
+        if(cD) cD.destroy();
+        cD = new Chart(document.getElementById('cD'), {
             type: 'doughnut',
-            data: { labels, datasets: [{ data, backgroundColor: ['#2563eb','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#1e293b'] }] },
+            data: { labels: lab, datasets: [{ data: dat, backgroundColor: ['#2563eb','#10b981','#f59e0b','#8b5cf6','#ec4899'] }] },
             options: { plugins: { legend: { display: false } } }
         });
-        document.getElementById('legend').innerHTML = labels.map((l, i) => `<div style="font-size:0.6rem"><b>C-${l}:</b> ${data[i]} (${((data[i]/total)*100).toFixed(1)}%)</div>`).join('');
+        document.getElementById('leg').innerHTML = lab.map((l, i) => `<div><b>C-${l}:</b> ${((dat[i]/t)*100).toFixed(1)}%</div>`).join('');
     }
-
-    function filtrar() {
-        const val = document.getElementById('bus').value.toUpperCase();
-        const rows = document.getElementById('bodyG').getElementsByTagName('tr');
-        for (let r of rows) r.style.display = r.innerText.toUpperCase().includes(val) ? '' : 'none';
-    }
-
-    setInterval(() => { document.getElementById('reloj').innerText = new Date().toLocaleTimeString(); }, 1000);
     init();
+    setInterval(() => { document.getElementById('reloj').innerText = new Date().toLocaleTimeString(); }, 1000);
 </script>
 </body>
 </html>
