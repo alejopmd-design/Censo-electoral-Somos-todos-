@@ -1,1 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>COMMAND CENTER CALI 2026</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; text-transform: uppercase; margin: 0; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; border-top: 5px solid #2563eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
+        .val { font-size: 2.5rem; font-weight: bold; color: #0f172a; display: block; }
+        #map { height: 450px; border-radius: 12px; border: 1px solid #ccc; }
+        .alert-box { background: #fee2e2; color: #991b1b; padding: 10px; border-radius: 8px; margin-top: 10px; font-weight: bold; border-left: 5px solid #ef4444; text-align: left; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h1>COMMAND CENTER CALI 2026</h1>
+        <div id="reloj" style="background:#0f172a; color:white; padding:10px 20px; border-radius:8px; font-weight:bold;">00:00:00</div>
+    </header>
 
+    <div class="grid">
+        <div class="card">TOTAL VOTANTES<span class="val" id="tV">0</span></div>
+        <div class="card" style="border-top-color:#10b981">ROSSE MARY<span class="val" id="tRM">0</span></div>
+        <div class="card" style="border-top-color:#ef4444">COMUNAS 0<span class="val" id="tA">0</span></div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:20px;">
+        <div id="map"></div>
+        <div class="card">
+            <h3>ALERTAS DE INTERVENCIÓN</h3>
+            <div id="alertas"></div>
+        </div>
+    </div>
+
+<script>
+    const _s = supabase.createClient('https://pmwlkdariynhaqbqursp.supabase.co', 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv');
+    let vots = [], pts = [], map;
+
+    async function init() {
+        const {data: p} = await _s.from('PUESTOS_VOTACION').select('*');
+        const {data: v} = await _s.from('VOTANTES').select('*');
+        vots = v || []; pts = p || [];
+        if(!map) {
+            map = L.map('map').setView([3.42, -76.51], 12);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+        }
+        render();
+    }
+
+    function render() {
+        document.getElementById('tV').innerText = vots.length;
+        const vR = vots.filter(x => (x.lider||"").toUpperCase().includes("ROSSE MARY"));
+        document.getElementById('tRM').innerText = vR.length;
+
+        let cC = {};
+        vots.forEach(x => {
+            const p = pts.find(y => (y.nombre_puesto||"").trim().toUpperCase() === (x.puesto||"").trim().toUpperCase());
+            if(p) cC[p.comuna] = (cC[p.comuna]||0) + 1;
+        });
+
+        const todas = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","24"];
+        const ceros = todas.filter(c => !cC[c]);
+        document.getElementById('tA').innerText = ceros.length;
+        document.getElementById('alertas').innerHTML = ceros.map(c => `<div class="alert-box">COMUNA ${c}: SIN REGISTROS</div>`).join('');
+    }
+
+    init();
+    setInterval(() => { document.getElementById('reloj').innerText = new Date().toLocaleTimeString(); }, 1000);
+</script>
+</body>
+</html>
