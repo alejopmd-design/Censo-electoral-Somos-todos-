@@ -3,299 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COMMAND CENTER CALI 2026 | ESTRATEGIA MASTER TOTAL ULTRA COMPLETE</title>
+    <title>COMMAND CENTER CALI 2026 | ESTRATEGIA MASTER</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
- 
+
     <style>
         :root { 
-            --primary: #0f172a; 
-            --accent: #2563eb; 
-            --success: #059669; 
-            --danger: #be123c; 
-            --warning: #f59e0b;
-            --bg: #f1f5f9; 
-            --panel: #ffffff;
-            --border: #e2e8f0;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --primary: #0f172a; --accent: #2563eb; --success: #059669; 
+            --danger: #be123c; --warning: #f59e0b; --bg: #f1f5f9; 
+            --panel: #ffffff; --border: #e2e8f0; --text-main: #1e293b;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
         
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); padding: 15px; color: var(--text-main); text-transform: uppercase; overflow-x: hidden; }
         
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background: var(--bg); 
-            padding: 15px; 
-            color: var(--text-main); 
-            text-transform: uppercase; 
-            overflow-x: hidden; 
-            line-height: 1.4;
-        }
- 
-        .container { 
-            max-width: 100%; 
-            margin: auto; 
-            display: none; 
-            animation: systemBoot 1.5s ease-out; 
-        }
- 
-        @keyframes systemBoot { 
-            0% { opacity: 0; transform: scale(0.95); filter: blur(10px); } 
-            100% { opacity: 1; transform: scale(1); filter: blur(0); } 
-        }
- 
+        .container { max-width: 100%; display: none; animation: systemBoot 0.6s ease-out; }
+        @keyframes systemBoot { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         .master-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background: var(--primary); 
-            padding: 20px 35px; 
-            border-radius: 14px; 
-            color: white; 
-            margin-bottom: 20px; 
-            box-shadow: var(--shadow); 
-            border-bottom: 5px solid var(--accent);
-            position: relative;
-            overflow: hidden;
+            display: flex; justify-content: space-between; align-items: center; 
+            background: var(--primary); padding: 20px 30px; border-radius: 12px; 
+            color: white; margin-bottom: 20px; border-bottom: 5px solid var(--accent);
         }
- 
-        .master-header h1 { 
-            margin: 0;
-            letter-spacing: 4px; 
-            font-size: 1.4rem; 
-            font-weight: 900; 
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            z-index: 1;
-        }
- 
-        .reloj-container {
-            font-family: 'JetBrains Mono', monospace;
-            background: rgba(255,255,255,0.12);
-            padding: 10px 22px;
-            border-radius: 10px;
-            font-size: 1rem;
-            border: 1px solid rgba(255,255,255,0.25);
-            color: #f8fafc;
-            letter-spacing: 2px;
-            z-index: 1;
-        }
- 
-        .stats-grid { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 20px;
-            margin-bottom: 20px; 
-        }
- 
-        .stat-card { 
-            background: var(--panel); 
-            border-radius: 16px; 
-            padding: 25px; 
-            box-shadow: var(--shadow); 
-            border-top: 6px solid var(--accent);
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
- 
-        .stat-card:hover { transform: translateY(-5px); }
- 
-        .stat-val { 
-            font-size: 3.2rem; 
-            font-weight: 950; 
-            display: block; 
-            line-height: 1; 
-            margin-top: 12px; 
-            letter-spacing: -3px;
-            color: var(--primary);
-        }
- 
-        .stat-label { 
-            font-size: 0.8rem; 
-            font-weight: 800; 
-            color: var(--text-muted); 
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
- 
-        .dashboard-main { 
-            display: grid; 
-            grid-template-columns: 1.15fr 0.85fr; 
-            gap: 20px;
-        }
- 
-        .panel { 
-            background: var(--panel); 
-            border-radius: 16px; 
-            padding: 22px; 
-            margin-bottom: 20px; 
-            box-shadow: var(--shadow); 
-            border: 1px solid var(--border);
-        }
- 
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #f8fafc; 
-            padding-bottom: 15px; 
-            margin-bottom: 20px;
-        }
+
+        .reloj-container { font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 8px; font-size: 0.9rem; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: var(--panel); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); border-top: 5px solid var(--accent); }
+        .stat-val { font-size: 2.8rem; font-weight: 900; display: block; color: var(--primary); letter-spacing: -2px; }
+        .stat-label { font-size: 0.75rem; font-weight: 800; color: #64748b; display: flex; align-items: center; gap: 8px; }
+
+        .dashboard-main { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; }
+        .panel { background: var(--panel); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f8fafc; }
         
-        h3 { font-size: 0.9rem; font-weight: 900; display: flex; align-items: center; gap: 14px; color: var(--primary); }
- 
-        .btn-action {
-            padding: 10px 18px; 
-            font-size: 0.72rem; 
-            font-weight: 800; 
-            border-radius: 10px; 
-            cursor: pointer;
-            border: 1px solid var(--border); 
-            background: #ffffff; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px;
-            transition: all 0.2s;
-        }
- 
-        .btn-action:hover { background: var(--primary); color: white; border-color: var(--primary); }
- 
-        #map { height: 540px; width: 100%; border-radius: 14px; z-index: 1; border: 4px solid #f8fafc; }
- 
-        .scroll { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--accent) #f1f5f9; }
+        #map { height: 450px; width: 100%; border-radius: 8px; border: 2px solid var(--border); }
         
-        table { width: 100%; border-collapse: collapse; }
-        th { 
-            background: #f8fafc; 
-            padding: 16px; 
-            text-align: left; 
-            font-size: 0.7rem; 
-            color: var(--text-muted); 
-            border-bottom: 2px solid var(--border); 
-            position: sticky; 
-            top: 0; 
-            z-index: 20; 
-            cursor: pointer;
-            user-select: none;
-        }
+        .scroll { overflow-y: auto; scrollbar-width: thin; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { background: #f8fafc; padding: 12px; text-align: left; font-size: 0.7rem; color: #64748b; border-bottom: 2px solid var(--border); cursor: pointer; position: sticky; top: 0; z-index: 10; }
         th:hover { background: #eff6ff; color: var(--accent); }
-        td { padding: 16px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 700; }
- 
-        .row-comuna { background: #f8fafc; cursor: pointer; border-left: 6px solid #94a3b8; }
-        .row-comuna:hover { background: #f1f5f9; }
-        
-        .row-puesto { display: none; border-left: 10px solid var(--accent); background: #ffffff; cursor: pointer; }
-        .row-puesto:hover { background: #eff6ff; }
-        
-        .row-mesa { display: none; border-left: 15px solid #cbd5e1; font-size: 0.78rem; background: #fafafa; }
- 
-        .alert-box { 
-            padding: 16px 20px; 
-            border-radius: 14px; 
-            margin-bottom: 12px; 
-            font-size: 0.78rem; 
-            font-weight: 900; 
-            border-left: 7px solid; 
-            display: flex; 
-            justify-content: space-between;
-            align-items: center;
-        }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .alert-box { padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; font-size: 0.75rem; font-weight: 900; border-left: 5px solid; display: flex; justify-content: space-between; }
         .alert-red { background: #fff1f2; color: #9f1239; border-color: #be123c; }
         .alert-orange { background: #fff7ed; color: #9a3412; border-color: #f59e0b; }
- 
-        .search-input { 
-            width: 100%; 
-            padding: 16px 22px; 
-            border-radius: 12px; 
-            border: 2px solid var(--border); 
-            margin-bottom: 22px; 
-            font-weight: 700;
-            background: #f8fafc;
-        }
- 
-        .search-input:focus { border-color: var(--accent); background: white; }
- 
-        .dona-legend-grid { 
-            display: grid; 
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 12px;
-            margin-top: 25px; 
-        }
-        .legend-item { display: flex; align-items: center; gap: 12px; font-size: 0.72rem; font-weight: 800; }
-        .legend-color { width: 14px; height: 14px; border-radius: 5px; }
- 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        .search-input { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--border); margin-bottom: 15px; font-weight: 700; }
+        .btn-action { padding: 8px 15px; font-size: 0.7rem; font-weight: 800; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); background: white; transition: 0.2s; }
+        .btn-action:hover { background: var(--primary); color: white; }
+
+        .row-comuna { background: #f8fafc; cursor: pointer; }
+        .row-puesto { display: none; background: #ffffff; border-left: 4px solid var(--accent); }
     </style>
 </head>
 <body>
- 
+
 <div id="app" class="container">
     <header class="master-header">
         <h1><i class="fas fa-shield-halved"></i> COMMAND CENTER CALI 2026</h1>
-        <div class="reloj-container" id="reloj">CARGANDO SISTEMA...</div>
+        <div class="reloj-container" id="reloj">SISTEMA INICIANDO...</div>
     </header>
- 
+
     <div class="stats-grid">
         <div class="stat-card">
             <span class="stat-label"><i class="fas fa-database"></i> CENSO REGISTRADO</span>
             <span class="stat-val" id="tV">0</span>
         </div>
         <div class="stat-card" style="border-top-color: var(--danger)">
-            <span class="stat-label"><i class="fas fa-triangle-exclamation"></i> COMUNAS ALERTA</span>
+            <span class="stat-label"><i class="fas fa-triangle-exclamation"></i> ALERTAS CRÍTICAS</span>
             <span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span>
         </div>
         <div class="stat-card" style="border-top-color: var(--success)">
-            <span class="stat-label"><i class="fas fa-users-gear"></i> ROSSE MARY CABAL FRANCO</span>
+            <span class="stat-label"><i class="fas fa-user-tie"></i> ROSSE MARY CABAL</span>
             <span class="stat-val" id="tLideresActivos" style="color:var(--success)">0</span>
         </div>
-        <div class="stat-card" style="border-top-color: #be185d">
+        <div class="stat-card" style="border-top-color: #db2777">
             <span class="stat-label"><i class="fas fa-venus-mars"></i> BALANCE GÉNERO</span>
-            <div style="height: 55px; margin-top: 12px;"><canvas id="chartGenero"></canvas></div>
+            <div style="height: 50px;"><canvas id="chartGenero"></canvas></div>
         </div>
     </div>
- 
+
     <div class="dashboard-main">
         <div class="left-col">
             <div class="panel">
-                <div class="panel-header">
-                    <h3><i class="fas fa-map-location-dot"></i> DESPLIEGUE GEOGRÁFICO</h3>
-                    <div class="legend-item"><span class="legend-color" style="background:var(--accent)"></span>ACTIVO</div>
-                </div>
+                <div class="panel-header"><h3><i class="fas fa-map-location-dot"></i> MAPA OPERATIVO</h3></div>
                 <div id="map"></div>
             </div>
             
             <div class="panel">
                 <div class="panel-header">
-                    <h3><i class="fas fa-sitemap"></i> ESTRUCTURA TERRITORIAL</h3>
-                    <button class="btn-action" onclick="exportHierarchicalData('tblJer', 'Estructura_Cali_Full')">
-                        <i class="fas fa-file-excel"></i> EXCEL JERÁRQUICO
-                    </button>
+                    <h3><i class="fas fa-sitemap"></i> JERARQUÍA TERRITORIAL</h3>
+                    <button class="btn-action" onclick="exportFlatData('tblJer', 'Estructura_Territorial')">EXCEL</button>
                 </div>
-                <div class="scroll" style="height: 600px;">
+                <div class="scroll" style="max-height: 400px;">
                     <table id="tblJer">
                         <thead>
                             <tr>
-                                <th style="width: 60%;" onclick="sortTable('tblJer', 0)">UBICACIÓN <i class="fas fa-sort"></i></th>
-                                <th style="text-align:center;" onclick="sortTable('tblJer', 1)">VOTOS <i class="fas fa-sort"></i></th>
-                                <th style="text-align:center;" onclick="sortTable('tblJer', 2)">% PESO <i class="fas fa-sort"></i></th>
+                                <th style="width: 50%" onclick="sortTable('tblJer', 0)">UBICACIÓN</th>
+                                <th onclick="sortTable('tblJer', 1)">REGISTROS</th>
+                                <th onclick="sortTable('tblJer', 2)">% PESO</th>
                             </tr>
                         </thead>
                         <tbody id="bodyJerarquia"></tbody>
@@ -303,68 +118,27 @@
                 </div>
             </div>
         </div>
- 
+
         <div class="right-col">
             <div class="panel">
-                <div class="panel-header"><h3><i class="fas fa-chart-pie"></i> DISTRIBUCIÓN POR COMUNA</h3></div>
-                <div style="height: 300px;"><canvas id="chartDona"></canvas></div>
-                <div id="donaLegend" class="dona-legend-grid"></div>
-            </div>
- 
-            <div class="panel">
-                <div class="panel-header"><h3><i class="fas fa-fire"></i> ALERTAS DE INTERVENCIÓN</h3></div>
+                <div class="panel-header"><h3><i class="fas fa-fire"></i> INTERVENCIÓN REQUERIDA</h3></div>
                 <div id="alertasContainer"></div>
             </div>
-            
-            <div class="panel">
-                <div class="panel-header"><h3><i class="fas fa-bolt"></i> ACTIVIDAD TIEMPO REAL</h3></div>
-                <div class="scroll" style="height: 300px;">
-                    <table id="tblAct">
-                        <tbody id="bodyActividad"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
- 
-        <div style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            <div class="panel">
-                <div class="panel-header">
-                    <h3><i class="fas fa-ranking-star"></i> RANKING DE LIDERAZGO</h3>
-                    <button class="btn-action" onclick="exportFlatData('tblLid', 'Ranking_Lideres')">
-                       <i class="fas fa-file-excel"></i> EXPORTAR RANKING
-                    </button>
-                </div>
-                <div class="scroll" style="height: 400px;">
-                    <table id="tblLid">
-                        <thead>
-                            <tr>
-                                <th onclick="sortTable('tblLid', 0)">LÍDER RESPONSABLE <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('tblLid', 1)">VOTOS <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('tblLid', 2)">% <i class="fas fa-sort"></i></th>
-                            </tr>
-                        </thead>
-                        <tbody id="bodyLid"></tbody>
-                    </table>
-                </div>
-            </div>
- 
+
             <div class="panel">
                 <div class="panel-header">
                     <h3><i class="fas fa-magnifying-glass"></i> CONSOLIDADO GENERAL</h3>
-                    <button class="btn-action" onclick="exportFlatData('tblGen', 'Consolidado_Votantes')">
-                        <i class="fas fa-file-excel"></i> EXPORTAR CENSO
-                    </button>
+                    <button class="btn-action" onclick="exportFlatData('tblGen', 'Consolidado_Votantes')">EXPORTAR</button>
                 </div>
-                <input type="text" id="busG" onkeyup="filterConsolidado()" placeholder="BUSCAR POR NOMBRE, CÉDULA O PUESTO..." class="search-input">
-                <div class="scroll" style="height: 350px;">
+                <input type="text" id="busG" onkeyup="filterTable()" placeholder="BUSCAR POR NOMBRE O CÉDULA..." class="search-input">
+                <div class="scroll" style="max-height: 400px;">
                     <table id="tblGen">
                         <thead>
                             <tr>
-                                <th onclick="sortTable('tblGen', 0)">NOMBRE COMPLETO <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('tblGen', 1)">CÉDULA <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('tblGen', 2)">TELÉFONO <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('tblGen', 3)">PUESTO <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('tblGen', 4)">COM. <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable('tblGen', 0)">NOMBRE</th>
+                                <th onclick="sortTable('tblGen', 1)">CÉDULA</th>
+                                <th onclick="sortTable('tblGen', 2)">TELÉFONO</th>
+                                <th onclick="sortTable('tblGen', 3)">COM.</th>
                             </tr>
                         </thead>
                         <tbody id="bodyGeneral"></tbody>
@@ -374,262 +148,175 @@
         </div>
     </div>
 </div>
- 
+
 <script>
     const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
- 
-    let votantes = [], puestosOficiales = [], map, capaBurbujas, chartGen, chartDona;
-    
+
+    let votantes = [], puestosOficiales = [], map, capaBurbujas, chartGen;
+
     const GPS = {
-        "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],
-        "5":[3.478,-76.492],"6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],
-        "9":[3.440,-76.515],"10":[3.428,-76.520],"11":[3.415,-76.510],"12":[3.428,-76.495],
-        "13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],"16":[3.410,-76.500],
-        "17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],
-        "21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510],"25":[3.370,-76.570],
-        "33":[3.480,-76.570]
+        "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],
+        "6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],
+        "11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],
+        "16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],
+        "21":[3.425,-76.465],"22":[3.355,-76.535]
     };
- 
-    const PALETA_MASTER = [
-        '#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', 
-        '#06b6d4', '#f43f5e', '#6366f1', '#14b8a6', '#f97316',
-        '#3b82f6', '#10b981', '#6366f1', '#8b5cf6', '#d946ef'
-    ];
- 
+
     async function startSystem() {
-        const { value: access_key } = await Swal.fire({ 
-            title: 'AUTENTICACIÓN REQUERIDA', 
-            input: 'password', 
-            inputLabel: 'Security Key',
-            inputPlaceholder: '********',
-            confirmButtonColor: '#0f172a', 
-            allowOutsideClick: false 
+        const { value: pass } = await Swal.fire({
+            title: 'SEGURIDAD', input: 'password', inputPlaceholder: 'CLAVE DE ACCESO',
+            confirmButtonColor: '#0f172a', allowOutsideClick: false
         });
-        
-        if(access_key === 'ADMIN2026') { 
-            document.getElementById('app').style.display = 'block'; 
-            initializeMap(); 
-            syncSupabaseData(); 
-            setInterval(syncSupabaseData, 30000); 
-            setInterval(() => { 
-                document.getElementById('reloj').innerHTML = new Date().toLocaleString('es-CO', { 
-                    hour12: true, weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' 
-                }); 
-            }, 1000); 
-        } else { 
-            Swal.fire('Acceso Denegado', 'Clave incorrecta', 'error').then(startSystem); 
+
+        if(pass === 'ADMIN2026') {
+            document.getElementById('app').style.display = 'block';
+            initMap();
+            loadData();
+            setInterval(loadData, 30000);
+            setInterval(updateClock, 1000);
+        } else {
+            location.reload();
         }
     }
- 
-    function initializeMap() {
+
+    function initMap() {
         map = L.map('map', { zoomControl: false }).setView([3.42, -76.52], 12);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: 'Command Center © 2026'
-        }).addTo(map);
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
         capaBurbujas = L.layerGroup().addTo(map);
     }
- 
-    async function syncSupabaseData() {
-        try {
-            const [respPuestos, respVotantes] = await Promise.all([
-                _supabase.from('PUESTOS_VOTACION').select('*'),
-                _supabase.from('VOTANTES').select('*').order('created_at', { ascending: false })
-            ]);
-            puestosOficiales = respPuestos.data || [];
-            votantes = respVotantes.data || [];
-            refreshInterface();
-        } catch (err) { 
-            console.error("Sync Error:", err);
-            setTimeout(syncSupabaseData, 5000); 
-        }
+
+    async function loadData() {
+        const { data: p } = await _supabase.from('PUESTOS_VOTACION').select('*');
+        const { data: v } = await _supabase.from('VOTANTES').select('*').order('created_at', { ascending: false });
+        puestosOficiales = p || [];
+        votantes = v || [];
+        renderAll();
     }
- 
-    function toggleNivel(clase) {
-        const elementos = document.getElementsByClassName(clase);
-        if(!elementos.length) return;
-        const estaAbierto = elementos[0].style.display === 'table-row';
-        for (let el of elementos) {
-            el.style.display = estaAbierto ? 'none' : 'table-row';
-            if (estaAbierto && el.getAttribute('data-sub')) {
-                const subniveles = document.getElementsByClassName(el.getAttribute('data-sub'));
-                for(let sub of subniveles) sub.style.display = 'none';
-            }
-        }
-    }
- 
-    function refreshInterface() {
-        const globalTotal = votantes.length || 1;
-        const inscritosRosse = votantes.filter(v => (v.lider || "").toUpperCase().trim() === "ROSSE MARY CABAL FRANCO").length;
-        document.getElementById('tLideresActivos').innerText = inscritosRosse;
-        document.getElementById('tV').innerText = votantes.length.toLocaleString();
- 
-        let hombres=0, mujeres=0, contCom={}, contPue={}, contMesa={}, contLid={};
-        let logActividad = "";
- 
-        votantes.forEach((v, index) => {
-            const nom = (v["Nombres y apellidos"] || "").toUpperCase().trim();
-            if(nom.endsWith('A') || nom.includes('MARIA') || nom.endsWith('S')) mujeres++; else hombres++;
-            const lid = (v.lider || "DIRECTO").toUpperCase().trim();
-            contLid[lid] = (contLid[lid]||0) + 1;
-            const pRef = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
-            if(pRef) {
-                const c = pRef.comuna;
-                contCom[c] = (contCom[c]||0) + 1;
-                contPue[c] = contPue[c] || {}; 
-                contPue[c][v.puesto] = (contPue[c][v.puesto]||0) + 1;
-                contMesa[v.puesto] = contMesa[v.puesto] || {}; 
-                const m = v.mesa || "SIN ASIGNAR"; 
-                contMesa[v.puesto][m] = (contMesa[v.puesto][m]||0) + 1;
-            }
-            if(index < 10) {
-                logActividad += `<tr><td><i class="fas fa-circle-check" style="color:var(--success)"></i> ${nom}</td><td align="right">${new Date(v.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td></tr>`;
-            }
-        });
- 
-        document.getElementById('bodyActividad').innerHTML = logActividad;
- 
+
+    function renderAll() {
+        const total = votantes.length || 1;
+        const rosse = votantes.filter(v => (v.lider || "").toUpperCase().includes("ROSSE")).length;
+        
+        document.getElementById('tV').innerText = votantes.length;
+        document.getElementById('tLideresActivos').innerText = rosse;
+
+        let contCom = {}, h = 0, m = 0;
+
+        // Limpiar y procesar datos
+        const genHtml = votantes.map(v => {
+            const nom = (v["Nombres y apellidos"] || "").toUpperCase();
+            if(nom.endsWith('A') || nom.includes('MARIA')) m++; else h++;
+            
+            const pRef = puestosOficiales.find(p => p.nombre_puesto === v.puesto);
+            const com = pRef ? pRef.comuna : "?";
+            if(com !== "?") contCom[com] = (contCom[com] || 0) + 1;
+
+            return `<tr><td>${nom}</td><td>${v.cedula}</td><td>${v.telefono || '-'}</td><td>${com}</td></tr>`;
+        }).join('');
+        
+        document.getElementById('bodyGeneral').innerHTML = genHtml;
+
+        // Jerarquía y Alertas
         let jerHtml = "";
-        Object.keys(GPS).sort((a,b)=>a-b).forEach(com => {
-            const totalC = contCom[com] || 0;
-            const pctC = ((totalC/globalTotal)*100).toFixed(1);
-            jerHtml += `<tr class="row-comuna" onclick="toggleNivel('c-${com}')"><td><i class="fas fa-location-dot"></i> COMUNA ${com}</td><td align="center">${totalC}</td><td align="center">${pctC}%</td></tr>`;
-            if(contPue[com]) {
-                Object.entries(contPue[com]).forEach(([pue, vP]) => {
-                    const idPue = `p-${pue.replace(/[^a-zA-Z0-9]/g, '')}`;
-                    const pctP = ((vP/globalTotal)*100).toFixed(1);
-                    jerHtml += `<tr class="c-${com} row-puesto" data-sub="${idPue}" onclick="toggleNivel('${idPue}')"><td>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-building-columns"></i> ${pue}</td><td align="center">${vP}</td><td align="center">${pctP}%</td></tr>`;
-                    if(contMesa[pue]) {
-                        Object.entries(contMesa[pue]).forEach(([m, vM]) => {
-                            const pctM = ((vM/globalTotal)*100).toFixed(1);
-                            jerHtml += `<tr class="c-${com} ${idPue} row-mesa"><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-box-archive"></i> MESA ${m}</td><td align="center">${vM}</td><td align="center">${pctM}%</td></tr>`;
-                        });
-                    }
-                });
-            }
+        let ranking = Object.keys(GPS).map(c => ({ id: c, v: contCom[c] || 0 }));
+        
+        ranking.sort((a,b) => a.id - b.id).forEach(c => {
+            const pct = ((c.v/total)*100).toFixed(1);
+            jerHtml += `<tr class="row-comuna"><td>COMUNA ${c.id}</td><td>${c.v}</td><td>${pct}%</td></tr>`;
         });
         document.getElementById('bodyJerarquia').innerHTML = jerHtml;
- 
-        document.getElementById('bodyGeneral').innerHTML = votantes.map(v => {
-            const p = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
-            return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.telefono||'-'}</td><td><small>${v.puesto}</small></td><td>${p?p.comuna:'-'}</td></tr>`;
-        }).join('');
- 
-        document.getElementById('bodyLid').innerHTML = Object.entries(contLid).sort((a,b) => b[1] - a[1]).map(([l,v]) => `<tr><td>${l}</td><td>${v}</td><td>${((v/globalTotal)*100).toFixed(1)}%</td></tr>`).join('');
- 
-        const rankingAlertas = Object.keys(GPS).map(c => ({ id: c, v: contCom[c] || 0 })).sort((a,b) => a.v - b.v);
-        const alertas = [...rankingAlertas.filter(x => x.v === 0), ...rankingAlertas.filter(x => x.v > 0).slice(0, 5)];
+
+        // Lógica de Alertas: Comunas en 0 + las 5 con menos registros
+        const enCero = ranking.filter(x => x.v === 0);
+        const topBajos = ranking.filter(x => x.v > 0).sort((a,b) => a.v - b.v).slice(0, 5);
+        const alertas = [...enCero, ...topBajos];
+
         document.getElementById('tZonasCriticas').innerText = alertas.length;
-        document.getElementById('alertasContainer').innerHTML = alertas.map(c => `<div class="alert-box ${c.v === 0 ? 'alert-red' : 'alert-orange'}"><span><i class="fas fa-circle-exclamation"></i> COMUNA ${c.id}</span><span>${c.v} REGISTROS</span></div>`).join('');
- 
-        updateVisuals(contCom, globalTotal, hombres, mujeres);
+        document.getElementById('alertasContainer').innerHTML = alertas.map(a => `
+            <div class="alert-box ${a.v === 0 ? 'alert-red' : 'alert-orange'}">
+                <span>COMUNA ${a.id}</span>
+                <span>${a.v === 0 ? 'SIN REGISTROS' : a.v + ' REGISTROS'}</span>
+            </div>
+        `).join('');
+
+        updateMap(contCom);
+        updateGenderChart(h, m);
     }
- 
-    function updateVisuals(contCom, total, h, m) {
+
+    function updateMap(contCom) {
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
             const v = contCom[c] || 0;
             const color = v === 0 ? '#be123c' : '#2563eb';
-            const radius = 350 + (v * 12);
-            L.circle(GPS[c], { color: color, fillColor: color, fillOpacity: 0.5, radius: radius }).addTo(capaBurbujas).bindTooltip(`COMUNA ${c}<br><b>${v} VOTOS</b><br>${((v/total)*100).toFixed(1)}%`, { sticky: true });
+            L.circle(GPS[c], { color: color, radius: 200 + (v*5), fillOpacity: 0.6 }).addTo(capaBurbujas)
+             .bindTooltip(`COMUNA ${c}: ${v} VOTOS`);
         });
- 
-        const labels = Object.keys(contCom).sort((a,b) => a-b);
-        const data = labels.map(l => contCom[l]);
-        if(chartDona) chartDona.destroy();
-        chartDona = new Chart(document.getElementById('chartDona'), {
-            type: 'doughnut',
-            data: { labels: labels.map(l => `COMUNA ${l}`), datasets: [{ data: data, backgroundColor: PALETA_MASTER, borderWidth: 2, hoverOffset: 20 }] },
-            options: { maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: false }, tooltip: { enabled: true, backgroundColor: '#0f172a', padding: 15, titleFont: { size: 14, weight: 'bold' }, bodyFont: { size: 13 }, callbacks: { label: function(context) { let val = context.parsed; let pct = ((val/total)*100).toFixed(1); return ` REGISTROS: ${val} (${pct}%)`; } } } }, cutout: '65%' }
-        });
- 
-        document.getElementById('donaLegend').innerHTML = labels.slice(0, 10).map((l, idx) => `<div class="legend-item"><span class="legend-color" style="background:${PALETA_MASTER[idx]}"></span> C-${l} (${contCom[l]||0})</div>`).join('');
- 
+    }
+
+    // --- FUNCIÓN DE ORDENAMIENTO OPTIMIZADA (ANTI-BLOQUEO) ---
+    function sortTable(tableId, colIndex) {
+        const table = document.getElementById(tableId);
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.rows);
+        const isAsc = table.getAttribute('data-order') === 'asc';
+        
+        // Indicador visual de carga (opcional)
+        table.style.opacity = "0.5";
+
+        setTimeout(() => {
+            const sortedRows = rows.sort((a, b) => {
+                const aText = a.cells[colIndex].innerText.trim();
+                const bText = b.cells[colIndex].innerText.trim();
+
+                const aNum = parseFloat(aText.replace(/[^0-9.-]/g, ""));
+                const bNum = parseFloat(bText.replace(/[^0-9.-]/g, ""));
+
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    return isAsc ? aNum - bNum : bNum - aNum;
+                }
+                return isAsc ? aText.localeCompare(bText) : bText.localeCompare(aText);
+            });
+
+            // Re-insertar filas
+            const fragment = document.createDocumentFragment();
+            sortedRows.forEach(row => fragment.appendChild(row));
+            tbody.innerHTML = "";
+            tbody.appendChild(fragment);
+
+            table.setAttribute('data-order', isAsc ? 'desc' : 'asc');
+            table.style.opacity = "1";
+        }, 10); // Pequeño delay para liberar el hilo principal
+    }
+
+    function filterTable() {
+        const val = document.getElementById("busG").value.toUpperCase();
+        const rows = document.getElementById("bodyGeneral").rows;
+        for (let row of rows) {
+            row.style.display = row.innerText.toUpperCase().includes(val) ? "" : "none";
+        }
+    }
+
+    function updateGenderChart(h, m) {
         if(chartGen) chartGen.destroy();
         chartGen = new Chart(document.getElementById('chartGenero'), {
             type: 'bar',
-            data: { labels: ['H', 'M'], datasets: [{ data: [h, m], backgroundColor: ['#2563eb', '#db2777'], borderRadius: 5 }] },
-            options: { indexAxis: 'y', maintainAspectRatio: false, scales: { x: { display: false }, y: { display: false } }, plugins: { legend: { display: false }, datalabels: { display: false } } }
+            data: { labels: ['H', 'M'], datasets: [{ data: [h, m], backgroundColor: ['#2563eb', '#db2777'] }] },
+            options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { display: false } } } }
         });
     }
- 
-    /* LÓGICA DE ORDENAMIENTO */
-    function sortTable(tableId, n) {
-        let table = document.getElementById(tableId);
-        let rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-        switching = true;
-        dir = "asc";
-        while (switching) {
-            switching = false;
-            rows = table.rows;
-            for (i = 1; i < (rows.length - 1); i++) {
-                // Evitar ordenar filas ocultas o de jerarquía si es tblJer
-                if(tableId === 'tblJer' && (rows[i].classList.contains('row-puesto') || rows[i].classList.contains('row-mesa'))) continue;
-                
-                shouldSwitch = false;
-                x = rows[i].getElementsByTagName("TD")[n];
-                y = rows[i + 1].getElementsByTagName("TD")[n];
-                
-                if(!x || !y) continue;
 
-                let xVal = x.innerText.toLowerCase();
-                let yVal = y.innerText.toLowerCase();
-                
-                // Lógica para números
-                let xNum = parseFloat(xVal.replace(/[^0-9.-]/g, ""));
-                let yNum = parseFloat(yVal.replace(/[^0-9.-]/g, ""));
-
-                if (!isNaN(xNum) && !isNaN(yNum)) {
-                    if (dir == "asc" ? xNum > yNum : xNum < yNum) {
-                        shouldSwitch = true; break;
-                    }
-                } else {
-                    if (dir == "asc" ? xVal > yVal : xVal < yVal) {
-                        shouldSwitch = true; break;
-                    }
-                }
-            }
-            if (shouldSwitch) {
-                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                switching = true;
-                switchcount++;
-            } else {
-                if (switchcount == 0 && dir == "asc") {
-                    dir = "desc";
-                    switching = true;
-                }
-            }
-        }
+    function updateClock() {
+        document.getElementById('reloj').innerText = new Date().toLocaleString();
     }
 
-    function exportHierarchicalData(tableId, fileName) {
+    function exportFlatData(tableId, name) {
         const table = document.getElementById(tableId);
-        const rows = Array.from(table.querySelectorAll('tr'));
-        const processedData = rows.map(row => Array.from(row.querySelectorAll('th, td')).map(cell => cell.innerText.replace(/\s+/g, ' ').trim()));
-        const ws = XLSX.utils.aoa_to_sheet(processedData);
-        ws['!cols'] = [{ wch: 50 }, { wch: 15 }, { wch: 15 }];
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "ESTRUCTURA_CALI");
-        XLSX.writeFile(wb, `${fileName}_${new Date().getTime()}.xlsx`);
+        const wb = XLSX.utils.table_to_book(table);
+        XLSX.writeFile(wb, `${name}.xlsx`);
     }
- 
-    function exportFlatData(tableId, fileName) {
-        const table = document.getElementById(tableId);
-        const wb = XLSX.utils.table_to_book(table, { raw: true });
-        XLSX.writeFile(wb, `${fileName}.xlsx`);
-    }
- 
-    function filterConsolidado() {
-        let val = document.getElementById("busG").value.toUpperCase();
-        let rows = document.getElementById("bodyGeneral").rows;
-        for (let i = 0; i < rows.length; i++) {
-            let text = rows[i].innerText.toUpperCase();
-            rows[i].style.display = text.includes(val) ? "" : "none";
-        }
-    }
- 
+
     window.onload = startSystem;
 </script>
 </body>
