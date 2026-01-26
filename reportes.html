@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -41,7 +40,8 @@
         th { background: #f8fafc; padding: 12px; text-align: left; font-size: 0.7rem; color: #64748b; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; font-weight: 700; }
 
-        .row-comuna { background: #f1f5f9; cursor: pointer; }
+        .row-comuna { background: #f1f5f9; cursor: pointer; transition: background 0.2s; }
+        .row-comuna:hover { background: #e2e8f0; }
         .row-puesto { background: #ffffff; cursor: pointer; display: none; border-left: 4px solid var(--accent); }
         .row-mesa { background: #fafafa; display: none; border-left: 8px solid #cbd5e1; }
         .folder-icon { margin-right: 8px; color: var(--accent); }
@@ -159,21 +159,34 @@
         renderUI();
     }
 
-    // FUNCIÓN CORREGIDA PARA ABRIR TODOS LOS NIVELES
-    function toggleLevel(id) {
-        const rows = document.getElementsByClassName(id);
-        for(let r of rows) {
-            if (r.style.display === 'table-row') {
-                r.style.display = 'none';
-                // Si cerramos un nivel, cerramos también sus hijos
-                const childId = r.getAttribute('data-id');
-                if(childId) {
-                    const children = document.getElementsByClassName(childId);
-                    for(let c of children) c.style.display = 'none';
-                }
-            } else {
-                r.style.display = 'table-row';
+    // FUNCIÓN DE CONTRAER/EXPANDIR RECURSIVA
+    function toggleLevel(targetId) {
+        const elements = document.getElementsByClassName(targetId);
+        const isOpening = elements[0] && elements[0].style.display !== 'table-row';
+
+        if (isOpening) {
+            // Solo abre el nivel inmediatamente inferior
+            for (let el of elements) {
+                el.style.display = 'table-row';
             }
+        } else {
+            // Cierra el nivel y TODOS sus hijos (recursivo)
+            for (let el of elements) {
+                el.style.display = 'none';
+                const subId = el.getAttribute('data-id');
+                if (subId) {
+                    toggleLevelClose(subId); // Función auxiliar para cerrar sin preguntar
+                }
+            }
+        }
+    }
+
+    function toggleLevelClose(id) {
+        const elements = document.getElementsByClassName(id);
+        for (let el of elements) {
+            el.style.display = 'none';
+            const subId = el.getAttribute('data-id');
+            if (subId) toggleLevelClose(subId);
         }
     }
 
@@ -203,7 +216,6 @@
         document.getElementById('pctM').innerText = `M: ${((m/total)*100).toFixed(1)}%`;
         renderChartGenero(h, m);
 
-        // TABLA JERÁRQUICA CORREGIDA (LÓGICA DE IDS)
         let htmlJer = "";
         Object.keys(GPS).sort((a,b)=>a-b).forEach(com => {
             const vCom = cCom[com] || 0;
@@ -212,7 +224,7 @@
             
             if(cPue[com]) {
                 Object.entries(cPue[com]).forEach(([pue, vPue]) => {
-                    const idPue = `p-${pue.replace(/[^a-zA-Z0-9]/g, '')}`; // ID limpio para clase
+                    const idPue = `p-${pue.replace(/[^a-zA-Z0-9]/g, '')}`;
                     htmlJer += `<tr class="${idCom} row-puesto" data-id="${idPue}" onclick="toggleLevel('${idPue}')"><td>&nbsp;&nbsp;<i class="fas fa-folder-open" style="font-size:0.8rem; color:#64748b"></i> ${pue}</td><td align="center">${vPue}</td><td align="center">${((vPue/total)*100).toFixed(1)}%</td></tr>`;
                     
                     if(cMesa[pue]) {
