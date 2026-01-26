@@ -20,12 +20,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
-        /* ==========================================================================================
-        SECCIÓN 2: ARQUITECTURA VISUAL CSS (FRAMEWORK INDUSTRIAL PERSONALIZADO)
-        ==========================================================================================
-        Definición de micro-interacciones, variables de entorno y layout de alta densidad.
-        ==========================================================================================
-        */
         :root { 
             --primary: #0f172a; 
             --accent: #2563eb; 
@@ -54,7 +48,6 @@
             line-height: 1.4;
         }
 
-        /* ANIMACIÓN DE DESPLIEGUE INICIAL */
         .container { 
             max-width: 100%; 
             margin: auto; 
@@ -67,7 +60,6 @@
             100% { opacity: 1; transform: scale(1); filter: blur(0); } 
         }
 
-        /* HEADER DE COMANDO TÁCTICO */
         .master-header { 
             display: flex; 
             justify-content: space-between; 
@@ -118,7 +110,6 @@
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        /* DASHBOARD KPI GRID */
         .stats-grid { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
@@ -156,7 +147,6 @@
             gap: 10px;
         }
 
-        /* LAYOUT DE PANELES OPERATIVOS */
         .dashboard-main { 
             display: grid; 
             grid-template-columns: 1.15fr 0.85fr; 
@@ -192,7 +182,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* UI ELEMENTS: BOTONES DE ACCIÓN */
         .btn-action {
             padding: 10px 18px;
             font-size: 0.72rem;
@@ -215,7 +204,6 @@
             transform: translateY(-2px);
         }
 
-        /* ELEMENTOS CARTOGRÁFICOS */
         #map { 
             height: 540px; 
             width: 100%; 
@@ -225,7 +213,6 @@
             box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
         }
 
-        /* MOTOR DE SCROLL INDUSTRIAL */
         .scroll { 
             overflow-y: auto; 
             scrollbar-width: thin; 
@@ -235,7 +222,6 @@
         .scroll::-webkit-scrollbar-track { background: var(--bg); border-radius: 10px; }
         .scroll::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; border: 2px solid var(--bg); }
 
-        /* ARQUITECTURA DE DATOS EN TABLAS */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { 
             background: #f8fafc; 
@@ -252,7 +238,6 @@
         }
         th:hover { background: #f1f5f9; color: var(--accent); }
 
-        /* REQUERIMIENTO: CENTRADO TOTAL EN RANKING LIDERAZGO */
         #tblLid th, #tblLid td { text-align: center !important; }
 
         td { 
@@ -264,14 +249,12 @@
         }
         tr:hover td { background: rgba(37, 99, 235, 0.02); }
 
-        /* SISTEMA JERÁRQUICO (TREE VIEW) */
         .row-comuna { background: #f8fafc; cursor: pointer; border-left: 6px solid #94a3b8; }
         .row-comuna:hover { background: #f1f5f9; }
         .row-puesto { display: none; border-left: 10px solid var(--accent); background: #ffffff; cursor: pointer; }
         .row-puesto:hover { background: #f8fafc; }
         .row-mesa { display: none; border-left: 15px solid #cbd5e1; font-size: 0.78rem; background: #fafafa; }
 
-        /* GESTIÓN DE ALERTAS TÁCTICAS */
         .alert-box { 
             padding: 16px 20px; 
             border-radius: 14px; 
@@ -287,7 +270,6 @@
         .alert-red { background: #fff1f2; color: #9f1239; border-color: #be123c; }
         .alert-orange { background: #fff7ed; color: #9a3412; border-color: #f59e0b; }
 
-        /* INPUTS DE CONTROL */
         .search-input { 
             width: 100%; 
             padding: 16px 22px; 
@@ -301,7 +283,6 @@
         }
         .search-input:focus { border-color: var(--accent); background: white; box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.15); }
 
-        /* GRID INFERIOR (AUDITORÍA) */
         .activity-grid { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
@@ -309,7 +290,6 @@
             grid-column: span 2; 
         }
 
-        /* LEYENDAS ANALÍTICAS */
         .dona-legend-grid {
             display: grid; 
             grid-template-columns: repeat(2, 1fr); 
@@ -451,22 +431,14 @@
 </div>
 
 <script>
-    /* ==========================================================================================
-    SECCIÓN 3: MASTER LOGIC ENGINE (ARQUITECTURA DE SOFTWARE)
-    ==========================================================================================
-    Este motor controla la orquestación asíncrona de datos y la integridad referencial.
-    ==========================================================================================
-    */
     const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
     Chart.register(ChartDataLabels);
 
-    // ESTADO GLOBAL DEL SISTEMA
     let votantes = [], puestosOficiales = [], map, capaBurbujas, chartGen, chartDona;
     let sortConfig = {};
 
-    // CENTROIDES GEOGRÁFICOS - COMUNAS CALI
     const GPS = { 
         "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],
         "6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],
@@ -477,14 +449,11 @@
 
     const PALETA_MASTER = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e', '#6366f1', '#14b8a6', '#f97316'];
 
-    /* ---------------------------------------------------------
-       MOTOR DE SEGURIDAD Y AUDITORÍA DE CAMPO (CAM)
-    --------------------------------------------------------- */
     function runSecurityAudit(data) {
         console.group("%c SISTEMA DE AUDITORÍA CALI 2026 ", "background: #0f172a; color: white; font-weight: bold;");
         const stats = {
             total_records: data.length,
-            integrity_check: data.every(v => v.cedula && v["Nombres y apellidos"]),
+            integrity_check: data.every(v => v.cedula && (v["Nombres y apellidos"] || v.nombre)),
             last_sync: new Date().toLocaleTimeString(),
             system_status: "OPTIMAL"
         };
@@ -493,9 +462,6 @@
         return true;
     }
 
-    /* ---------------------------------------------------------
-       MOTOR DE ORDENAMIENTO DE ALTA VELOCIDAD
-    --------------------------------------------------------- */
     function sortTableEngine(tableId, n) {
         const table = document.getElementById(tableId);
         const tbody = table.querySelector('tbody');
@@ -506,11 +472,8 @@
         rows.sort((a, b) => {
             let valA = a.cells[n].innerText.trim().toLowerCase();
             let valB = b.cells[n].innerText.trim().toLowerCase();
-            
-            // Detección de tipos numéricos
             let numA = parseFloat(valA.replace(/[^0-9.-]+/g,""));
             let numB = parseFloat(valB.replace(/[^0-9.-]+/g,""));
-            
             if (!isNaN(numA) && !isNaN(numB)) {
                 return sortConfig[key] ? numA - numB : numB - numA;
             }
@@ -522,9 +485,6 @@
         tbody.appendChild(fragment);
     }
 
-    /* ---------------------------------------------------------
-       GESTIÓN DE ACCESO Y PROTOCOLO DE BOOT
-    --------------------------------------------------------- */
     async function startSystem() {
         const { value: access_key } = await Swal.fire({ 
             title: 'PROTOCOLO DE ACCESO', 
@@ -556,12 +516,8 @@
         capaBurbujas = L.layerGroup().addTo(map);
     }
 
-    /* ---------------------------------------------------------
-       MOTOR DE SINCRONIZACIÓN ASÍNCROA
-    --------------------------------------------------------- */
     async function syncSupabaseData() {
         try {
-            console.log("Sincronizando con Supabase...");
             const [respPuestos, respVotantes] = await Promise.all([
                 _supabase.from('PUESTOS_VOTACION').select('*'),
                 _supabase.from('VOTANTES').select('*').order('created_at', { ascending: false })
@@ -581,17 +537,12 @@
         }
     }
 
-    /* ---------------------------------------------------------
-       SISTEMA DE NAVEGACIÓN JERÁRQUICA (TOGGLE)
-    --------------------------------------------------------- */
     function toggleNivel(clase) {
         const elementos = document.getElementsByClassName(clase);
         if(!elementos.length) return;
         const estaAbierto = elementos[0].style.display !== 'table-row';
-        
         for (let el of elementos) {
             el.style.display = estaAbierto ? 'table-row' : 'none';
-            // Cierre en cascada de subniveles
             if (!estaAbierto && el.getAttribute('data-sub')) {
                 const subniveles = document.getElementsByClassName(el.getAttribute('data-sub'));
                 for(let sub of subniveles) sub.style.display = 'none';
@@ -599,21 +550,18 @@
         }
     }
 
-    /* ---------------------------------------------------------
-       MOTOR DE RENDERIZADO ANALÍTICO
-    --------------------------------------------------------- */
     function refreshInterface() {
         const globalTotal = votantes.length || 1;
-        const lideresUnicos = new Set(votantes.map(v => (v.lider||"").toUpperCase())).size;
         
+        // CORRECCIÓN LÍDERES ACTIVOS: CONTEO REAL DE SUPABASE
+        const lideresUnicos = new Set(votantes.map(v => (v.lider || "DIRECTO").toUpperCase()));
+        document.getElementById('tLideresActivos').innerText = lideresUnicos.size;
         document.getElementById('tV').innerText = votantes.length.toLocaleString();
-        document.getElementById('tLideresActivos').innerText = lideresUnicos.toLocaleString();
 
         let hombres=0, mujeres=0, contCom={}, contPue={}, contMesa={}, contLid={};
         
-        // PROCESAMIENTO ANALÍTICO DE REGISTROS
         votantes.forEach(v => {
-            const nombre = (v["Nombres y apellidos"] || "").toUpperCase();
+            const nombre = (v["Nombres y apellidos"] || v.nombre || "").toUpperCase();
             if(nombre.endsWith('A') || nombre.includes('MARIA') || nombre.includes('ANA')) mujeres++; else hombres++;
             
             const lid = (v.lider || "OPERACIÓN DIRECTA").toUpperCase();
@@ -631,15 +579,13 @@
             }
         });
 
-        // UI: ACTIVIDAD EN TIEMPO REAL
         document.getElementById('bodyActividad').innerHTML = votantes.slice(0, 30).map(v => `
             <tr>
-                <td><b>${v["Nombres y apellidos"]}</b><br><small style="color:var(--text-muted)">LÍDER: ${v.lider || 'S.A.'}</small></td>
+                <td><b>${v["Nombres y apellidos"] || v.nombre}</b><br><small style="color:var(--text-muted)">LÍDER: ${v.lider || 'S.A.'}</small></td>
                 <td align="right" style="color:var(--accent); font-family: 'JetBrains Mono'">${new Date(v.created_at).toLocaleTimeString()}</td>
-            </tr>
-        `).join('');
+            </tr>`).join('');
 
-        // UI: ESTRUCTURA TERRITORIAL (TREE-VIEW COMPLETO)
+        // UI: ESTRUCTURA TERRITORIAL
         let jerHtml = "";
         Object.keys(GPS).sort((a,b)=>a-b).forEach(com => {
             const totalC = contCom[com] || 0;
@@ -657,25 +603,15 @@
                         <td align="center">${vP}</td>
                         <td align="center">${((vP/globalTotal)*100).toFixed(1)}%</td>
                     </tr>`;
-                    if(contMesa[pue]) {
-                        Object.entries(contMesa[pue]).forEach(([mesa, vM]) => {
-                            jerHtml += `<tr class="c-${com} ${idPue} row-mesa">
-                                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MESA ${mesa}</td>
-                                <td align="center">${vM}</td>
-                                <td align="center">${((vM/globalTotal)*100).toFixed(1)}%</td>
-                            </tr>`;
-                        });
-                    }
                 });
             }
         });
         document.getElementById('bodyJerarquia').innerHTML = jerHtml;
 
-        // UI: CONSOLIDADO GENERAL
         document.getElementById('bodyGeneral').innerHTML = votantes.map(v => {
             const p = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
             return `<tr>
-                <td style="font-size: 0.78rem">${v["Nombres y apellidos"]}</td>
+                <td style="font-size: 0.78rem">${v["Nombres y apellidos"] || v.nombre}</td>
                 <td>${v.cedula}</td>
                 <td>${v.telefono || '-'}</td>
                 <td style="font-size: 0.7rem">${v.puesto}</td>
@@ -683,16 +619,13 @@
             </tr>`;
         }).join('');
 
-        // UI: RANKING LIDERAZGO (CENTRADO)
         document.getElementById('bodyLid').innerHTML = Object.entries(contLid).sort((a,b)=>b[1]-a[1]).map(([l,v]) => `
             <tr>
                 <td>${l}</td>
                 <td style="color:var(--accent); font-weight: 900">${v}</td>
                 <td>${((v/globalTotal)*100).toFixed(1)}%</td>
-            </tr>
-        `).join('');
+            </tr>`).join('');
 
-        // UI: ALERTAS DE INTERVENCIÓN (COLA DE 0 Y BOTTOM 5)
         const rankingC = Object.keys(GPS).map(c => ({ id: c, v: contCom[c] || 0 })).sort((a,b) => a.v - b.v);
         const alertas = [...rankingC.filter(x => x.v === 0), ...rankingC.filter(x => x.v > 0).slice(0, 5)];
         document.getElementById('tZonasCriticas').innerText = alertas.length;
@@ -705,21 +638,17 @@
         updateVisualAssets(contCom, globalTotal, hombres, mujeres);
     }
 
-    /* ---------------------------------------------------------
-       MOTOR DE VISUALIZACIÓN GRÁFICA Y CARTOGRÁFICA
-    --------------------------------------------------------- */
     function updateVisualAssets(contCom, total, h, m) {
-        // ACTUALIZACIÓN DE CAPA GEOGRÁFICA
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
-            const v = contCom[c] || 0, pct = ((v/total)*100).toFixed(1);
+            const v = contCom[c] || 0;
             const color = v === 0 ? '#be123c' : '#2563eb';
             L.circle(GPS[c], { color, fillColor: color, fillOpacity: 0.5, radius: 450 + (v*15) })
              .addTo(capaBurbujas)
-             .bindTooltip(`<b>COMUNA ${c}</b><br>POTENCIAL: ${v} VOTOS<br>PESO: ${pct}%`, { sticky: true });
+             .bindTooltip(`<b>COMUNA ${c}</b><br>VOTOS: ${v}`, { sticky: true });
         });
 
-        // GRÁFICO DE DONA (DISTRIBUCIÓN)
+        // GRÁFICO DE DONA CON PORCENTAJES
         const labels = Object.keys(contCom).sort((a,b)=>a-b), data = labels.map(l => contCom[l]);
         if(chartDona) chartDona.destroy();
         chartDona = new Chart(document.getElementById('chartDona'), {
@@ -727,10 +656,20 @@
             data: { labels, datasets: [{ data, backgroundColor: PALETA_MASTER, borderWidth: 0, hoverOffset: 20 }] },
             options: { 
                 maintainAspectRatio: false, 
-                cutout: '74%', 
+                cutout: '70%', 
                 plugins: { 
                     legend: { display: false },
-                    datalabels: { display: false }
+                    datalabels: {
+                        color: '#fff',
+                        font: { weight: 'bold', size: 10 },
+                        formatter: (value, ctx) => {
+                            let sum = 0;
+                            let dataArr = ctx.chart.data.datasets[0].data;
+                            dataArr.map(data => { sum += data; });
+                            let percentage = (value*100 / sum).toFixed(1) + "%";
+                            return value > 0 ? percentage : '';
+                        }
+                    }
                 } 
             }
         });
@@ -739,74 +678,39 @@
             <div class="legend-item"><div class="legend-color" style="background:${PALETA_MASTER[i%10]}"></div><span>C-${l}: ${data[i]}</span></div>
         `).join('');
 
-        // GRÁFICO DE GÉNERO
         if(chartGen) chartGen.destroy();
         chartGen = new Chart(document.getElementById('chartGenero'), {
             type: 'bar',
-            data: { labels: ['H', 'M'], datasets: [{ data: [h, m], backgroundColor: ['#2563eb', '#be185d'], borderRadius: 8 }] },
+            data: { 
+                labels: ['H', 'M'], 
+                datasets: [{ data: [h, m], backgroundColor: ['#2563eb', '#db2777'], borderRadius: 5 }] 
+            },
             options: { 
                 indexAxis: 'y', 
-                maintainAspectRatio: false, 
-                plugins: { 
-                    legend: { display: false }, 
-                    datalabels: { color: '#fff', font: { weight: '900', size: 11 }, formatter: v => ((v/(h+m||1))*100).toFixed(0)+'%' } 
-                }, 
-                scales: { x: { display: false }, y: { display: false } } 
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, datalabels: { display: false } },
+                scales: { x: { display: false }, y: { grid: { display: false } } }
             }
         });
     }
 
-    /* ---------------------------------------------------------
-       MÓDULO DE EXPORTACIÓN EXTREMA (FULL HIERARCHY ENGINE)
-    --------------------------------------------------------- */
-    function exportHierarchicalData(tableId, fileName) {
-        try {
-            Swal.fire({ title: 'Generando Reporte...', text: 'Procesando Jerarquía Comuna/Puesto/Mesa', didOpen: () => Swal.showLoading() });
-            
-            const original = document.getElementById(tableId);
-            const clone = original.cloneNode(true);
-            
-            // EL SECRETO: Forzar la visibilidad absoluta en el clon antes de binario
-            const filas = clone.querySelectorAll('tr');
-            filas.forEach(f => { 
-                f.style.display = 'table-row'; 
-                // Limpieza de glifos para limpieza del Excel
-                const iconos = f.querySelectorAll('i');
-                iconos.forEach(ico => ico.remove());
-            });
-
-            const wb = XLSX.utils.table_to_book(clone, { sheet: "Jerarquía_Cali" });
-            XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0,10)}.xlsx`);
-            
-            Swal.close();
-            Swal.fire({ icon: 'success', title: 'REPORTE BINARIO GENERADO', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false });
-        } catch (err) {
-            console.error("Export Error:", err);
-            Swal.fire({ icon: 'error', title: 'Fallo en Exportación' });
-        }
+    // Funciones auxiliares para exportación (Stubs)
+    function exportFlatData(tid, name) { 
+        const table = document.getElementById(tid);
+        const wb = XLSX.utils.table_to_book(table);
+        XLSX.writeFile(wb, `${name}.xlsx`);
     }
-
-    function exportFlatData(tableId, fileName) {
-        const wb = XLSX.utils.table_to_book(document.getElementById(tableId));
-        XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0,10)}.xlsx`);
-    }
-
+    
     function filterConsolidado() {
-        const query = document.getElementById('busG').value.toUpperCase();
-        const filas = document.getElementById('bodyGeneral').rows;
-        for (let i = 0; i < filas.length; i++) {
-            filas[i].style.display = filas[i].innerText.toUpperCase().includes(query) ? '' : 'none';
+        let input = document.getElementById("busG").value.toUpperCase();
+        let rows = document.getElementById("bodyGeneral").getElementsByTagName("tr");
+        for (let i = 0; i < rows.length; i++) {
+            let txt = rows[i].textContent || rows[i].innerText;
+            rows[i].style.display = txt.toUpperCase().indexOf(input) > -1 ? "" : "none";
         }
     }
 
-    // ARRANQUE DE PROTOCOLOS
     window.onload = startSystem;
-
-    /* ==========================================================================================
-    FINAL DEL SISTEMA - COMMAND CENTER CALI 2026 PRO VERSION
-    ESTE CÓDIGO REPRESENTA EL 100% DE LA LÓGICA DE CONTROL ELECTORAL
-    ==========================================================================================
-    */
 </script>
 </body>
 </html>
