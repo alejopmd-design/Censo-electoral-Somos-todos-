@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA ESTRATÉGICO CALI 2026</title>
+    <title>SISTEMA ESTRATÉGICO CALI 2026 | COMMAND CENTER</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -15,96 +15,102 @@
     <style>
         :root { 
             --primary: #0f172a; --accent: #2563eb; --success: #059669; 
-            --danger: #be123c; --bg: #f8fafc; --panel: #ffffff;
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --danger: #be123c; --bg: #f1f5f9; --panel: #ffffff;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
         
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--primary); text-transform: uppercase; overflow-x: hidden; }
-        .container { max-width: 1880px; margin: auto; display: none; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--primary); text-transform: uppercase; overflow-x: hidden; }
+        .container { max-width: 100%; margin: auto; display: none; }
 
-        /* Header Estilo Premium */
-        .master-header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%); padding: 20px 40px; border-radius: 20px; color: white; margin-bottom: 25px; box-shadow: var(--shadow); }
-        .master-header h1 { margin:0; letter-spacing: 3px; font-size: 1.4rem; font-weight: 900; }
+        /* Header Compacto y Master */
+        .master-header { display: flex; justify-content: space-between; align-items: center; background: var(--primary); padding: 15px 30px; border-radius: 12px; color: white; margin-bottom: 15px; box-shadow: var(--shadow); }
+        .master-header h1 { margin:0; letter-spacing: 2px; font-size: 1.2rem; font-weight: 900; }
 
-        /* KPIs con porcentajes integrados */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px; }
-        .stat-card { background: var(--panel); border-radius: 20px; padding: 25px; box-shadow: var(--shadow); border-top: 6px solid var(--accent); position: relative; }
-        .stat-val { font-size: 3.5rem; font-weight: 900; display: block; line-height: 1; margin: 10px 0; }
-        .stat-label { font-size: 0.8rem; font-weight: 800; color: #64748b; letter-spacing: 1px; }
+        /* Grid Superior */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; }
+        .stat-card { background: var(--panel); border-radius: 12px; padding: 15px 20px; box-shadow: var(--shadow); border-left: 5px solid var(--accent); position: relative; }
+        .stat-val { font-size: 2.8rem; font-weight: 900; display: block; line-height: 1; }
+        .stat-label { font-size: 0.7rem; font-weight: 800; color: #64748b; }
+        .stat-pct { position: absolute; top: 15px; right: 20px; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 900; color: var(--accent); }
 
-        /* Layout Maestro para Evitar Espacios */
-        .dashboard-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 25px; align-items: stretch; }
+        /* LAYOUT MASTER DE 3 COLUMNAS (Sin espacios blancos) */
+        .master-layout { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; align-items: start; }
         
-        .panel { background: var(--panel); border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: var(--shadow); height: fit-content; }
-        h3 { font-size: 0.9rem; margin: 0 0 20px 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; font-weight: 900; display: flex; align-items: center; gap: 10px; color: #1e293b; }
+        .panel { background: var(--panel); border-radius: 12px; padding: 18px; margin-bottom: 15px; box-shadow: var(--shadow); display: flex; flex-direction: column; }
+        h3 { font-size: 0.8rem; margin: 0 0 15px 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
 
-        #map { height: 500px; width: 100%; border-radius: 15px; border: 1px solid #e2e8f0; }
+        #map { height: 420px; width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; }
 
-        /* Tablas Profesionales */
-        .scroll { max-height: 480px; overflow-y: auto; scrollbar-width: thin; }
+        /* Tablas de Alta Densidad */
+        .scroll { height: 380px; overflow-y: auto; scrollbar-width: thin; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 15px; text-align: left; font-size: 0.75rem; color: #64748b; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10; cursor: pointer; }
-        th:hover { background: #f1f5f9; color: var(--accent); }
-        td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 700; }
+        th { background: #f8fafc; padding: 10px; text-align: left; font-size: 0.65rem; color: #64748b; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10; cursor: pointer; }
+        td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 0.75rem; font-weight: 700; }
 
-        /* Filas Jerárquicas */
-        .row-comuna { background: #f8fafc; cursor: pointer; transition: 0.2s; }
-        .row-comuna:hover { background: #f1f5f9; }
-        .row-puesto { display: none; border-left: 5px solid var(--accent); }
-        .row-mesa { display: none; border-left: 10px solid #cbd5e1; font-size: 0.8rem; background: #fafafa; }
+        .row-comuna { background: #f8fafc; cursor: pointer; }
+        .row-puesto { display: none; border-left: 4px solid var(--accent); }
+        .row-mesa { display: none; border-left: 8px solid #cbd5e1; font-size: 0.7rem; background: #fafafa; }
 
-        /* Alertas y Actividad */
-        .alert-box { padding: 15px; border-radius: 12px; margin-bottom: 12px; font-size: 0.75rem; font-weight: 900; border-left: 6px solid; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        /* Estilo Alertas */
+        .alert-box { padding: 12px; border-radius: 8px; margin-bottom: 8px; font-size: 0.7rem; font-weight: 900; border-left: 5px solid; display: flex; justify-content: space-between; align-items: center; }
         .alert-red { background: #fff1f2; color: #9f1239; border-color: #be123c; }
         .alert-orange { background: #fff7ed; color: #9a3412; border-color: #f59e0b; }
 
-        .search-input { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #e2e8f0; margin-bottom: 20px; font-weight: 700; box-sizing: border-box; transition: 0.3s; }
-        .search-input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+        /* Columna del Líder en Actividad */
+        .tag-lider { background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; }
+
+        /* Buscador */
+        .search-input { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #e2e8f0; margin-bottom: 15px; font-weight: 700; box-sizing: border-box; }
+
+        .full-width { grid-column: span 3; }
     </style>
 </head>
 <body>
 
 <div id="app" class="container">
     <header class="master-header">
-        <h1><i class="fas fa-satellite-dish"></i> CENTER COMMAND | ESTRATEGIA 2026</h1>
-        <div id="reloj" style="font-weight: 900; font-family: monospace; letter-spacing: 1px;"></div>
+        <h1><i class="fas fa-microchip"></i> ESTRATEGIA OPERATIVA CALI 2026</h1>
+        <div id="reloj" style="font-family: monospace;"></div>
     </header>
 
     <div class="stats-grid">
-        <div class="stat-card">
-            <span class="stat-label">POTENCIAL TOTAL</span>
-            <span class="stat-val" id="tV">0</span>
+        <div class="stat-card"><span class="stat-label">CENSO TOTAL</span><span class="stat-val" id="tV">0</span></div>
+        <div class="stat-card" style="border-left-color: var(--danger)">
+            <span class="stat-label">ZONAS EN ALERTA</span><span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span>
+            <span class="stat-pct" id="pctAlerta">0%</span>
         </div>
-        <div class="stat-card" style="border-top-color: var(--danger)">
-            <span class="stat-label">CRITICAL ZONES</span>
-            <span class="stat-val" id="tZonasCriticas" style="color:var(--danger)">0</span>
+        <div class="stat-card" style="border-left-color: var(--success)">
+            <span class="stat-label">REGISTROS ROSSMERY</span><span class="stat-val" id="tLideresActivos" style="color:var(--success)">0</span>
+            <span class="stat-pct" id="pctRoss">0%</span>
         </div>
-        <div class="stat-card" style="border-top-color: var(--success)">
-            <span class="stat-label">REGISTROS ROSSMERY</span>
-            <span class="stat-val" id="tLideresActivos" style="color:var(--success)">0</span>
-        </div>
-        <div class="stat-card" style="border-top-color: #be185d">
-            <span class="stat-label">GÉNERO BALANCE</span>
-            <div style="height: 45px; margin-top: 10px;"><canvas id="chartGenero"></canvas></div>
+        <div class="stat-card" style="border-left-color: #be185d">
+            <span class="stat-label">BALANCE GÉNERO</span>
+            <div style="height: 40px; margin-top: 5px;"><canvas id="chartGenero"></canvas></div>
         </div>
     </div>
 
-    <div class="dashboard-grid">
-        <div class="col-main">
+    <div class="master-layout">
+        <div class="col-1">
             <div class="panel">
-                <h3><i class="fas fa-map-marked-alt"></i> GEOLOCALIZACIÓN ESTRATÉGICA</h3>
+                <h3><i class="fas fa-map-marked-alt"></i> COBERTURA GEOGRÁFICA</h3>
                 <div id="map"></div>
             </div>
-
             <div class="panel">
-                <h3><i class="fas fa-stream"></i> EXPLORADOR DE REGISTROS (COMUNA > PUESTO > MESA)</h3>
+                <h3><i class="fas fa-exclamation-triangle"></i> ALERTAS DE INTERVENCIÓN</h3>
+                <div id="alertasContainer"></div>
+            </div>
+        </div>
+
+        <div class="col-2">
+            <div class="panel">
+                <h3><i class="fas fa-sitemap"></i> EXPLORADOR (COMUNA > PUESTO > MESA)</h3>
                 <div class="scroll">
                     <table>
                         <thead>
                             <tr>
-                                <th onclick="sortTable('bodyJerarquia', 0)">UBICACIÓN <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('bodyJerarquia', 1)" style="text-align:center">VOTOS <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('bodyJerarquia', 2)" style="text-align:center">% <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable('bodyJerarquia', 0)">UBICACIÓN</th>
+                                <th onclick="sortTable('bodyJerarquia', 1)" align="center">VOTOS</th>
+                                <th onclick="sortTable('bodyJerarquia', 2)" align="center">%</th>
                             </tr>
                         </thead>
                         <tbody id="bodyJerarquia"></tbody>
@@ -113,27 +119,22 @@
             </div>
         </div>
 
-        <div class="col-side">
+        <div class="col-3">
             <div class="panel">
                 <h3><i class="fas fa-chart-pie"></i> DISTRIBUCIÓN PORCENTUAL</h3>
-                <div style="height: 250px;"><canvas id="chartDona"></canvas></div>
-                <div id="donaLegend" style="margin-top: 20px;"></div>
+                <div style="height: 180px;"><canvas id="chartDona"></canvas></div>
+                <div id="donaLegend" style="margin-top: 10px; font-size: 0.7rem;"></div>
             </div>
-
+            
             <div class="panel">
-                <h3><i class="fas fa-exclamation-circle"></i> ALERTAS DE INTERVENCIÓN</h3>
-                <div id="alertasContainer"></div>
-            </div>
-
-            <div class="panel">
-                <h3><i class="fas fa-history"></i> ÚLTIMA ACTIVIDAD (10 RECIENTES)</h3>
-                <div class="scroll" style="max-height: 350px;">
-                    <table>
+                <h3><i class="fas fa-bolt"></i> ÚLTIMA ACTIVIDAD (CON LÍDER)</h3>
+                <div class="scroll" style="height: 310px;">
+                    <table id="tablaActividad">
                         <thead>
                             <tr>
-                                <th>VOTANTE</th>
+                                <th>VOTANTE / LÍDER</th>
                                 <th>PUESTO</th>
-                                <th style="text-align:right">HORA</th>
+                                <th align="right">HORA</th>
                             </tr>
                         </thead>
                         <tbody id="bodyActividad"></tbody>
@@ -141,40 +142,40 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="panel" style="margin-top: 25px;">
-        <h3><i class="fas fa-trophy"></i> RENDIMIENTO DE LIDERAZGO</h3>
-        <div class="scroll" style="max-height: 300px;">
-            <table>
-                <thead>
-                    <tr>
-                        <th onclick="sortTable('bodyLid', 0)">LÍDER <i class="fas fa-sort"></i></th>
-                        <th onclick="sortTable('bodyLid', 1)" style="text-align:center">VOLUMEN <i class="fas fa-sort"></i></th>
-                        <th onclick="sortTable('bodyLid', 2)" style="text-align:center">PESO % <i class="fas fa-sort"></i></th>
-                    </tr>
-                </thead>
-                <tbody id="bodyLid"></tbody>
-            </table>
+        <div class="panel full-width">
+            <h3><i class="fas fa-medal"></i> RANKING DE LÍDERES</h3>
+            <div class="scroll" style="height: 200px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable('bodyLid', 0)">LÍDER</th>
+                            <th onclick="sortTable('bodyLid', 1)" align="center">REGISTROS</th>
+                            <th onclick="sortTable('bodyLid', 2)" align="center">PESO %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyLid"></tbody>
+                </table>
+            </div>
         </div>
-    </div>
 
-    <div class="panel" style="margin-top: 25px;">
-        <h3><i class="fas fa-database"></i> CONSOLIDADO GENERAL DE REGISTROS</h3>
-        <input type="text" id="busG" onkeyup="filtrarG()" placeholder="BUSCAR POR NOMBRE, CÉDULA O PUESTO..." class="search-input">
-        <div class="scroll" style="max-height: 500px;">
-            <table id="tablaGeneral">
-                <thead>
-                    <tr>
-                        <th onclick="sortTable('bodyGeneral', 0)">NOMBRE <i class="fas fa-sort"></i></th>
-                        <th onclick="sortTable('bodyGeneral', 1)">CÉDULA <i class="fas fa-sort"></i></th>
-                        <th onclick="sortTable('bodyGeneral', 2)">TELÉFONO <i class="fas fa-sort"></i></th>
-                        <th onclick="sortTable('bodyGeneral', 3)">PUESTO <i class="fas fa-sort"></i></th>
-                        <th onclick="sortTable('bodyGeneral', 4)" style="text-align:center">COMUNA <i class="fas fa-sort"></i></th>
-                    </tr>
-                </thead>
-                <tbody id="bodyGeneral"></tbody>
-            </table>
+        <div class="panel full-width">
+            <h3><i class="fas fa-database"></i> BASE DE DATOS GENERAL</h3>
+            <input type="text" id="busG" onkeyup="filtrarG()" placeholder="BUSCAR POR NOMBRE, CÉDULA O PUESTO..." class="search-input">
+            <div class="scroll" style="height: 400px;">
+                <table id="tablaGeneral">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable('bodyGeneral', 0)">NOMBRE</th>
+                            <th onclick="sortTable('bodyGeneral', 1)">CÉDULA</th>
+                            <th onclick="sortTable('bodyGeneral', 2)">TELÉFONO</th>
+                            <th onclick="sortTable('bodyGeneral', 3)">PUESTO</th>
+                            <th onclick="sortTable('bodyGeneral', 4)" align="center">COMUNA</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyGeneral"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -189,11 +190,10 @@
     const GPS = { "1":[3.450,-76.550],"2":[3.475,-76.525],"3":[3.452,-76.533],"4":[3.468,-76.508],"5":[3.478,-76.492],"6":[3.485,-76.485],"7":[3.458,-76.488],"8":[3.445,-76.500],"9":[3.440,-76.515],"10":[3.428,-76.520],"11":[3.415,-76.510],"12":[3.428,-76.495],"13":[3.410,-76.485],"14":[3.415,-76.470],"15":[3.400,-76.475],"16":[3.410,-76.500],"17":[3.385,-76.520],"18":[3.375,-76.545],"19":[3.425,-76.545],"20":[3.415,-76.555],"21":[3.425,-76.465],"22":[3.355,-76.535],"24":[3.350,-76.510],"25":[3.370,-76.570],"33":[3.480,-76.570] };
 
     async function login() {
-        const { value: p } = await Swal.fire({ title: 'ACCESO RESTRINGIDO', input: 'password', allowOutsideClick: false, confirmButtonColor: '#0f172a' });
+        const { value: p } = await Swal.fire({ title: 'MASTER ACCESS', input: 'password', allowOutsideClick: false, confirmButtonColor: '#0f172a' });
         if(p === 'ADMIN2026') { 
             document.getElementById('app').style.display = 'block'; 
-            initMap(); 
-            cargarBase(); 
+            initMap(); cargarBase(); 
             setInterval(() => { document.getElementById('reloj').innerText = new Date().toLocaleString(); }, 1000);
         } else login();
     }
@@ -214,8 +214,11 @@
 
     function renderUI() {
         const total = votantes.length || 1;
+        const rossCount = votantes.filter(v => ROSS_KEYWORDS.some(k => (v.lider||"").toUpperCase().includes(k))).length;
+        
         document.getElementById('tV').innerText = votantes.length;
-        document.getElementById('tLideresActivos').innerText = votantes.filter(v => ROSS_KEYWORDS.some(k => (v.lider||"").toUpperCase().includes(k))).length;
+        document.getElementById('tLideresActivos').innerText = rossCount;
+        document.getElementById('pctRoss').innerText = ((rossCount/total)*100).toFixed(1) + "%";
 
         let h=0, m=0, cCom={}, cPue={}, cMesa={}, cLid={};
 
@@ -234,16 +237,16 @@
             }
         });
 
-        // Actividad Reciente (Restaurada con todas las columnas)
+        // Actividad Reciente con LÍDER
         document.getElementById('bodyActividad').innerHTML = votantes.slice(0, 10).map(v => `
             <tr>
-                <td>${v["Nombres y apellidos"].substring(0,20)}</td>
+                <td><b>${v["Nombres y apellidos"].substring(0,18)}</b><br><span class="tag-lider">${v.lider || 'DIRECTO'}</span></td>
                 <td><small>${(v.puesto || 'N/A').substring(0,15)}</small></td>
-                <td align="right" style="color:var(--accent)">${new Date(v.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
+                <td align="right">${new Date(v.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
             </tr>
         `).join('');
 
-        // Tabla Jerárquica
+        // Explorador Jerárquico
         let htmlJer = "";
         Object.keys(GPS).sort((a,b)=>a-b).forEach(com => {
             const vCom = cCom[com] || 0;
@@ -263,19 +266,19 @@
         });
         document.getElementById('bodyJerarquia').innerHTML = htmlJer;
 
-        // Base General
+        // Base de Datos y Rankings
         document.getElementById('bodyGeneral').innerHTML = votantes.map(v => {
             const pInfo = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
             return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.telefono || '-'}</td><td>${v.puesto || '-'}</td><td align="center">${pInfo ? pInfo.comuna : '-'}</td></tr>`;
         }).join('');
 
-        // Ranking Líderes
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/total)*100).toFixed(1)}%</td></tr>`).join('');
 
-        // Alertas (0 y últimas 5)
+        // Alertas (REGLA: 0 votos y últimas 5)
         const rankingC = Object.keys(GPS).map(c => ({ id: c, v: cCom[c] || 0 })).sort((a,b) => a.v - b.v);
         const alertas = [...rankingC.filter(x => x.v === 0), ...rankingC.filter(x => x.v > 0).slice(0, 5)];
         document.getElementById('tZonasCriticas').innerText = alertas.length;
+        document.getElementById('pctAlerta').innerText = ((alertas.length/25)*100).toFixed(0) + "%";
         document.getElementById('alertasContainer').innerHTML = alertas.map(c => `<div class="alert-box ${c.v===0?'alert-red':'alert-orange'}"><span>COMUNA ${c.id}</span><span>${c.v} VOTOS</span></div>`).join('');
 
         renderMapa(cCom, total);
@@ -299,10 +302,10 @@
         if(chartDona) chartDona.destroy();
         chartDona = new Chart(document.getElementById('chartDona'), {
             type: 'doughnut', 
-            data: { labels, datasets:[{data, backgroundColor:['#0f172a','#2563eb','#3b82f6','#64748b','#94a3b8','#cbd5e1']}] },
-            options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '75%' }
+            data: { labels, datasets:[{data, backgroundColor:['#0f172a','#2563eb','#3b82f6','#64748b','#94a3b8']}] },
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
         });
-        document.getElementById('donaLegend').innerHTML = labels.map((l,i) => `<div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:8px; font-weight:800;"><span>COMUNA ${l}</span><span>${data[i]} (${((data[i]/total)*100).toFixed(1)}%)</span></div>`).join('');
+        document.getElementById('donaLegend').innerHTML = labels.map((l,i) => `<div style="display:flex; justify-content:space-between; margin-bottom:4px;"><b>C-${l}</b><span>${data[i]} (${((data[i]/total)*100).toFixed(1)}%)</span></div>`).join('');
     }
 
     function renderChartGenero(h, m) {
@@ -323,13 +326,12 @@
         for(let e of els) { e.style.display = 'none'; if(e.getAttribute('data-id')) toggleLevelClose(e.getAttribute('data-id')); }
     }
 
-    function sortTable(tableId, col) {
-        const table = document.getElementById(tableId);
-        let rows = Array.from(table.rows);
-        let dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
+    function sortTable(t, c) {
+        const table = document.getElementById(t);
+        let rows = Array.from(table.rows), dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
         table.setAttribute("data-dir", dir);
         rows.sort((a, b) => {
-            let vA = a.cells[col].innerText.trim(), vB = b.cells[col].innerText.trim();
+            let vA = a.cells[c].innerText.trim(), vB = b.cells[c].innerText.trim();
             return dir === "asc" ? vA.localeCompare(vB, undefined, {numeric: true}) : vB.localeCompare(vA, undefined, {numeric: true});
         });
         rows.forEach(r => table.appendChild(r));
