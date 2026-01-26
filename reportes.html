@@ -42,8 +42,6 @@
         h3 { font-size: 0.9rem; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; font-weight: 900; color: #334155; }
 
         .visual-container { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
-        
-        /* AJUSTE: Mapa ligeramente más oscuro */
         #map { height: 500px; width: 100%; border-radius: 10px; border: 1px solid #e2e8f0; filter: brightness(0.9) contrast(1.1); }
 
         .scroll { max-height: 450px; overflow-y: auto; }
@@ -136,7 +134,14 @@
                 <div class="scroll">
                     <table id="tablaG">
                         <thead>
-                            <tr><th>VOTANTE</th><th>CÉDULA</th><th>PUESTO</th><th style="text-align:center">MESA</th><th style="text-align:center">C.</th></tr>
+                            <tr>
+                                <th>FECHA</th>
+                                <th>VOTANTE</th>
+                                <th>CÉDULA</th>
+                                <th>PUESTO</th>
+                                <th style="text-align:center">MESA</th>
+                                <th style="text-align:center">C.</th>
+                            </tr>
                         </thead>
                         <tbody id="bodyM"></tbody>
                     </table>
@@ -209,7 +214,6 @@
     function renderUI() {
         const total = votantes.length;
         
-        // AJUSTE: Sincronización del contador de Rossmery con el ranking (95 registros)
         const inscritosRossmery = votantes.filter(v => {
             const lid = (v.lider || "").toUpperCase();
             return ROSSMERY_NAMES.some(n => lid.includes(n));
@@ -248,7 +252,6 @@
         document.getElementById('txtM').innerText = `M: ${f} (${((f/total)*100).toFixed(1)}%)`;
         renderChartGenero(m, f);
 
-        // Alertas: 0 registros + 5 más bajas
         const rankingComunas = Object.keys(GPS).map(c => ({ id: c, v: cCom[c] || 0 }))
             .sort((a,b) => a.v - b.v);
         
@@ -267,9 +270,18 @@
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1])
             .map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/total)*100).toFixed(1)}%</td></tr>`).join('');
 
+        // AJUSTE: Render de la tabla principal con Fecha Corta y Puesto
         document.getElementById('bodyM').innerHTML = votantesLimpios.map(v => {
             const po = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
-            return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.puesto || '-'}</td><td align="center">${v.mesa || '0'}</td><td align="center">${po?po.comuna:'-'}</td></tr>`;
+            const fechaCorta = v.created_at ? new Date(v.created_at).toLocaleDateString('es-CO') : '-';
+            return `<tr>
+                <td>${fechaCorta}</td>
+                <td>${v["Nombres y apellidos"]}</td>
+                <td>${v.cedula}</td>
+                <td>${v.puesto || '-'}</td>
+                <td align="center">${v.mesa || '0'}</td>
+                <td align="center">${po?po.comuna:'-'}</td>
+            </tr>`;
         }).join('');
 
         document.getElementById('ultimosRegistrosContainer').innerHTML = votantesLimpios.slice(0, 5).map(v => `
@@ -279,6 +291,7 @@
             </div>`).join('');
     }
 
+    // Funciones de Mapa, Chart y Filtros se mantienen idénticas
     function renderMapa(cCom, total) {
         capaBurbujas.clearLayers();
         Object.keys(GPS).forEach(c => {
@@ -338,7 +351,7 @@
 
     function exportTable() {
         const wb = XLSX.utils.table_to_book(document.getElementById('tablaG'));
-        XLSX.writeFile(wb, "REPORTE_CALI_2026.xlsx");
+        XLSX.writeFile(wb, "REPORTE_ESTRATEGICO_2026.xlsx");
     }
 
     function filtrar() {
