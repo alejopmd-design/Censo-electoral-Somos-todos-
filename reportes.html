@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -158,9 +159,22 @@
         renderUI();
     }
 
+    // FUNCIÓN CORREGIDA PARA ABRIR TODOS LOS NIVELES
     function toggleLevel(id) {
         const rows = document.getElementsByClassName(id);
-        for(let r of rows) { r.style.display = r.style.display === 'table-row' ? 'none' : 'table-row'; }
+        for(let r of rows) {
+            if (r.style.display === 'table-row') {
+                r.style.display = 'none';
+                // Si cerramos un nivel, cerramos también sus hijos
+                const childId = r.getAttribute('data-id');
+                if(childId) {
+                    const children = document.getElementsByClassName(childId);
+                    for(let c of children) c.style.display = 'none';
+                }
+            } else {
+                r.style.display = 'table-row';
+            }
+        }
     }
 
     function renderUI() {
@@ -189,31 +203,35 @@
         document.getElementById('pctM').innerText = `M: ${((m/total)*100).toFixed(1)}%`;
         renderChartGenero(h, m);
 
-        // TABLA JERÁRQUICA
+        // TABLA JERÁRQUICA CORREGIDA (LÓGICA DE IDS)
         let htmlJer = "";
         Object.keys(GPS).sort((a,b)=>a-b).forEach(com => {
             const vCom = cCom[com] || 0;
             const idCom = `c-${com}`;
             htmlJer += `<tr class="row-comuna" onclick="toggleLevel('${idCom}')"><td><i class="fas fa-folder folder-icon"></i> COMUNA ${com}</td><td align="center">${vCom}</td><td align="center">${((vCom/total)*100).toFixed(1)}%</td></tr>`;
+            
             if(cPue[com]) {
                 Object.entries(cPue[com]).forEach(([pue, vPue]) => {
-                    const idPue = `p-${pue.replace(/\s+/g, '')}`;
-                    htmlJer += `<tr class="${idCom} row-puesto" onclick="toggleLevel('${idPue}')"><td>&nbsp;&nbsp;${pue}</td><td align="center">${vPue}</td><td align="center">${((vPue/total)*100).toFixed(1)}%</td></tr>`;
+                    const idPue = `p-${pue.replace(/[^a-zA-Z0-9]/g, '')}`; // ID limpio para clase
+                    htmlJer += `<tr class="${idCom} row-puesto" data-id="${idPue}" onclick="toggleLevel('${idPue}')"><td>&nbsp;&nbsp;<i class="fas fa-folder-open" style="font-size:0.8rem; color:#64748b"></i> ${pue}</td><td align="center">${vPue}</td><td align="center">${((vPue/total)*100).toFixed(1)}%</td></tr>`;
+                    
+                    if(cMesa[pue]) {
+                        Object.entries(cMesa[pue]).sort((a,b)=>a[0]-b[0]).forEach(([mesa, vMesa]) => {
+                            htmlJer += `<tr class="${idCom} ${idPue} row-mesa"><td>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-inbox" style="color:#94a3b8"></i> MESA ${mesa}</td><td align="center">${vMesa}</td><td align="center">${((vMesa/total)*100).toFixed(1)}%</td></tr>`;
+                        });
+                    }
                 });
             }
         });
         document.getElementById('bodyJerarquia').innerHTML = htmlJer;
 
-        // TABLA GENERAL (NOMBRE, CÉDULA, TELÉFONO, PUESTO, COMUNA)
         document.getElementById('bodyGeneral').innerHTML = votantes.map(v => {
             const pInfo = puestosOficiales.find(p => p.nombre_puesto.toUpperCase() === (v.puesto||"").toUpperCase());
             return `<tr><td>${v["Nombres y apellidos"]}</td><td>${v.cedula}</td><td>${v.telefono || '-'}</td><td>${v.puesto || '-'}</td><td align="center">${pInfo ? pInfo.comuna : '-'}</td></tr>`;
         }).join('');
 
-        // RANKING LÍDERES
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid).sort((a,b)=>b[1]-a[1]).map(([l,v]) => `<tr><td>${l}</td><td align="center">${v}</td><td align="center">${((v/total)*100).toFixed(1)}%</td></tr>`).join('');
 
-        // ALERTAS (0 + 5)
         const rankingC = Object.keys(GPS).map(c => ({ id: c, v: cCom[c] || 0 })).sort((a,b) => a.v - b.v);
         const alertas = [...rankingC.filter(x => x.v === 0), ...rankingC.filter(x => x.v > 0).slice(0, 5)];
         document.getElementById('tZonasCriticas').innerText = alertas.length;
