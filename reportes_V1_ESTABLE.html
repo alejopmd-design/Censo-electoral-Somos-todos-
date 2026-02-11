@@ -134,6 +134,29 @@
             align-items: center;
             gap: 6px;
         }
+        
+        /* BARRA DE PROGRESO (NUEVO) */
+        .progress-container {
+            width: 100%;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            margin-top: 10px;
+            height: 8px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--accent);
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+        }
+        .progress-text {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
 
         /* LAYOUT PRINCIPAL */
         .dashboard-main { 
@@ -283,6 +306,13 @@
         <div class="stat-card">
             <span class="stat-label"><i class="fas fa-database"></i> CENSO REGISTRADO</span>
             <span class="stat-val" id="tV">0</span>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="progress-text">
+                <span>META: 7,000</span>
+                <span id="progressPercent">0%</span>
+            </div>
         </div>
         <div class="stat-card" style="border-top-color: var(--danger)">
             <span class="stat-label"><i class="fas fa-triangle-exclamation"></i> COMUNAS ALERTA</span>
@@ -399,10 +429,10 @@
 
 <script>
     /* ==========================================================================================
-    SECCIÓN 3: MASTER ENGINE (750+ LÍNEAS DE LÓGICA ROBUSTA)
+    SECCIÓN 3: MASTER ENGINE (OPTIMIZADO PARA ALTO VOLUMEN DE DATOS)
     ==========================================================================================
-    Este motor gestiona la sincronización asíncrona entre Supabase y la UI, manteniendo
-    la integridad de los datos y el rendimiento del DOM mediante técnicas de virtualización.
+    Este motor gestiona la sincronización con paginación automática para superar el límite
+    de 1000 registros de Supabase y asegura el conteo total de líderes.
     ==========================================================================================
     */
     const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
@@ -414,6 +444,7 @@
     let votantes = [], puestosOficiales = [], map, capaBurbujas, chartGen, chartDona;
     let currentDir = {};
     let isInitialLoad = true;
+    const META_CENSO = 7000; // Meta definida
 
     // COORDENADAS ESTRATÉGICAS DE COMUNAS DE CALI
     const GPS = { 
@@ -524,25 +555,44 @@
     }
 
     /* ---------------------------------------------------------
-       FLUJO DE DATOS ASÍNCRONO (SUPABASE)
+       FLUJO DE DATOS ASÍNCRONO (SUPABASE) - CORREGIDO PAGINACIÓN
     --------------------------------------------------------- */
     async function cargarDatosSupabase() {
         try {
-            console.log("Iniciando petición a Supabase...");
+            console.log("Iniciando petición a Supabase (Modo Paginado)...");
             
-            // Petición paralela para optimizar tiempos de respuesta
-            const [puestosRes, votantesRes] = await Promise.all([
-                _supabase.from('PUESTOS_VOTACION').select('*'),
-                _supabase.from('VOTANTES').select('*').order('created_at', { ascending: false })
-            ]);
+            // 1. Cargar Puestos (Estos suelen ser pocos, se cargan de una)
+            const { data: puestosData, error: puestosError } = await _supabase.from('PUESTOS_VOTACION').select('*');
+            if(puestosError) throw puestosError;
+            puestosOficiales = puestosData || [];
 
-            if(puestosRes.error) throw puestosRes.error;
-            if(votantesRes.error) throw votantesRes.error;
+            // 2. Cargar Votantes con Bucle para superar límite de 1000
+            let allVotantes = [];
+            let from = 0;
+            let limit = 1000;
+            let moreData = true;
 
-            puestosOficiales = puestosRes.data || [];
-            votantes = votantesRes.data || [];
+            while (moreData) {
+                const { data, error } = await _supabase
+                    .from('VOTANTES')
+                    .select('*')
+                    .range(from, from + limit - 1)
+                    .order('created_at', { ascending: false });
 
-            console.log(`Carga exitosa: ${votantes.length} votantes obtenidos.`);
+                if (error) throw error;
+
+                if (data.length > 0) {
+                    allVotantes = allVotantes.concat(data);
+                    from += limit;
+                    // Si trajo menos del límite, es la última página
+                    if (data.length < limit) moreData = false;
+                } else {
+                    moreData = false;
+                }
+            }
+
+            votantes = allVotantes;
+            console.log(`Carga exitosa TOTAL: ${votantes.length} votantes obtenidos.`);
             
             if(auditDataSystem(votantes)) {
                 renderizarInterfaz();
@@ -577,16 +627,29 @@
        TRANSFORMACIÓN Y RENDERIZADO DE INTERFAZ
     --------------------------------------------------------- */
     function renderizarInterfaz() {
-        const total = votantes.length || 1;
+        const total = votantes.length || 0; // Permitir 0 para mostrar vacio si es el caso
+        const totalDiv = total || 1; // Para evitar división por cero en porcentajes
         
         // Mapeo único de líderes para el KPI
-       // Contamos solo los registros que tienen a Rosse Mary como líder
+        // Contamos solo los registros que tienen a Rosse Mary como líder
         const registrosRosse = votantes.filter(v => 
             (v.lider || "").trim().toUpperCase().includes("ROSSE") || (v.lider || "").trim().toUpperCase().includes("ROSSMERY")
         ).length;
         
-        document.getElementById('tV').innerText = votantes.length.toLocaleString();
+        // ACTUALIZACIÓN DE TARJETAS Y BARRA DE PROGRESO
+        document.getElementById('tV').innerText = total.toLocaleString();
         document.getElementById('tLideresActivos').innerText = registrosRosse.toLocaleString();
+
+        // Lógica de Barra de Progreso
+        const porcentajeAvance = Math.min((total / META_CENSO) * 100, 100).toFixed(1);
+        document.getElementById('progressBar').style.width = `${porcentajeAvance}%`;
+        document.getElementById('progressPercent').innerText = `${porcentajeAvance}%`;
+        
+        // Cambio de color de la barra según avance
+        const barElem = document.getElementById('progressBar');
+        if(porcentajeAvance < 30) barElem.style.backgroundColor = '#be123c'; // Rojo
+        else if(porcentajeAvance < 70) barElem.style.backgroundColor = '#f59e0b'; // Naranja
+        else barElem.style.backgroundColor = '#059669'; // Verde
 
         let h=0, m=0, cCom={}, cPue={}, cMesa={}, cLid={};
         
@@ -619,22 +682,24 @@
                 cMesa[v.puesto][mesa] = (cMesa[v.puesto][mesa]||0) + 1;
             }
         });
-// ---- AJUSTE: INCLUIR LÍDERES DE ROSSE MARY AUN CON 0 ----
-votantes.forEach(v => {
-    const reg = (v.registrado_por || "").toUpperCase().trim();
-    const lid = (v.lider || "").toUpperCase().trim();
-
-    if (
-        reg.includes("ROSSE") ||
-        reg.includes("ROSSMERY") ||
-        lid.includes("ROSSE")
-    ) {
-        const nombre = (v.lider || "ROSSE MARY CABAL FRANCO").toUpperCase().trim();
-        if (!cLid[nombre]) {
-            cLid[nombre] = 0;
-        }
-    }
-});
+        
+        // ---- AJUSTE: INCLUIR LÍDERES DE ROSSE MARY AUN CON 0 ----
+        votantes.forEach(v => {
+            const reg = (v.registrado_por || "").toUpperCase().trim();
+            const lid = (v.lider || "").toUpperCase().trim();
+        
+            if (
+                reg.includes("ROSSE") ||
+                reg.includes("ROSSMERY") ||
+                lid.includes("ROSSE")
+            ) {
+                const nombre = (v.lider || "ROSSE MARY CABAL FRANCO").toUpperCase().trim();
+                // Si el líder existe en los datos pero no tiene conteo (caso raro, o para asegurar inicialización)
+                if (!cLid[nombre]) {
+                    cLid[nombre] = 0;
+                }
+            }
+        });
 
         // 1. RENDER: ACTIVIDAD RECIENTE
         document.getElementById('bodyActividad').innerHTML = votantes.slice(0, 30).map(v => `
@@ -648,7 +713,7 @@ votantes.forEach(v => {
         let htmlJer = "";
         Object.keys(GPS).sort((a,b)=>a-b).forEach(com => {
             const vCom = cCom[com] || 0;
-            const pct = ((vCom/total)*100).toFixed(1);
+            const pct = ((vCom/totalDiv)*100).toFixed(1);
             htmlJer += `<tr class="row-comuna" onclick="toggleNivel('c-${com}')">
                 <td><i class="fas fa-folder-tree"></i> COMUNA ${com}</td>
                 <td align="center">${vCom}</td>
@@ -661,7 +726,7 @@ votantes.forEach(v => {
                     htmlJer += `<tr class="c-${com} row-puesto" data-sub="${idPue}" onclick="toggleNivel('${idPue}')">
                         <td>&nbsp;&nbsp;<i class="fas fa-location-dot"></i> ${pue}</td>
                         <td align="center">${vPue}</td>
-                        <td align="center">${((vPue/total)*100).toFixed(1)}%</td>
+                        <td align="center">${((vPue/totalDiv)*100).toFixed(1)}%</td>
                     </tr>`;
                     
                     if(cMesa[pue]) {
@@ -669,7 +734,7 @@ votantes.forEach(v => {
                             htmlJer += `<tr class="c-${com} ${idPue} row-mesa">
                                 <td>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-box-archive"></i> MESA ${mesa}</td>
                                 <td align="center">${vMesa}</td>
-                                <td align="center">${((vMesa/total)*100).toFixed(1)}%</td>
+                                <td align="center">${((vMesa/totalDiv)*100).toFixed(1)}%</td>
                             </tr>`;
                         });
                     }
@@ -689,32 +754,29 @@ votantes.forEach(v => {
                 <td align="center">${p ? p.comuna : '-'}</td>
             </tr>`;
         }).join('');
-// ---- INYECCIÓN FINAL: LÍDERES DE ROSSE MARY CON 0 ----
-votantes.forEach(v => {
-    const reg = (v.registrado_por || "").toUpperCase().trim();
-    const lid = (v.lider || "").toUpperCase().trim();
+        
+        // ---- INYECCIÓN FINAL: ASEGURAR TODOS LOS LÍDERES ----
+        // Recorremos nuevamente para asegurar que cualquier líder mencionado aparezca, incluso si no sumó en la primera pasada
+        votantes.forEach(v => {
+            const lid = (v.lider || "").toUpperCase().trim();
+             // Asegurar que si hay un nombre en el campo lider, exista en la tabla
+            if (lid && lid !== "DIRECTO" && lid.length > 2) {
+                 if (!(lid in cLid)) {
+                    cLid[lid] = 0;
+                }
+            }
+        });
 
-    if (
-        reg.includes("ROSSE") ||
-        reg.includes("ROSSMERY") ||
-        lid.includes("ROSSE")
-    ) {
-        const nombre = (v.lider || "ROSSE MARY CABAL FRANCO").toUpperCase().trim();
-        if (!(nombre in cLid)) {
-            cLid[nombre] = 0;
-        }
-    }
-});
-
-        // 4. RENDER: RANKING LÍDERES
+        // 4. RENDER: RANKING LÍDERES (CORREGIDO PARA MOSTRAR TODOS)
+        // Convertimos a array y ordenamos. El filtro v >= 0 asegura mostrar los de 0.
         document.getElementById('bodyLid').innerHTML = Object.entries(cLid)
-        .filter(([k,v]) => v > 0 || k.includes("ROSSE"))
+            .filter(([k,v]) => v >= 0) 
             .sort((a,b)=>b[1]-a[1])
             .map(([l,v]) => `
                 <tr>
                     <td><span class="tag-lider">${l}</span></td>
                     <td align="center" style="font-weight: 900">${v}</td>
-                    <td align="center" style="color:var(--accent)">${((v/total)*100).toFixed(1)}%</td>
+                    <td align="center" style="color:var(--accent)">${((v/totalDiv)*100).toFixed(1)}%</td>
                 </tr>
             `).join('');
 
@@ -729,7 +791,7 @@ votantes.forEach(v => {
             </div>`).join('');
 
         // ACTUALIZAR COMPONENTES VISUALES
-        renderVisuales(cCom, total, h, m);
+        renderVisuales(cCom, totalDiv, h, m);
     }
 
     /* ---------------------------------------------------------
