@@ -3,68 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA DE CAPTACIÓN | CALI 2026</title>
+    <title>REGISTRO CALI 2026 | MODO COMANDO</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 
     <style>
-        :root { --primary: #0f172a; --accent: #2563eb; --bg: #f1f5f9; --panel: #ffffff; --border: #e2e8f0; }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); padding: 20px; text-transform: uppercase; }
-        .container { max-width: 500px; margin: 30px auto; }
-        .header-card { background: var(--primary); color: white; padding: 20px; border-radius: 12px 12px 0 0; text-align: center; }
-        .form-card { background: var(--panel); padding: 25px; border-radius: 0 0 12px 12px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .field { margin-bottom: 15px; }
+        :root { --primary: #0f172a; --accent: #2563eb; --bg: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; text-transform: uppercase; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; border: 1px solid #e2e8f0; }
+        h2 { text-align: center; font-weight: 900; margin-bottom: 25px; color: var(--primary); font-size: 1.3rem; letter-spacing: -1px; }
         label { display: block; font-size: 0.7rem; font-weight: 800; margin-bottom: 5px; color: #64748b; }
-        .req { color: #be123c; }
-        input, select { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--border); font-weight: 700; background: #f8fafc; }
-        input:focus { border-color: var(--accent); outline: none; background: #fff; }
-        .btn { width: 100%; background: var(--accent); color: white; padding: 15px; border: none; border-radius: 8px; font-weight: 900; cursor: pointer; margin-top: 10px; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 18px; border-radius: 10px; border: 2px solid #e2e8f0; font-weight: 700; font-family: 'Inter'; background: #fdfdfd; }
+        input:focus { border-color: var(--accent); outline: none; background: #fff; box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+        .btn { width: 100%; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 1rem; }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .req { color: #be123c; margin-left: 3px; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header-card">
-        <h2><i class="fas fa-user-plus"></i> REGISTRO 2026</h2>
-    </div>
+<div class="card">
+    <h2><i class="fas fa-database"></i> CAPTACIÓN DE DATOS</h2>
+    <form id="formCali">
+        <label>NOMBRES Y APELLIDOS <span class="req">*</span></label>
+        <input type="text" id="nombre" required placeholder="NOMBRE COMPLETO">
 
-    <div class="form-card">
-        <form id="formCarga">
-            <div class="field">
-                <label>NOMBRES Y APELLIDOS <span class="req">*</span></label>
-                <input type="text" id="nombre" required>
-            </div>
-            <div class="field">
+        <div class="row">
+            <div>
                 <label>CÉDULA <span class="req">*</span></label>
-                <input type="number" id="cedula" required>
+                <input type="number" id="cedula" required placeholder="NÚMERO">
             </div>
-            <div class="field">
+            <div>
                 <label>TELÉFONO <span class="req">*</span></label>
-                <input type="tel" id="telefono" required>
+                <input type="tel" id="telefono" required placeholder="CELULAR">
             </div>
-            <div style="border-top: 1px solid #eee; margin: 15px 0; padding-top: 15px;">
-                <label style="color: var(--accent)">CAMPOS OPCIONALES</label>
-            </div>
-            <div class="field">
-                <label>LÍDER / REFERENTE</label>
-                <input type="text" id="lider" placeholder="DIRECTO">
-            </div>
-            <div class="field">
-                <label>PUESTO DE VOTACIÓN</label>
-                <select id="puesto"><option value="">SELECCIONE...</option></select>
-            </div>
-            <div class="field">
-                <label>MESA</label>
-                <input type="number" id="mesa" placeholder="0">
-            </div>
-            <button type="submit" id="btn" class="btn">GUARDAR REGISTRO</button>
-        </form>
-    </div>
+        </div>
+
+        <label>LÍDER / REFERENTE</label>
+        <input type="text" id="lider" placeholder="DIRECTO">
+
+        <label>PUESTO DE VOTACIÓN</label>
+        <select id="puesto"><option value="">SELECCIONE PUESTO...</option></select>
+
+        <label><i class="fas fa-id-badge"></i> MESA DE VOTACIÓN</label>
+        <input type="number" id="mesa" placeholder="NÚMERO DE MESA">
+
+        <button type="submit" class="btn" id="btnG">GUARDAR REGISTRO</button>
+    </form>
 </div>
 
 <script>
@@ -72,21 +61,24 @@
     const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    async function cargarPuestos() {
+    // Cargar puestos de la base de datos
+    async function cargar() {
         const { data } = await _supabase.from('PUESTOS_VOTACION').select('nombre_puesto').order('nombre_puesto');
-        const sel = document.getElementById('puesto');
-        data.forEach(p => {
-            let o = document.createElement('option');
-            o.value = o.innerHTML = p.nombre_puesto;
-            sel.appendChild(o);
-        });
+        if(data) {
+            const s = document.getElementById('puesto');
+            data.forEach(p => {
+                let o = document.createElement('option');
+                o.value = o.text = p.nombre_puesto;
+                s.add(o);
+            });
+        }
     }
 
-    document.getElementById('formCarga').onsubmit = async (e) => {
+    document.getElementById('formCali').onsubmit = async (e) => {
         e.preventDefault();
-        const btn = document.getElementById('btn');
+        const btn = document.getElementById('btnG');
         btn.disabled = true;
-        btn.innerHTML = 'GUARDANDO...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GUARDANDO...';
 
         const datos = {
             cedula: document.getElementById('cedula').value,
@@ -94,7 +86,7 @@
             telefono: document.getElementById('telefono').value,
             lider: document.getElementById('lider').value.toUpperCase() || 'DIRECTO',
             puesto: document.getElementById('puesto').value,
-            mesa: document.getElementById('mesa').value || '0',
+            mesa: document.getElementById('mesa').value || '0', // Se guarda en la columna mesa
             created_at: new Date()
         };
 
@@ -103,14 +95,14 @@
         if (error) {
             Swal.fire('ERROR', error.message, 'error');
         } else {
-            Swal.fire('¡LISTO!', 'REGISTRO GUARDADO', 'success');
-            document.getElementById('formCarga').reset();
+            Swal.fire('¡ÉXITO!', 'REGISTRO GUARDADO EN SUPABASE', 'success');
+            document.getElementById('formCali').reset();
         }
         btn.disabled = false;
         btn.innerHTML = 'GUARDAR REGISTRO';
     };
 
-    window.onload = cargarPuestos;
+    window.onload = cargar;
 </script>
 </body>
 </html>
