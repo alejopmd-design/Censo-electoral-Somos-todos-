@@ -3,328 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA DE CAPTACIÓN PROFESIONAL | CALI 2026</title>
+    <title>SISTEMA DE CAPTACIÓN | MODO LÍDER</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
-        :root {
-            --primary: #0f172a;
-            --accent: #2563eb;
-            --success: #059669;
-            --danger: #be123c;
-            --bg: #f1f5f9;
-            --panel: #ffffff;
-            --border: #e2e8f0;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background: var(--bg); 
-            color: var(--text-main);
-            line-height: 1.5;
-            padding: 20px;
-            text-transform: uppercase;
-        }
-
-        .main-wrapper {
-            max-width: 600px;
-            margin: 40px auto;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .glass-header {
-            background: var(--primary);
-            color: white;
-            padding: 30px;
-            border-radius: 20px 20px 0 0;
-            text-align: center;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .glass-header h1 {
-            font-weight: 900;
-            font-size: 1.4rem;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
-        }
-
-        .glass-header p {
-            font-size: 0.75rem;
-            font-weight: 600;
-            opacity: 0.8;
-            letter-spacing: 2px;
-        }
-
-        .form-container {
-            background: var(--panel);
-            padding: 40px;
-            border-radius: 0 0 20px 20px;
-            border: 1px solid var(--border);
-            border-top: none;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-
-        .section-label {
-            font-size: 0.7rem;
-            font-weight: 900;
-            color: var(--accent);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-label::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: var(--border);
-        }
-
-        .grid-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        label {
-            display: block;
-            font-size: 0.65rem;
-            font-weight: 800;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-            padding-left: 5px;
-        }
-
-        .req-star { color: var(--danger); margin-left: 3px; }
-
-        input, select {
-            width: 100%;
-            padding: 14px 18px;
-            border-radius: 12px;
-            border: 2px solid var(--border);
-            background: #f8fafc;
-            font-family: 'Inter', sans-serif;
-            font-weight: 700;
-            font-size: 0.9rem;
-            color: var(--primary);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
-            background: white;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-        }
-
-        .btn-submit {
-            width: 100%;
-            background: var(--accent);
-            color: white;
-            padding: 20px;
-            border: none;
-            border-radius: 14px;
-            font-weight: 900;
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 20px -3px rgba(37, 99, 235, 0.4);
-            filter: brightness(1.1);
-        }
-
-        .btn-submit:active { transform: translateY(0); }
-
-        .btn-submit:disabled {
-            background: var(--text-muted);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .status-footer {
-            margin-top: 30px;
-            text-align: center;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.65rem;
-            color: var(--text-muted);
-        }
-
-        /* Estilos personalizados para SweetAlert */
-        .swal2-popup { border-radius: 20px !important; font-family: 'Inter' !important; text-transform: uppercase !important; }
+        :root { --primary: #0f172a; --accent: #2563eb; --success: #059669; --bg: #f1f5f9; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; text-transform: uppercase; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
+        .input-group { text-align: left; margin-bottom: 12px; }
+        label { display: block; font-size: 11px; font-weight: 800; margin-bottom: 4px; color: #64748b; }
+        input { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-weight: 700; box-sizing: border-box; text-transform: uppercase; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.3s; color: white; margin-top: 10px; text-transform: uppercase; }
+        .btn-login { background: var(--primary); }
+        .btn-save { background: var(--success); }
+        .btn-excel { background: var(--accent); }
+        .btn-template { background: #64748b; font-size: 11px; padding: 10px; margin-bottom: 5px; }
+        #seccionFormulario { display: none; }
+        .info-lider { background: #f8fafc; padding: 10px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #e2e8f0; color: var(--accent); font-size: 12px; font-weight: 900; }
+        #logErrores { background: #fff5f5; color: #c0392b; border: 1px solid #f5c6cb; padding: 15px; border-radius: 10px; margin-top: 15px; font-size: 11px; text-align: left; display: none; max-height: 200px; overflow-y: auto; }
     </style>
 </head>
 <body>
 
-<div class="main-wrapper">
-    <div class="glass-header">
-        <p><i class="fas fa-shield-halved"></i> COMMAND CENTER 2026</p>
-        <h1>CAPTACIÓN TERRITORIAL</h1>
-    </div>
+<div id="seccionLogin" class="card">
+    <h2 style="font-weight: 900; letter-spacing: -1px;">🔐 ACCESO DE LÍDER</h2>
+    <input type="password" id="passLogin" placeholder="DIGITA TU CÉDULA" style="text-align: center;">
+    <button class="btn-login" onclick="login()">INGRESAR AL SISTEMA</button>
+</div>
 
-    <div class="form-container">
-        <form id="masterForm">
-            <div class="section-label">IDENTIFICACIÓN BASE</div>
-            
-            <div class="input-group">
-                <label>NOMBRES Y APELLIDOS COMPLETOS <span class="req-star">*</span></label>
-                <input type="text" id="nombre" required placeholder="ESCRIBA EL NOMBRE AQUÍ" autocomplete="off">
-            </div>
+<div id="seccionFormulario" class="card">
+    <div id="txtBienvenida" class="info-lider"></div>
 
-            <div class="grid-row">
-                <div class="input-group">
-                    <label>NÚMERO DE CÉDULA <span class="req-star">*</span></label>
-                    <input type="number" id="cedula" required placeholder="SIN PUNTOS" autocomplete="off">
-                </div>
-                <div class="input-group">
-                    <label>TELÉFONO / WHATSAPP <span class="req-star">*</span></label>
-                    <input type="tel" id="telefono" required placeholder="10 DÍGITOS" autocomplete="off">
-                </div>
-            </div>
-
-            <div class="section-label">UBICACIÓN ELECTORAL</div>
-
-            <div class="input-group">
-                <label>LÍDER RESPONSABLE / REFERENTE</label>
-                <input type="text" id="lider" placeholder="NOMBRE DEL LÍDER O 'DIRECTO'" autocomplete="off">
-            </div>
-
-            <div class="input-group">
-                <label>PUESTO DE VOTACIÓN OFICIAL</label>
-                <select id="puesto">
-                    <option value="">-- SELECCIONE UN LUGAR --</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label><i class="fas fa-list-ol"></i> MESA DE VOTACIÓN</label>
-                <input type="number" id="mesa" placeholder="NÚMERO DE MESA ASIGNADA" autocomplete="off">
-            </div>
-
-            <button type="submit" id="mainBtn" class="btn-submit">
-                <i class="fas fa-cloud-arrow-up"></i> 
-                <span>SINCRONIZAR REGISTRO</span>
-            </button>
-        </form>
-
-        <div class="status-footer">
-            <i class="fas fa-circle-check" style="color: var(--success)"></i> 
-            CONEXIÓN ACTIVA CON SUPABASE CLOUD V2
+    <div style="text-align: left;">
+        <h3 style="font-size: 14px; margin-bottom: 15px; border-left: 4px solid var(--success); padding-left: 10px;">CARGA INDIVIDUAL</h3>
+        
+        <div class="input-group">
+            <label>CÉDULA (NÚMEROS) *</label>
+            <input type="text" id="vCedula" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
+        
+        <div class="input-group">
+            <label>NOMBRE COMPLETO (LETRAS) *</label>
+            <input type="text" id="vNombre" oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑÁÉÍÓÚ ]/g, '')">
+        </div>
+        
+        <div class="input-group">
+            <label>TELÉFONO (NÚMEROS) *</label>
+            <input type="text" id="vTelefono" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        </div>
+        
+        <div class="input-group">
+            <label>PUESTO DE VOTACIÓN (OPCIONAL)</label>
+            <input type="text" id="vPuesto" placeholder="ESCRIBE EL PUESTO" oninput="this.value = this.value.toUpperCase()">
+        </div>
+        
+        <div class="input-group">
+            <label>MESA</label>
+            <input type="text" id="vMesa" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="0">
+        </div>
+
+        <button class="btn-save" onclick="guardarManual()">GUARDAR EN NUBE</button>
     </div>
+
+    <hr style="margin: 30px 0; border: 0; border-top: 2px dashed #e2e8f0;">
+
+    <div style="text-align: left;">
+        <h3 style="font-size: 14px; margin-bottom: 5px; border-left: 4px solid var(--accent); padding-left: 10px;">CARGA MASIVA EXCEL</h3>
+        <button class="btn-template" onclick="descargarPlantilla()">📥 DESCARGAR PLANTILLA</button>
+        <input type="file" id="inputExcel" accept=".xlsx, .xls">
+        <button class="btn-excel" onclick="procesarExcel()">🚀 PROCESAR EXCEL</button>
+        <div id="progreso" style="font-weight: 900; color: var(--accent); margin-top: 10px; font-size: 12px;"></div>
+    </div>
+
+    <div id="logErrores"></div>
 </div>
 
 <script>
-    // CREDENCIALES DE ACCESO
-    const SB_URL = 'https://pmwlkdariynhaqbqursp.supabase.co';
-    const SB_KEY = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
-    const _supabase = supabase.createClient(SB_URL, SB_KEY);
+    const URL_S = 'https://pmwlkdariynhaqbqursp.supabase.co';
+    const KEY_S = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
+    const _supabase = supabase.createClient(URL_S, KEY_S);
+    let usuarioActivo = null;
 
-    // INICIALIZACIÓN DE DATOS
-    async function setupSystem() {
-        try {
-            const { data, error } = await _supabase
-                .from('PUESTOS_VOTACION')
-                .select('nombre_puesto')
-                .order('nombre_puesto', { ascending: true });
-
-            if (error) throw error;
-
-            const selector = document.getElementById('puesto');
-            data.forEach(item => {
-                const opt = document.createElement('option');
-                opt.value = item.nombre_puesto;
-                opt.textContent = item.nombre_puesto;
-                selector.appendChild(opt);
-            });
-            console.log("Sistema Sincronizado");
-        } catch (err) {
-            console.error("Fallo de red:", err.message);
+    async function login() {
+        const pass = document.getElementById('passLogin').value;
+        if(!pass) return;
+        Swal.fire({ title: 'VALIDANDO...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        const { data } = await _supabase.from('VOTANTES').select('*').eq('cedula', pass).maybeSingle();
+        Swal.close();
+        if (data) {
+            usuarioActivo = data;
+            document.getElementById('seccionLogin').style.display = 'none';
+            document.getElementById('seccionFormulario').style.display = 'block';
+            document.getElementById('txtBienvenida').innerText = "👤 LÍDER: " + data["Nombres y apellidos"].toUpperCase();
+        } else {
+            Swal.fire('ERROR', 'CÉDULA NO AUTORIZADA', 'error');
         }
     }
 
-    // PROCESAMIENTO DE REGISTRO
-    document.getElementById('masterForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const btn = document.getElementById('mainBtn');
-        const originalContent = btn.innerHTML;
-        
-        // Bloqueo de UI
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-sync fa-spin"></i> PROCESANDO...';
-
-        const payload = {
-            cedula: document.getElementById('cedula').value,
-            "Nombres y apellidos": document.getElementById('nombre').value.toUpperCase().trim(),
-            telefono: document.getElementById('telefono').value,
-            lider: document.getElementById('lider').value.toUpperCase().trim() || 'DIRECTO',
-            puesto: document.getElementById('puesto').value,
-            mesa: document.getElementById('mesa').value || '0',
-            created_at: new Date()
+    // CARGA INDIVIDUAL CON DETECCIÓN DE DUPLICADOS
+    async function guardarManual() {
+        const d = {
+            cedula: document.getElementById('vCedula').value.trim(),
+            "Nombres y apellidos": document.getElementById('vNombre').value.toUpperCase().trim(),
+            telefono: document.getElementById('vTelefono').value.trim(),
+            puesto: document.getElementById('vPuesto').value.toUpperCase().trim() || "POR ASIGNAR",
+            mesa: document.getElementById('vMesa').value || "0",
+            lider: usuarioActivo["Nombres y apellidos"].toUpperCase()
         };
-
-        try {
-            const { error } = await _supabase.from('VOTANTES').insert([payload]);
-
-            if (error) throw error;
-
-            // Alerta Pro
-            await Swal.fire({
-                icon: 'success',
-                title: 'Sincronización Exitosa',
-                text: 'El registro se ha subido a la base de datos correctamente.',
-                confirmButtonColor: '#2563eb',
-                timer: 2000
-            });
-
-            document.getElementById('masterForm').reset();
-
-        } catch (fail) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error de Sincronización',
-                text: 'Hubo un fallo: ' + fail.message,
-                confirmButtonColor: '#be123c'
-            });
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = originalContent;
+        
+        if(!d.cedula || !d["Nombres y apellidos"] || !d.telefono) {
+            return Swal.fire('AVISO', 'LLENA LOS CAMPOS OBLIGATORIOS', 'warning');
         }
-    });
 
-    window.onload = setupSystem;
+        const { error } = await _supabase.from('VOTANTES').insert([d]);
+        
+        if(error) {
+            if(error.code === '23505') { // ERROR DE DUPLICADO EN POSTGRES
+                Swal.fire('DUPLICADO', `LA CÉDULA ${d.cedula} YA ESTÁ REGISTRADA`, 'error');
+            } else {
+                Swal.fire('ERROR', error.message, 'error');
+            }
+        } else {
+            Swal.fire('ÉXITO', 'GUARDADO', 'success'); 
+            document.querySelectorAll('#seccionFormulario input:not([type="file"])').forEach(i => i.value = "");
+        }
+    }
+
+    function descargarPlantilla() {
+        const data = [["CEDULA", "NOMBRE", "TELEFONO", "PUESTO", "MESA"]];
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "PLANTILLA");
+        XLSX.writeFile(wb, "PLANTILLA_CARGA.xlsx");
+    }
+
+    // CARGA MASIVA CON DETECCIÓN DE DUPLICADOS FILA POR FILA
+    async function procesarExcel() {
+        const file = document.getElementById('inputExcel').files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const wb = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+            const registros = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+            Swal.fire({ title: 'CARGANDO...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            let exitos = 0, duplicados = 0, otrosErrores = 0;
+            const log = document.getElementById('logErrores');
+            log.style.display = 'none'; log.innerHTML = "<b>INFORME DE NO CARGADOS:</b><br>";
+
+            for (let r of registros) {
+                const cLimpia = String(r.cedula || r.CEDULA || "").replace(/[^0-9]/g, '');
+                const tLimpio = String(r.telefono || r.TELEFONO || "").replace(/[^0-9]/g, '');
+                const nLimpio = String(r.nombre || r.NOMBRE || r.nombre_completo || "").toUpperCase().replace(/[^A-ZÑÁÉÍÓÚ ]/g, '');
+
+                if(!cLimpia || !nLimpio) { otrosErrores++; continue; }
+
+                const fila = {
+                    cedula: cLimpia,
+                    "Nombres y apellidos": nLimpio,
+                    telefono: tLimpio || "0",
+                    puesto: String(r.puesto || r.PUESTO || "POR ASIGNAR").toUpperCase(),
+                    mesa: String(r.mesa || r.MESA || "0").replace(/[^0-9]/g, ''),
+                    lider: usuarioActivo["Nombres y apellidos"].toUpperCase()
+                };
+
+                const { error } = await _supabase.from('VOTANTES').insert([fila]);
+                
+                if(error) {
+                    log.style.display = 'block';
+                    if(error.code === '23505') {
+                        duplicados++;
+                        log.innerHTML += `⚠️ DUPLICADO: ${fila.cedula}<br>`;
+                    } else {
+                        otrosErrores++;
+                        log.innerHTML += `❌ ERROR EN ${fila.cedula}: ${error.message}<br>`;
+                    }
+                } else {
+                    exitos++;
+                }
+                document.getElementById('progreso').innerText = `PROCESANDO: ${exitos + duplicados + otrosErrores} / ${registros.length}`;
+            }
+            Swal.close();
+            Swal.fire('CARGA FINALIZADA', `ÉXITO: ${exitos}\nDUPLICADOS: ${duplicados}\nERRORES: ${otrosErrores}`, 'info');
+        };
+        reader.readAsArrayBuffer(file);
+    }
 </script>
 </body>
 </html>
