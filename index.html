@@ -1,2 +1,423 @@
-CODE 404 NOT FUND 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MOVILIZACIÓN | DÍA D</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --primary: #0f172a;
+            --accent: #2563eb;
+            --success: #059669;
+            --text: #334155;
+            --card: #ffffff;
+        }
 
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 20px; }
+
+        /* --- PANTALLA DE LOGIN --- */
+        #login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+            background: var(--primary);
+            color: white;
+            text-align: center;
+        }
+
+        .login-box {
+            background: rgba(255,255,255,0.1);
+            padding: 30px 20px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+        }
+
+        .login-box i { font-size: 50px; color: #38bdf8; margin-bottom: 15px; }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: none;
+            font-size: 16px;
+            margin: 20px 0;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .btn-ingresar {
+            width: 100%;
+            background: var(--accent);
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        /* --- PANTALLA PRINCIPAL (APP) --- */
+        #app-screen { display: none; }
+
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h2 { font-size: 15px; margin-bottom: 5px; color: #94a3b8; text-transform: uppercase; }
+        .progress-bar-container { background: rgba(255,255,255,0.2); height: 8px; border-radius: 5px; margin-top: 10px; overflow: hidden; }
+        .progress-bar { background: #38bdf8; height: 100%; width: 0%; transition: 0.5s; }
+
+        .controls {
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .search-box { flex: 2; position: relative; }
+        .search-box i { position: absolute; left: 15px; top: 12px; color: #94a3b8; }
+        .search-box input { width: 100%; padding: 10px 10px 10px 40px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 15px; }
+
+        .sort-box { flex: 1; }
+        .sort-box select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; font-size: 14px; font-weight: 600; }
+
+        /* --- LISTA DE VOTANTES --- */
+        .voter-list { padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+
+        .voter-card {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid #cbd5e1;
+        }
+
+        .voter-card.voted { border-left-color: var(--success); opacity: 0.8; }
+
+        .voter-info { flex: 1; padding-right: 10px; }
+        .voter-info h3 { font-size: 15px; margin-bottom: 4px; color: var(--primary); }
+        .voter-info p { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+        .voter-info p strong { color: #475569; }
+
+        .phone-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #eff6ff;
+            color: var(--accent);
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 800;
+            border: 1px solid #bfdbfe;
+            margin-top: 3px;
+        }
+
+        .btn-votar {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-votar.voted {
+            background: var(--success);
+            cursor: not-allowed;
+        }
+        
+        .btn-votar.locked {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <i class="fas fa-id-card"></i>
+            <h2>INGRESO LÍDERES</h2>
+            <p style="font-size: 13px; color: #cbd5e1; margin-top: 5px;">Digite su número de cédula</p>
+            <input type="number" id="cedulaLider" placeholder="Cédula sin puntos...">
+            <button class="btn-ingresar" onclick="ingresar()">ENTRAR <i class="fas fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <div id="app-screen">
+        <div class="header">
+            <h2 id="liderName">Líder</h2>
+            <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                <span>Votos en las urnas:</span>
+                <span id="progressText" style="font-weight: 800;">0 / 0</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="buscador" placeholder="Buscar nombre o cédula..." onkeyup="renderizarLista()">
+            </div>
+            <div class="sort-box">
+                <select id="ordenar" onchange="renderizarLista()">
+                    <option value="estado">Faltantes</option>
+                    <option value="nombre">Orden A-Z</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="voter-list" id="listaVotantes">
+            </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // CREDENCIALES EXACTAS
+        // ==========================================
+        const URL_S = 'https://pmwlkdariynhaqbqursp.supabase.co';
+        const KEY_S = 'sb_publishable_zCu9cBa2qf9HqQuZ2YufzA_yTmwfiHv';
+        const _supabase = supabase.createClient(URL_S, KEY_S);
+
+        // ==========================================
+        // CONFIGURACIÓN DEL CANDADO DE TIEMPO
+        // ==========================================
+        const HORA_APERTURA = new Date('2026-03-08T08:15:00-05:00'); 
+
+        let misVotantes = [];
+        let nombreActual = '';
+
+        // Función para quitar tildes y caracteres especiales
+        const normalizar = (txt) => (txt || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
+
+        async function ingresar() {
+            const inputCedula = document.getElementById('cedulaLider').value.trim();
+            if(!inputCedula) return Swal.fire('Atención', 'Debes escribir tu número de cédula', 'warning');
+
+            Swal.fire({ title: 'Sincronizando registros...', text: 'Buscando coincidencias inteligentes', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            try {
+                // 1. Validar cédula en LIDERES
+                const { data: dataLider, error: errorLider } = await _supabase
+                    .from('LIDERES')
+                    .select('nombre')
+                    .eq('cedula', inputCedula);
+
+                if (errorLider) throw new Error("Error en LIDERES: " + errorLider.message);
+
+                if (!dataLider || dataLider.length === 0) {
+                    Swal.fire('Acceso Denegado', 'Esta cédula no está autorizada como líder.', 'error');
+                    return;
+                }
+
+                // Extraemos el nombre oficial y lo preparamos para búsqueda flexible
+                const nombreOficial = dataLider[0].nombre;
+                const nombreOficialNorm = normalizar(nombreOficial);
+                const palOficiales = nombreOficialNorm.split(' ').filter(p => p.length > 2);
+
+                // 2. Traer TODOS LOS VOTANTES (AHORA INCLUYE TELEFONO)
+                let todosVotantes = [];
+                let vDesde = 0; let vHasta = 999; let fetching = true;
+
+                while (fetching) {
+                    const { data, error } = await _supabase.from('VOTANTES').select('id, cedula, "Nombres y apellidos", telefono, puesto, mesa, voto_realizado, lider').range(vDesde, vHasta);
+                    if (error) throw new Error("Falla de red al descargar.");
+                    todosVotantes = todosVotantes.concat(data);
+                    if (data.length < 1000) fetching = false;
+                    else { vDesde += 1000; vHasta += 1000; }
+                }
+
+                // 3. FILTRO INTELIGENTE LOCAL
+                const votantesDelLider = todosVotantes.filter(v => {
+                    const liderVotante = normalizar(v.lider);
+                    if (!liderVotante || liderVotante === 'SIN LIDER') return false;
+                    
+                    if (liderVotante === nombreOficialNorm) return true;
+                    if (liderVotante.includes(nombreOficialNorm) || nombreOficialNorm.includes(liderVotante)) return true;
+                    
+                    const palVotante = liderVotante.split(' ').filter(p => p.length > 2);
+                    
+                    if (palVotante.length === 1 || palOficiales.length === 1) {
+                        return palOficiales.some(p => palVotante.includes(p));
+                    }
+                    
+                    let coincidencias = 0;
+                    for(let p of palOficiales) {
+                        if(palVotante.includes(p)) coincidencias++;
+                    }
+                    return coincidencias >= 2;
+                });
+
+                if (votantesDelLider.length === 0) {
+                    Swal.fire('Sin registros', `Hola ${nombreOficial}, el sistema no encontró referidos a tu nombre.`, 'info');
+                    return;
+                }
+
+                // 4. Iniciar App
+                misVotantes = votantesDelLider;
+                nombreActual = nombreOficial;
+                
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-screen').style.display = 'block';
+                document.getElementById('liderName').innerText = `Líder: ${nombreOficial}`;
+                
+                Swal.close();
+                renderizarLista();
+
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Error de Conexión', 'Hubo un problema de red. Intenta de nuevo.', 'error');
+            }
+        }
+
+        function renderizarLista() {
+            const buscador = document.getElementById('buscador').value.toUpperCase();
+            const ordenar = document.getElementById('ordenar').value;
+            const contenedor = document.getElementById('listaVotantes');
+            
+            // Verificar si ya pasaron las 8:15 AM
+            const tiempoActual = new Date();
+            const eleccionAbierta = tiempoActual >= HORA_APERTURA;
+
+            let filtrados = misVotantes.filter(v => 
+                (v['Nombres y apellidos'] || '').toUpperCase().includes(buscador) || 
+                (v.cedula || '').includes(buscador)
+            );
+
+            if(ordenar === 'nombre') {
+                filtrados.sort((a, b) => (a['Nombres y apellidos'] || '').localeCompare(b['Nombres y apellidos'] || ''));
+            } else if (ordenar === 'estado') {
+                filtrados.sort((a, b) => (a.voto_realizado === b.voto_realizado) ? 0 : a.voto_realizado ? 1 : -1);
+            }
+
+            const total = misVotantes.length;
+            const votaron = misVotantes.filter(v => v.voto_realizado).length;
+            const pct = total === 0 ? 0 : (votaron / total) * 100;
+            
+            document.getElementById('progressText').innerText = `${votaron} / ${total} (${pct.toFixed(1)}%)`;
+            document.getElementById('progressBar').style.width = `${pct}%`;
+
+            contenedor.innerHTML = '';
+            filtrados.forEach(v => {
+                const yaVoto = v.voto_realizado;
+                const card = document.createElement('div');
+                card.className = `voter-card ${yaVoto ? 'voted' : ''}`;
+                
+                // LÓGICA DEL BOTÓN SEGÚN LA HORA
+                let botonHTML = '';
+                if (yaVoto) {
+                    botonHTML = `<button class="btn-votar voted" disabled><i class="fas fa-check-double"></i> LISTO</button>`;
+                } else if (!eleccionAbierta) {
+                    botonHTML = `<button class="btn-votar locked" onclick="alertaCandado()"><i class="fas fa-lock"></i> 8:15 AM</button>`;
+                } else {
+                    botonHTML = `<button class="btn-votar" onclick="marcarVoto(${v.id}, this)">YA VOTÓ</button>`;
+                }
+
+                // LÓGICA DEL TELÉFONO (Validar si existe y no es "0")
+                let htmlTelefono = '';
+                if (v.telefono && v.telefono.toString().trim() !== '' && v.telefono.toString() !== '0') {
+                    htmlTelefono = `<a href="tel:${v.telefono}" class="phone-link"><i class="fas fa-phone-alt"></i> ${v.telefono}</a>`;
+                } else {
+                    htmlTelefono = `<span style="color:#94a3b8; font-size:12px; display:inline-block; margin-top:3px;"><i class="fas fa-phone-slash"></i> Sin teléfono</span>`;
+                }
+                
+                card.innerHTML = `
+                    <div class="voter-info">
+                        <h3>${v['Nombres y apellidos'] || 'SIN NOMBRE'}</h3>
+                        <p><strong>C.C:</strong> ${v.cedula || 'N/A'}</p>
+                        <p><i class="fas fa-map-marker-alt" style="color:#ef4444;"></i> <strong>Puesto:</strong> ${v.puesto || 'POR ASIGNAR'}</p>
+                        <p><i class="fas fa-person-booth" style="color:#2563eb;"></i> <strong>Mesa:</strong> ${v.mesa || 'No asignada'}</p>
+                        ${htmlTelefono}
+                    </div>
+                    ${botonHTML}
+                `;
+                contenedor.appendChild(card);
+            });
+        }
+
+        function alertaCandado() {
+            Swal.fire({
+                title: 'Aún no es hora',
+                text: 'El registro de votos se habilitará automáticamente mañana a las 8:15 AM.',
+                icon: 'info',
+                confirmButtonColor: '#2563eb'
+            });
+        }
+
+        function marcarVoto(idVotante, btnElement) {
+            Swal.fire({
+                title: '¿Confirmar voto?',
+                text: "Quedará registrado que esta persona ya depositó su voto en las urnas.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Sí, ya votó',
+                cancelButtonText: 'Cancelar'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    
+                    btnElement.disabled = true;
+                    btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                    try {
+                        const { error } = await _supabase
+                            .from('VOTANTES')
+                            .update({ voto_realizado: true })
+                            .eq('id', idVotante);
+
+                        if (error) throw new Error(error.message);
+
+                        const index = misVotantes.findIndex(v => v.id === idVotante);
+                        if(index !== -1) misVotantes[index].voto_realizado = true;
+                        
+                        renderizarLista();
+                    } catch (error) {
+                        Swal.fire('Error', 'Fallo al guardar. Revisa tu conexión a internet.', 'error');
+                        renderizarLista();
+                    }
+                }
+            });
+        }
+
+        // Reloj automático para refrescar a las 8:15 AM
+        setInterval(() => {
+            if (document.getElementById('app-screen').style.display === 'block') {
+                renderizarLista();
+            }
+        }, 60000); 
+    </script>
+</body>
+</html>
